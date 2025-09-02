@@ -2,13 +2,14 @@ class Evaluator:
 
     def ev_file(self, file_path):
         file = open(file_path)
-        lines = [x for x in file.read().split("\n") if x.rstrip() != ""]  # Get all lines, which are not empty
+        lines = [x for x in file.read().split("\n") if x.strip() != ""]  # Get all lines, which are not empty
         
         self.variables = {}
         programm_counter = 0 # The line counter
 
         while programm_counter < len(lines):
             line = lines[programm_counter]
+            line = line.split("#")[0]
 
             match line.split(maxsplit=1)[0]: # Get the first word
                 case "while":
@@ -69,6 +70,13 @@ class Evaluator:
                     stack.append(lhs > rhs)
                 elif token == ">=":
                     stack.append(lhs >= rhs)
+                
+                elif token == "and":
+                    stack.append(lhs and rhs)
+                elif token == "or":
+                    stack.append(lhs or rhs)
+
+
 
                 i += 1
 

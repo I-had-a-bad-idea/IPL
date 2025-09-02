@@ -1,7 +1,7 @@
-n = 13
-r = 1
+x = 0
+y = 10
 
-while n >= 1
-    r = r * n
-    n = n - 1
+while x < 5 and y > 5    # this is a comment
+    x = x + 1
+    y = y - 1
 end
