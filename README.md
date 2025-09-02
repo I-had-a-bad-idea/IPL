@@ -1,2 +1,6 @@
 # Interpreted-Programming-Language
-A try at making a small programming language with the basic features
+A small programming language with the basic features
+
+
+This is not a good programming language! I only made this to learn and have fun!
+

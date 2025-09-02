@@ -1,7 +1,7 @@
-n = 5
+n = 13
 r = 1
 
-while n >= 1:
+while n >= 1
     r = r * n
     n = n - 1
 end
