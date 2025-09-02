@@ -4,22 +4,39 @@ class Evaluator:
         file = open(file_path)
         lines = file.read().split("\n")
         
-        for line in lines:
-            if line.strip() != "":
-                self.ev_line(line)
+        self.variables = {}
 
-    def ev_line(self, line):
+        for line in lines:
+            if line.strip() == "":
+                continue
+
+            variable_name, expr = line.split("=", maxsplit=2)
+            variable_name = variable_name.strip()
+            self.variables[variable_name] = self.ev_expr(expr)
+            print(f"variables {self.variables}")
+
+
+    def ev_expr(self, line):
         tokens = line.split()
         stack = []
         i = 0
-        while i < len(tokens) - 1:
-            if tokens[i].isdigit():
-                stack.append(tokens[i])
-            elif tokens[i] == "+":
-                lhs = stack.pop()
-                rhs = tokens.pop(i + 1)
-                stack.append(float(lhs) + float(rhs))
+        while i < len(tokens):
+            print(f"at index {i} the stack is {stack} with tokens {tokens}")
+            token = tokens[i]
+            if token.isdigit():
+                stack.append(token)
+            elif token in self.variables:
+                stack.append(self.variables[token])
+            elif token == "+":
+                lhs = float(stack.pop())
+                rhs = tokens[i + 1]
+                if rhs.isdigit():
+                    rhs = float(tokens[i + 1])
+                else:
+                    rhs = float(self.variables[tokens[i + 1]])
+                stack.append(lhs + rhs)
+                i += 1
 
             i += 1
 
-        print(stack)
+        return stack[0]
