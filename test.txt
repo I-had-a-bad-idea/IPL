@@ -1,2 +1,7 @@
-x = 3 + 4
-y = x + 7
+n = 5
+r = 1
+
+while n >= 1:
+    r = r * n
+    n = n - 1
+end

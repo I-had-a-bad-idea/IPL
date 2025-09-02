@@ -2,18 +2,31 @@ class Evaluator:
 
     def ev_file(self, file_path):
         file = open(file_path)
-        lines = file.read().split("\n")
+        lines = [x for x in file.read().split("\n") if x.strip() != ""]
         
         self.variables = {}
+        programm_counter = 0
 
-        for line in lines:
-            if line.strip() == "":
-                continue
+        while programm_counter < len(lines):
+            line = lines[programm_counter]
 
-            variable_name, expr = line.split("=", maxsplit=2)
-            variable_name = variable_name.strip()
-            self.variables[variable_name] = self.ev_expr(expr)
-            print(f"variables {self.variables}")
+            match line.split(maxsplit=1)[0]:
+                case "while":
+                    if self.ev_expr(line.split(maxsplit=1)[1].rstrip(":")) == True:
+                        programm_counter += 1
+                    else:
+                        while lines[programm_counter].split(maxsplit=1)[0] != "end":
+                            programm_counter += 1
+                        programm_counter += 1
+                case "end":
+                    while(lines[programm_counter].split(maxsplit=1)[0] != "while"):
+                        programm_counter -= 1
+                case _:
+                    variable_name, expr = line.split("=", maxsplit=2)
+                    variable_name = variable_name.strip()
+                    self.variables[variable_name] = self.ev_expr(expr)
+                    programm_counter += 1
+        print(f"variables {self.variables}")
 
 
     def ev_expr(self, line):
@@ -27,14 +40,26 @@ class Evaluator:
                 stack.append(token)
             elif token in self.variables:
                 stack.append(self.variables[token])
-            elif token == "+":
+            else:
                 lhs = float(stack.pop())
                 rhs = tokens[i + 1]
                 if rhs.isdigit():
                     rhs = float(tokens[i + 1])
                 else:
                     rhs = float(self.variables[tokens[i + 1]])
-                stack.append(lhs + rhs)
+                
+                if token == "+":
+                    stack.append(lhs + rhs)
+                elif token == "-":
+                    stack.append(lhs - rhs)
+                elif token == "*":
+                    stack.append(lhs * rhs)
+                elif token == "/":
+                    stack.append(lhs / rhs)
+                
+                elif token == ">=":
+                        stack.append(lhs >= rhs)
+
                 i += 1
 
             i += 1
