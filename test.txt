@@ -1,6 +1,8 @@
-x = 0
+x = 5
 y = 10
+z = 3
 
-while x < 5 and y > 5    # this is a comment
-    x = x + 1
-    y = y - 1
+if x == 6
+    z = x * x
+
+y = 6

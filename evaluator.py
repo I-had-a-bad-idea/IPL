@@ -18,6 +18,15 @@ class Evaluator:
 
             indentation = len(line) - len(line.lstrip())
 
+            if indentation <= indentation_stack[-1][1]:
+                if indentation_stack[-1][0] == "while":
+                    while lines[programm_counter].split(maxsplit=1)[0] != "while":
+                        programm_counter -= 1
+                    indentation_stack.pop()
+                    continue
+                if indentation_stack[-1][0] == "if":
+                    indentation_stack.pop()
+
             match line.split(maxsplit=1)[0]: # Get the first word
                 case "while":
                     if self.ev_expr(line.split(maxsplit=1)[1]) == True:
@@ -28,15 +37,18 @@ class Evaluator:
                         while len(lines[programm_counter]) - len(lines[programm_counter].lstrip()) > indentation_stack[-1][1]:
                             programm_counter += 1 # Go forward until end of loop
                         programm_counter += 1 # Go to next line
+                
+                case "if":
+                    if self.ev_expr(line.split(maxsplit=1)[1]) == True:
+                        programm_counter += 1 # Enter if statement
+                        indentation_stack.append(("if", indentation))
+                    else:
+                        programm_counter += 1 # Enter statement body
+                        while len(lines[programm_counter]) - len(lines[programm_counter].lstrip()) > indentation_stack[-1][1]:
+                            programm_counter += 1 # Skip if statement
+                        programm_counter += 1 # Go to next line (outside statement)
 
                 case _:
-                    if indentation <= indentation_stack[-1][1]:
-                        if indentation_stack[-1][0] == "while":
-                            while lines[programm_counter].split(maxsplit=1)[0] != "while":
-                                programm_counter -= 1
-                            indentation_stack.pop()
-                            continue
-                    
                     if line == "End of file":
                         break
 
