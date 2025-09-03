@@ -1,3 +1,7 @@
+
+def get_indentation(line):
+    return len(line) - len(line.lstrip())
+
 class Evaluator:
 
 
@@ -16,7 +20,7 @@ class Evaluator:
             line = lines[programm_counter]
             line = line.split("#")[0]   # Ignore comments
 
-            indentation = len(line) - len(line.lstrip())
+            indentation = get_indentation(line)
 
             if indentation <= indentation_stack[-1][1]:
                 if indentation_stack[-1][0] == "while":
@@ -34,7 +38,7 @@ class Evaluator:
                         indentation_stack.append(("while", indentation))
                     else:
                         programm_counter += 1  # Enter loop body
-                        while len(lines[programm_counter]) - len(lines[programm_counter].lstrip()) > indentation_stack[-1][1]:
+                        while get_indentation(lines[programm_counter]) > indentation_stack[-1][1]:
                             programm_counter += 1 # Go forward until end of loop
                 
                 case "if":
@@ -43,8 +47,11 @@ class Evaluator:
                         indentation_stack.append(("if", indentation))
                     else:
                         programm_counter += 1 # Enter statement body
-                        while len(lines[programm_counter]) - len(lines[programm_counter].lstrip()) > indentation_stack[-1][1]:
+                        while get_indentation(lines[programm_counter]) > indentation_stack[-1][1]:
                             programm_counter += 1 # Skip if statement
+                        if lines[programm_counter].split(maxsplit=1)[0] == "else" and get_indentation(lines[programm_counter]) == indentation:
+                            programm_counter += 1
+                            indentation_stack.append(("else", indentation))
 
                 case _:
                     if line == "End of file":
