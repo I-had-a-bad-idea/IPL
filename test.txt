@@ -4,5 +4,3 @@ y = 10
 while x < 5 and y > 5    # this is a comment
     x = x + 1
     y = y - 1
-
-z = x

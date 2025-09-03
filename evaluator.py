@@ -5,6 +5,8 @@ class Evaluator:
         file = open(file_path)
         lines = [x for x in file.read().split("\n") if x.rstrip() != ""]  # Get all lines, which are not empty
         
+        lines.append("End of file")
+
         self.variables = {}
         programm_counter = 0 # The line counter
 
@@ -19,12 +21,14 @@ class Evaluator:
             match line.split(maxsplit=1)[0]: # Get the first word
                 case "while":
                     if self.ev_expr(line.split(maxsplit=1)[1]) == True:
-                        programm_counter += 1
+                        programm_counter += 1 # Enter loop body
                         indentation_stack.append(("while", indentation))
                     else:
-                        while len(lines[programm_counter]) - len(lines[programm_counter].rstrip()) > indentation_stack[-1][1]:
-                            programm_counter += 1
-                        programm_counter += 1
+                        programm_counter += 1  # Enter loop body
+                        while len(lines[programm_counter]) - len(lines[programm_counter].lstrip()) > indentation_stack[-1][1]:
+                            programm_counter += 1 # Go forward until end of loop
+                        programm_counter += 1 # Go to next line
+
                 case _:
                     if indentation <= indentation_stack[-1][1]:
                         if indentation_stack[-1][0] == "while":
@@ -33,6 +37,9 @@ class Evaluator:
                             indentation_stack.pop()
                             continue
                     
+                    if line == "End of file":
+                        break
+
                     variable_name, expr = line.split("=", maxsplit=2)
                     variable_name = variable_name.strip()
                     self.variables[variable_name] = self.ev_expr(expr)
