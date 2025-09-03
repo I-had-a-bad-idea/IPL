@@ -28,8 +28,12 @@ class Evaluator:
                         programm_counter -= 1
                     indentation_stack.pop()
                     continue
-                if indentation_stack[-1][0] == "if":
+                elif indentation_stack[-1][0] == "if":
                     indentation_stack.pop()
+                    
+                elif indentation_stack[-1][0] == "else":
+                    indentation_stack.pop()
+
 
             match line.split(maxsplit=1)[0]: # Get the first word
                 case "while":
@@ -52,7 +56,10 @@ class Evaluator:
                         if lines[programm_counter].split(maxsplit=1)[0] == "else" and get_indentation(lines[programm_counter]) == indentation:
                             programm_counter += 1
                             indentation_stack.append(("else", indentation))
-
+                case "else":
+                    programm_counter += 1
+                    while get_indentation(lines[programm_counter]) > indentation_stack[-1][1]:
+                        programm_counter += 1
                 case _:
                     if line == "End of file":
                         break

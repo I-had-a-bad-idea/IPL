@@ -5,8 +5,11 @@ z = 3
 while x < 10
     x = x + 1
 
-if x == 9
-    z = x * x
+if x == 10
+    if z == 4
+        z = x * x
+    else
+        z = 3
 else
     z = x / x
 
