@@ -36,7 +36,6 @@ class Evaluator:
                         programm_counter += 1  # Enter loop body
                         while len(lines[programm_counter]) - len(lines[programm_counter].lstrip()) > indentation_stack[-1][1]:
                             programm_counter += 1 # Go forward until end of loop
-                        programm_counter += 1 # Go to next line
                 
                 case "if":
                     if self.ev_expr(line.split(maxsplit=1)[1]) == True:
@@ -46,7 +45,6 @@ class Evaluator:
                         programm_counter += 1 # Enter statement body
                         while len(lines[programm_counter]) - len(lines[programm_counter].lstrip()) > indentation_stack[-1][1]:
                             programm_counter += 1 # Skip if statement
-                        programm_counter += 1 # Go to next line (outside statement)
 
                 case _:
                     if line == "End of file":

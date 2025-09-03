@@ -2,7 +2,10 @@ x = 5
 y = 10
 z = 3
 
-if x == 6
+while x < 10
+    x = x + 1
+
+if x == 10
     z = x * x
 
 y = 6
