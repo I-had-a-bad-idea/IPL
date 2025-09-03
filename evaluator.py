@@ -1,28 +1,38 @@
 class Evaluator:
 
+
     def ev_file(self, file_path):
         file = open(file_path)
-        lines = [x for x in file.read().split("\n") if x.strip() != ""]  # Get all lines, which are not empty
+        lines = [x for x in file.read().split("\n") if x.rstrip() != ""]  # Get all lines, which are not empty
         
         self.variables = {}
         programm_counter = 0 # The line counter
 
+        indentation_stack = [("normal", 0)]
+
         while programm_counter < len(lines):
             line = lines[programm_counter]
-            line = line.split("#")[0]
+            line = line.split("#")[0]   # Ignore comments
+
+            indentation = len(line) - len(line.lstrip())
 
             match line.split(maxsplit=1)[0]: # Get the first word
                 case "while":
                     if self.ev_expr(line.split(maxsplit=1)[1]) == True:
                         programm_counter += 1
+                        indentation_stack.append(("while", indentation))
                     else:
-                        while lines[programm_counter].split(maxsplit=1)[0] != "end":
+                        while len(lines[programm_counter]) - len(lines[programm_counter].rstrip()) > indentation_stack[-1][1]:
                             programm_counter += 1
                         programm_counter += 1
-                case "end":
-                    while(lines[programm_counter].split(maxsplit=1)[0] != "while"):
-                        programm_counter -= 1
                 case _:
+                    if indentation <= indentation_stack[-1][1]:
+                        if indentation_stack[-1][0] == "while":
+                            while lines[programm_counter].split(maxsplit=1)[0] != "while":
+                                programm_counter -= 1
+                            indentation_stack.pop()
+                            continue
+                    
                     variable_name, expr = line.split("=", maxsplit=2)
                     variable_name = variable_name.strip()
                     self.variables[variable_name] = self.ev_expr(expr)
