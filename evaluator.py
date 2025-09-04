@@ -12,56 +12,68 @@ class Evaluator:
         
         self.lines.append("End of file")
 
+        self.indentation_stack = [("normal", 0)]
+
         self.variables = {}
         self.functions = {}
-        programm_counter = 0 # The line counter
+        
+        self.execute_lines(0, len(self.lines))
+        print(f"variables {self.variables}")
 
-        indentation_stack = [("normal", 0)]
+    def execute_lines(self, start_line, end_line):
+        programm_counter = start_line # The line counter
 
-        while programm_counter < len(self.lines):
+        print(f"execute_lines called with start = {start_line}, end = {end_line}")
+
+        while programm_counter < end_line:
             line = self.lines[programm_counter]
             line = line.split("#")[0]   # Ignore comments
 
             indentation = get_indentation(line)
 
-            if indentation <= indentation_stack[-1][1]:
-                if indentation_stack[-1][0] == "while":
+            if indentation <= self.indentation_stack[-1][1]:
+                if self.indentation_stack[-1][0] == "while":
                     while self.lines[programm_counter].split(maxsplit=1)[0] != "while":
                         programm_counter -= 1
-                    indentation_stack.pop()
+                    self.indentation_stack.pop()
                     continue
-                elif indentation_stack[-1][0] == "if":
-                    indentation_stack.pop()
+                elif self.indentation_stack[-1][0] == "if":
+                    self.indentation_stack.pop()
                     
-                elif indentation_stack[-1][0] == "else":
-                    indentation_stack.pop()
+                elif self.indentation_stack[-1][0] == "else":
+                    self.indentation_stack.pop()
 
 
             match line.split(maxsplit=1)[0]: # Get the first word
                 case "while":
                     if self.ev_expr(line.split(maxsplit=1)[1]) == True:
                         programm_counter += 1 # Enter loop body
-                        indentation_stack.append(("while", indentation))
+                        self.indentation_stack.append(("while", indentation))
                     else:
                         programm_counter += 1  # Enter loop body
-                        while get_indentation(self.lines[programm_counter]) > indentation_stack[-1][1]:
+                        while get_indentation(self.lines[programm_counter]) > self.indentation_stack[-1][1]:
                             programm_counter += 1 # Go forward until end of loop
                 
                 case "if":
                     if self.ev_expr(line.split(maxsplit=1)[1]) == True:
                         programm_counter += 1 # Enter if statement
-                        indentation_stack.append(("if", indentation))
+                        self.indentation_stack.append(("if", indentation))
                     else:
                         programm_counter += 1 # Enter statement body
-                        while get_indentation(self.lines[programm_counter]) > indentation_stack[-1][1]:
+                        while get_indentation(self.lines[programm_counter]) > self.indentation_stack[-1][1]:
                             programm_counter += 1 # Skip if statement
                         if self.lines[programm_counter].split(maxsplit=1)[0] == "else" and get_indentation(self.lines[programm_counter]) == indentation:
                             programm_counter += 1
-                            indentation_stack.append(("else", indentation))
+                            self.indentation_stack.append(("else", indentation))
                 case "else":
                     programm_counter += 1
-                    while get_indentation(self.lines[programm_counter]) > indentation_stack[-1][1]:
+                    while get_indentation(self.lines[programm_counter]) > self.indentation_stack[-1][1]:
                         programm_counter += 1
+                
+                case "return":
+                    expr = line.split("return", maxsplit=1)[1]
+                    print(f"Returning result of {expr}")
+                    return self.ev_expr(expr)
 
                 case "def":
                     function_decleration = line.split(maxsplit=1)[1]
@@ -78,10 +90,11 @@ class Evaluator:
                     if line == "End of file":
                         break
                     
-                    self.ev_line(programm_counter)
-                    programm_counter += 1
-        print(f"variables {self.variables}")
+                    variable_name, expr = line.split("=", maxsplit=1)
+                    variable_name = variable_name.strip()
+                    self.variables[variable_name] = self.ev_expr(expr)
 
+                    programm_counter += 1
 
     def shunting_yard(self, tokens):
         prec = {
@@ -116,16 +129,16 @@ class Evaluator:
                 raise EvaluationError("Mismatched parentheses")
             output.append(stack.pop())
 
-        return output
-
-    def ev_line(self, line): 
-        variable_name, expr = self.lines[line].split("=", maxsplit=2)
-        variable_name = variable_name.strip()
-        self.variables[variable_name] = self.ev_expr(expr)
+        return output   
 
     def ev_func(self, function_name, arguments = []):
         function_arguments = self.functions[function_name]["arguments"]
         function_lines = self.functions[function_name]["function_body"]
+
+        print(f"Executing function {function_name} with lines: {function_lines}")
+        print(f"Function lines content:")
+        for i in function_lines:
+            print(f"  {i}: '{self.lines[i]}'")
 
         if len(arguments) != len(function_arguments):
             raise EvaluationError("Wrong amount of arguments")
@@ -135,17 +148,13 @@ class Evaluator:
         for name, value in zip(function_arguments, arguments):
             self.variables[name] = value
 
-        result = None
+        self.indentation_stack.append(("function", get_indentation(self.lines[function_lines[0]])))
 
-        for function_line in function_lines:
-            if self.lines[function_line].split(maxsplit=1)[0] == "return":
-                expr = self.lines[function_line].split("return", maxsplit=1)[1]
-                result = self.ev_expr(expr)
-                break
-            else:
-                self.ev_line(function_line)
+        result = self.execute_lines(function_lines[0], function_lines[-1] + 1)
 
         self.variables = global_variables
+
+        self.indentation_stack.pop()
 
         return result
 

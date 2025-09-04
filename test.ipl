@@ -3,6 +3,11 @@ y = 10
 z = 3
 
 def add(a,b)
+    if a > 32
+        return a
+    else
+        if b > 10
+            return b
     return a + b
 
 while x < 10 and z == 3
