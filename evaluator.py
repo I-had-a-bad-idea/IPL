@@ -7,24 +7,25 @@ class Evaluator:
 
     def ev_file(self, file_path):
         file = open(file_path)
-        lines = [x for x in file.read().split("\n") if x.rstrip() != ""]  # Get all lines, which are not empty
+        self.lines = [x for x in file.read().split("\n") if x.rstrip() != ""]  # Get all lines, which are not empty
         
-        lines.append("End of file")
+        self.lines.append("End of file")
 
         self.variables = {}
+        self.functions = {}
         programm_counter = 0 # The line counter
 
         indentation_stack = [("normal", 0)]
 
-        while programm_counter < len(lines):
-            line = lines[programm_counter]
+        while programm_counter < len(self.lines):
+            line = self.lines[programm_counter]
             line = line.split("#")[0]   # Ignore comments
 
             indentation = get_indentation(line)
 
             if indentation <= indentation_stack[-1][1]:
                 if indentation_stack[-1][0] == "while":
-                    while lines[programm_counter].split(maxsplit=1)[0] != "while":
+                    while self.lines[programm_counter].split(maxsplit=1)[0] != "while":
                         programm_counter -= 1
                     indentation_stack.pop()
                     continue
@@ -42,7 +43,7 @@ class Evaluator:
                         indentation_stack.append(("while", indentation))
                     else:
                         programm_counter += 1  # Enter loop body
-                        while get_indentation(lines[programm_counter]) > indentation_stack[-1][1]:
+                        while get_indentation(self.lines[programm_counter]) > indentation_stack[-1][1]:
                             programm_counter += 1 # Go forward until end of loop
                 
                 case "if":
@@ -51,22 +52,32 @@ class Evaluator:
                         indentation_stack.append(("if", indentation))
                     else:
                         programm_counter += 1 # Enter statement body
-                        while get_indentation(lines[programm_counter]) > indentation_stack[-1][1]:
+                        while get_indentation(self.lines[programm_counter]) > indentation_stack[-1][1]:
                             programm_counter += 1 # Skip if statement
-                        if lines[programm_counter].split(maxsplit=1)[0] == "else" and get_indentation(lines[programm_counter]) == indentation:
+                        if self.lines[programm_counter].split(maxsplit=1)[0] == "else" and get_indentation(self.lines[programm_counter]) == indentation:
                             programm_counter += 1
                             indentation_stack.append(("else", indentation))
                 case "else":
                     programm_counter += 1
-                    while get_indentation(lines[programm_counter]) > indentation_stack[-1][1]:
+                    while get_indentation(self.lines[programm_counter]) > indentation_stack[-1][1]:
                         programm_counter += 1
+
+                case "def":
+                    function_decleration = line.split(maxsplit=1)[1]
+                    function_name = function_decleration.split("(", maxsplit=1)[0]
+                    function_arguments = function_decleration.split("(", maxsplit=1)[1].strip(")")
+                    programm_counter += 1
+                    start_line = programm_counter
+                    while get_indentation(self.lines[programm_counter]) > indentation:
+                        programm_counter += 1
+                    function_lines = list(range(start_line, programm_counter))
+                    self.functions[function_name] = {"arguments": function_arguments, "function_body": function_lines}
+                    print(f"functions:{self.functions}")
                 case _:
                     if line == "End of file":
                         break
-
-                    variable_name, expr = line.split("=", maxsplit=2)
-                    variable_name = variable_name.strip()
-                    self.variables[variable_name] = self.ev_expr(expr)
+                    
+                    self.ev_line(programm_counter)
                     programm_counter += 1
         print(f"variables {self.variables}")
 
@@ -82,7 +93,7 @@ class Evaluator:
         stack = []
 
         for token in tokens:
-            if token.strip(".").isdigit() or token in self.variables:
+            if token.strip(".").isdigit() or token in self.variables or token in self.functions:
                 output.append(token)
             elif token in prec:
                 while stack and stack[-1] in prec and prec[stack[-1]] >= prec[token]:
@@ -106,6 +117,23 @@ class Evaluator:
 
         return output
 
+    def ev_line(self, line):
+        if self.lines[line].split(maxsplit=1)[0] == "return":
+            expr = self.lines[line].split("return", maxsplit=1)[1]
+            return self.ev_expr(expr)
+        
+        variable_name, expr = self.lines[line].split("=", maxsplit=2)
+        variable_name = variable_name.strip()
+        self.variables[variable_name] = self.ev_expr(expr)
+
+    def ev_func(self, function_name):
+        function_lines = self.functions[function_name]["function_body"]
+        print(f"functions lines {function_lines}")
+        for function_line in function_lines:
+            if self.lines[function_line].split(maxsplit=1)[0] == "return":
+                return self.ev_line(function_line)
+            self.ev_line(function_line)
+
     def ev_expr(self, line):
         tokens = line.split()
         tokens = self.shunting_yard(tokens)
@@ -116,6 +144,10 @@ class Evaluator:
                 stack.append(token)
             elif token in self.variables:
                 stack.append(self.variables[token])
+            
+            elif token in self.functions:
+                stack.append(self.ev_func(token))
+
             else:
                 rhs = float(stack.pop())
                 lhs = float(stack.pop())
