@@ -1,4 +1,5 @@
 from error import EvaluationError
+from built_in_functions import built_in_functions, call_built_in_function
 
 def get_indentation(line):
     return len(line) - len(line.lstrip())
@@ -90,9 +91,12 @@ class Evaluator:
                     if line == "End of file":
                         break
                     
-                    variable_name, expr = line.split("=", maxsplit=1)
-                    variable_name = variable_name.strip()
-                    self.variables[variable_name] = self.ev_expr(expr)
+                    if "=" in line:
+                        variable_name, expr = line.split("=", maxsplit=1)
+                        variable_name = variable_name.strip()
+                        self.variables[variable_name] = self.ev_expr(expr)
+                    else:
+                        self.ev_expr(line)
 
                     programm_counter += 1
 
@@ -107,7 +111,7 @@ class Evaluator:
         stack = []
 
         for token in tokens:
-            if token.strip(".").isdigit() or token in self.variables or token.split("(")[0] in self.functions:
+            if token.strip(".").isdigit() or token in self.variables or token.split("(")[0] in self.functions or token.split("(")[0] in built_in_functions:
                 output.append(token)
             elif token in prec:
                 while stack and stack[-1] in prec and prec[stack[-1]] >= prec[token]:
@@ -169,14 +173,20 @@ class Evaluator:
             elif token in self.variables:
                 stack.append(self.variables[token])
             
-            elif token.split("(")[0] in self.functions:
+            elif token.split("(")[0] in self.functions or token.split("(")[0] in built_in_functions:
                 if "(" in token and token.endswith(")"):
                     function_name = token.split("(", 1)[0]
                     argument_str = token.split("(", 1)[1].rstrip(")")
                     argument_values = [self.ev_expr(a.strip()) for a in argument_str.split(",") if a]
-                    stack.append(self.ev_func(function_name, argument_values))
+                    if function_name in built_in_functions:
+                        stack.append(call_built_in_function(function_name, argument_values))
+                    elif function_name in self.functions:    
+                        stack.append(self.ev_func(function_name, argument_values))
                 else:
-                    stack.append(self.ev_func(token))
+                    if token in built_in_functions:
+                        stack.append(call_built_in_function(token))
+                    elif token in self.functions:    
+                        stack.append(self.ev_func(token))
 
             else:
                 rhs = float(stack.pop())
