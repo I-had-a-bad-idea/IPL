@@ -14,3 +14,5 @@ else
     z = x / x
 
 y = 6
+
+help = 2 + 3 * 3

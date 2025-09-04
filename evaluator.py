@@ -71,24 +71,54 @@ class Evaluator:
         print(f"variables {self.variables}")
 
 
+    def shunting_yard(self, tokens):
+        prec = {
+            "or": 1, "and": 2,
+            "==": 3, "!=": 3, "<": 3, "<=": 3, ">": 3, ">=": 3,
+            "+": 4, "-": 4,
+            "*": 5, "/": 5
+        }
+        output = []
+        stack = []
+
+        for tok in tokens:
+            if tok.replace('.', '', 1).isdigit() or tok.isidentifier():
+                output.append(tok)
+            elif tok in prec:
+                while stack and stack[-1] in prec and prec[stack[-1]] >= prec[tok]:
+                    output.append(stack.pop())
+                stack.append(tok)
+            elif tok == "(":
+                stack.append(tok)
+            elif tok == ")":
+                while stack and stack[-1] != "(":
+                    output.append(stack.pop())
+                if not stack:
+                    raise ValueError("Mismatched parentheses")
+                stack.pop()  # remove "("
+            else:
+                raise ValueError(f"Unknown token {tok}")
+
+        while stack:
+            if stack[-1] in ("(", ")"):
+                raise ValueError("Mismatched parentheses")
+            output.append(stack.pop())
+
+        return output
+
     def ev_expr(self, line):
         tokens = line.split()
+        tokens = self.shunting_yard(tokens)
         stack = []
-        i = 0
-        while i < len(tokens):
-            print(f"at index {i} the stack is {stack} with tokens {tokens}")
-            token = tokens[i]
+
+        for token in tokens:
             if token.isdigit():
                 stack.append(token)
             elif token in self.variables:
                 stack.append(self.variables[token])
             else:
+                rhs = float(stack.pop())
                 lhs = float(stack.pop())
-                rhs = tokens[i + 1]
-                if rhs.isdigit():
-                    rhs = float(tokens[i + 1])
-                else:
-                    rhs = float(self.variables[tokens[i + 1]])
                 
                 if token == "+":
                     stack.append(lhs + rhs)
@@ -116,11 +146,5 @@ class Evaluator:
                     stack.append(lhs and rhs)
                 elif token == "or":
                     stack.append(lhs or rhs)
-
-
-
-                i += 1
-
-            i += 1
 
         return stack[0]
