@@ -81,23 +81,23 @@ class Evaluator:
         output = []
         stack = []
 
-        for tok in tokens:
-            if tok.replace('.', '', 1).isdigit() or tok.isidentifier():
-                output.append(tok)
-            elif tok in prec:
-                while stack and stack[-1] in prec and prec[stack[-1]] >= prec[tok]:
+        for token in tokens:
+            if token.strip(".").isdigit() or token in self.variables:
+                output.append(token)
+            elif token in prec:
+                while stack and stack[-1] in prec and prec[stack[-1]] >= prec[token]:
                     output.append(stack.pop())
-                stack.append(tok)
-            elif tok == "(":
-                stack.append(tok)
-            elif tok == ")":
+                stack.append(token)
+            elif token == "(":
+                stack.append(token)
+            elif token == ")":
                 while stack and stack[-1] != "(":
                     output.append(stack.pop())
                 if not stack:
                     raise ValueError("Mismatched parentheses")
                 stack.pop()  # remove "("
             else:
-                raise ValueError(f"Unknown token {tok}")
+                raise ValueError(f"Unknown token {token}")
 
         while stack:
             if stack[-1] in ("(", ")"):

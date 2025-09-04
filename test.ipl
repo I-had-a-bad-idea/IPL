@@ -2,7 +2,7 @@ x = 5
 y = 10
 z = 3
 
-while x < 10
+while x < 10 and z == 3
     x = x + 1
 
 if x == 10
@@ -15,4 +15,4 @@ else
 
 y = 6
 
-help = 2 + 3 * 3
+h = 2 + 3 * 3
