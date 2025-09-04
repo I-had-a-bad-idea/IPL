@@ -2,9 +2,8 @@ x = 5
 y = 10
 z = 3
 
-def test()
-    q = 3
-    return q
+def add(a,b)
+    return a + b
 
 while x < 10 and z == 3
     x = x + 1
@@ -17,6 +16,6 @@ if x == 10
 else
     z = x / x
 
-y = test
+y = add(3,5)
 
 h = 2 + 3 * 3

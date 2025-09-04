@@ -65,7 +65,7 @@ class Evaluator:
                 case "def":
                     function_decleration = line.split(maxsplit=1)[1]
                     function_name = function_decleration.split("(", maxsplit=1)[0]
-                    function_arguments = function_decleration.split("(", maxsplit=1)[1].strip(")")
+                    function_arguments = function_decleration.split("(", maxsplit=1)[1].strip(")").split(",")
                     programm_counter += 1
                     start_line = programm_counter
                     while get_indentation(self.lines[programm_counter]) > indentation:
@@ -93,7 +93,7 @@ class Evaluator:
         stack = []
 
         for token in tokens:
-            if token.strip(".").isdigit() or token in self.variables or token in self.functions:
+            if token.strip(".").isdigit() or token in self.variables or token.split("(")[0] in self.functions:
                 output.append(token)
             elif token in prec:
                 while stack and stack[-1] in prec and prec[stack[-1]] >= prec[token]:
@@ -117,22 +117,36 @@ class Evaluator:
 
         return output
 
-    def ev_line(self, line):
-        if self.lines[line].split(maxsplit=1)[0] == "return":
-            expr = self.lines[line].split("return", maxsplit=1)[1]
-            return self.ev_expr(expr)
-        
+    def ev_line(self, line): 
         variable_name, expr = self.lines[line].split("=", maxsplit=2)
         variable_name = variable_name.strip()
         self.variables[variable_name] = self.ev_expr(expr)
 
-    def ev_func(self, function_name):
+    def ev_func(self, function_name, arguments = []):
+        function_arguments = self.functions[function_name]["arguments"]
         function_lines = self.functions[function_name]["function_body"]
-        print(f"functions lines {function_lines}")
+
+        if len(arguments) != len(function_arguments):
+            raise ValueError("Wrong amount of arguments")
+        
+        global_variables = self.variables
+
+        for name, value in zip(function_arguments, arguments):
+            self.variables[name] = value
+
+        result = None
+
         for function_line in function_lines:
             if self.lines[function_line].split(maxsplit=1)[0] == "return":
-                return self.ev_line(function_line)
-            self.ev_line(function_line)
+                expr = self.lines[function_line].split("return", maxsplit=1)[1]
+                result = self.ev_expr(expr)
+                break
+            else:
+                self.ev_line(function_line)
+
+        self.variables = global_variables
+
+        return result
 
     def ev_expr(self, line):
         tokens = line.split()
@@ -145,8 +159,14 @@ class Evaluator:
             elif token in self.variables:
                 stack.append(self.variables[token])
             
-            elif token in self.functions:
-                stack.append(self.ev_func(token))
+            elif token.split("(")[0] in self.functions:
+                if "(" in token and token.endswith(")"):
+                    function_name = token.split("(", 1)[0]
+                    argument_str = token.split("(", 1)[1].rstrip(")")
+                    argument_values = [self.ev_expr(a.strip()) for a in argument_str.split(",") if a]
+                    stack.append(self.ev_func(function_name, argument_values))
+                else:
+                    stack.append(self.ev_func(token))
 
             else:
                 rhs = float(stack.pop())
