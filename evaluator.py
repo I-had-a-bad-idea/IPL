@@ -1,3 +1,4 @@
+from error import EvaluationError
 
 def get_indentation(line):
     return len(line) - len(line.lstrip())
@@ -105,14 +106,14 @@ class Evaluator:
                 while stack and stack[-1] != "(":
                     output.append(stack.pop())
                 if not stack:
-                    raise ValueError("Mismatched parentheses")
+                    raise EvaluationError("Mismatched parentheses")
                 stack.pop()  # remove "("
             else:
-                raise ValueError(f"Unknown token {token}")
+                raise EvaluationError(f"Unknown token {token}")
 
         while stack:
             if stack[-1] in ("(", ")"):
-                raise ValueError("Mismatched parentheses")
+                raise EvaluationError("Mismatched parentheses")
             output.append(stack.pop())
 
         return output
@@ -127,7 +128,7 @@ class Evaluator:
         function_lines = self.functions[function_name]["function_body"]
 
         if len(arguments) != len(function_arguments):
-            raise ValueError("Wrong amount of arguments")
+            raise EvaluationError("Wrong amount of arguments")
         
         global_variables = self.variables
 
