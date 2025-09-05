@@ -11,5 +11,4 @@ Things to do:
  - Add more data types (strings, lists, dictionaries, booleans)
  - Add more and better errors
  - Add more built in functions
- - Allow for imports of other files
  - MAKE CODE CLEANER

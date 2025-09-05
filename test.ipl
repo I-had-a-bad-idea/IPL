@@ -27,6 +27,8 @@ y = add(3,5)
 
 z = sub(5,3)
 
+out(y)
+out(z)
 
 h = variable + 3 * 3
 
