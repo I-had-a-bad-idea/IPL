@@ -1,3 +1,5 @@
+import test_import.ipl
+
 x = 5
 y = 10
 z = 3
@@ -23,6 +25,9 @@ else
 
 y = add(3,5)
 
-h = 2 + 3 * 3
+z = sub(5,3)
+
+
+h = variable + 3 * 3
 
 out(h)

@@ -8,7 +8,8 @@ class Evaluator:
 
 
     def ev_file(self, file_path):
-        file = open(file_path)
+        self.file_path = file_path
+        file = open(self.file_path)
         self.lines = [x for x in file.read().split("\n") if x.rstrip() != ""]  # Get all lines, which are not empty
         
         self.lines.append("End of file")
@@ -17,6 +18,7 @@ class Evaluator:
 
         self.variables = {}
         self.functions = {}
+        self.evaluators = {}
         
         self.execute_lines(0, len(self.lines))
         print(f"variables {self.variables}")
@@ -46,6 +48,14 @@ class Evaluator:
 
 
             match line.split(maxsplit=1)[0]: # Get the first word
+                case "import":
+                    file = line.split(maxsplit=1)[1]
+                    self.evaluators[file] = Evaluator()
+                    self.evaluators[file].ev_file(file)
+                    self.functions = {**self.functions, **self.evaluators[file].functions} # Merge function dicts
+                    self.variables = {**self.variables, **self.evaluators[file].variables}
+
+                    programm_counter += 1
                 case "while":
                     if self.ev_expr(line.split(maxsplit=1)[1]) == True:
                         programm_counter += 1 # Enter loop body
@@ -85,7 +95,7 @@ class Evaluator:
                     while get_indentation(self.lines[programm_counter]) > indentation:
                         programm_counter += 1
                     function_lines = list(range(start_line, programm_counter))
-                    self.functions[function_name] = {"arguments": function_arguments, "function_body": function_lines}
+                    self.functions[function_name] = {"file": self.file_path, "arguments": function_arguments, "function_body": function_lines}
                     print(f"functions:{self.functions}")
                 case _:
                     if line == "End of file":
@@ -136,6 +146,10 @@ class Evaluator:
         return output   
 
     def ev_func(self, function_name, arguments = []):
+        file = self.functions[function_name]["file"]
+        if file != self.file_path:
+            return self.evaluators[file].ev_func(function_name, arguments)
+
         function_arguments = self.functions[function_name]["arguments"]
         function_lines = self.functions[function_name]["function_body"]
 
