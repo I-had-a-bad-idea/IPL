@@ -27,6 +27,10 @@ y = add(3,5)
 
 z = sub(5,3)
 
+test = "Hello world"
+
+out(test)
+
 out(y)
 out(z)
 

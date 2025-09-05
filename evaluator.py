@@ -1,5 +1,6 @@
 from error import EvaluationError
 from built_in_functions import built_in_functions, call_built_in_function
+import re
 
 def get_indentation(line):
     return len(line) - len(line.lstrip())
@@ -121,7 +122,9 @@ class Evaluator:
         stack = []
 
         for token in tokens:
-            if token.strip(".").isdigit() or token in self.variables or token.split("(")[0] in self.functions or token.split("(")[0] in built_in_functions:
+            if (token.startswith('"') and token.endswith('"')) or (token.startswith("'") and token.endswith("'")): #If it is a string
+                output.append(token)
+            elif token.strip(".").isdigit() or token in self.variables or token.split("(")[0] in self.functions or token.split("(")[0] in built_in_functions:
                 output.append(token)
             elif token in prec:
                 while stack and stack[-1] in prec and prec[stack[-1]] >= prec[token]:
@@ -177,13 +180,16 @@ class Evaluator:
         return result
 
     def ev_expr(self, line):
-        tokens = line.split()
+        token_pattern = r'"[^"]*"|\'[^\']*\'|\S+'
+        tokens = re.findall(token_pattern, line)
         tokens = self.shunting_yard(tokens)
         stack = []
 
         for token in tokens:
             if token.isdigit():
                 stack.append(token)
+            elif (token.startswith('"') and token.endswith('"')) or (token.startswith("'") and token.endswith("'")):
+                stack.append(token[1:-1])
             elif token in self.variables:
                 stack.append(self.variables[token])
             
