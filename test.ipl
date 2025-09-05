@@ -27,9 +27,11 @@ y = add(3,5)
 
 z = sub(5,3)
 
-test = "Hello world"
+test = "Enter something:    "
 
-out(test)
+input = in(test)
+
+out(input)
 
 out(y)
 out(z)

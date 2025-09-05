@@ -1,0 +1,21 @@
+
+greet = "Welcome to Guess-the-number"
+
+out(greet)
+
+random_number = random(0,10)
+
+prompt = "Please enter a number between 0 and 10:   "
+
+input = in(prompt)
+
+
+if input == random_number
+    message = "You guessed the number."
+else
+    message = "You didnt guess the number."    
+out(message)
+
+number_was = "The number was:"
+out(number_was)
+out(random_number)

@@ -47,6 +47,11 @@ class Evaluator:
                 elif self.indentation_stack[-1][0] == "else":
                     self.indentation_stack.pop()
 
+            try:
+                first_word = line.split(maxsplit=1)[0]
+            except IndexError:
+                programm_counter += 1
+                continue
 
             match line.split(maxsplit=1)[0]: # Get the first word
                 case "import":

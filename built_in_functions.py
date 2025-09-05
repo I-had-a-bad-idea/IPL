@@ -19,18 +19,18 @@ def call_built_in_function(function_name, arguments = []):
             case "out":
                 print(arguments[0])
             case "value":
-                return abs(arguments[0])
+                return abs(float(arguments[0]))
             case "in":
                 return input(arguments[0])
             case "random":
-                return random.randrange(arguments[0], arguments[1])
+                return random.randrange(int(arguments[0]), int(arguments[1]))
             case "min":
                 return min(arguments)
             case "max":
                 return max(arguments)
             case "round":
-                return round(arguments[0])
+                return round(float(arguments[0]))
             case "pow":
-                return pow(arguments[0], arguments[1])
+                return pow(float(arguments[0]), float(arguments[1]))
     except Exception as e:
         raise EvaluationError(e)
