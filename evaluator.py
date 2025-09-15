@@ -77,12 +77,21 @@ class Evaluator:
                         programm_counter += 1 # Enter if statement
                         self.indentation_stack.append(("if", indentation))
                     else:
-                        programm_counter += 1 # Enter statement body
-                        while get_indentation(self.lines[programm_counter]) > self.indentation_stack[-1][1]:
-                            programm_counter += 1 # Skip if statement
-                        if self.lines[programm_counter].split(maxsplit=1)[0] == "else" and get_indentation(self.lines[programm_counter]) == indentation:
-                            programm_counter += 1
-                            self.indentation_stack.append(("else", indentation))
+                        while True:
+                            programm_counter += 1 # Enter statement body
+                            while get_indentation(self.lines[programm_counter]) > self.indentation_stack[-1][1]:
+                                programm_counter += 1 # Skip if statement
+                            if self.lines[programm_counter].split(maxsplit=1)[0] == "else" and get_indentation(self.lines[programm_counter]) == indentation:
+                                programm_counter += 1
+                                self.indentation_stack.append(("else", indentation))
+                                break
+                            elif self.lines[programm_counter].split(maxsplit=1)[0] == "elif" and get_indentation(self.lines[programm_counter]) == indentation:
+                                if self.ev_expr(self.lines[programm_counter].split(maxsplit=1)[1]) == True:
+                                    programm_counter += 1
+                                    self.indentation_stack.append(("if", indentation))
+                                    break
+                                else:
+                                    continue
                 case "else":
                     programm_counter += 1
                     while get_indentation(self.lines[programm_counter]) > self.indentation_stack[-1][1]:
