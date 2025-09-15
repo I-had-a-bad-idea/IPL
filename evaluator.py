@@ -9,6 +9,7 @@ class Evaluator:
 
 
     def ev_file(self, file_path):
+        self.folder = file_path.split("\\", maxsplit=1)[0] + "\\" # Get the path to the folder
         self.file_path = file_path
         file = open(self.file_path)
         self.lines = [x for x in file.read().split("\n") if x.rstrip() != ""]  # Get all lines, which are not empty
@@ -55,7 +56,7 @@ class Evaluator:
 
             match line.split(maxsplit=1)[0]: # Get the first word
                 case "import":
-                    file = line.split(maxsplit=1)[1]
+                    file = self.folder + line.split(maxsplit=1)[1] # Construct file path, based on folder of main file
                     self.evaluators[file] = Evaluator()
                     self.evaluators[file].ev_file(file)
                     self.functions = {**self.functions, **self.evaluators[file].functions} # Merge function dicts
