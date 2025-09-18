@@ -15,6 +15,6 @@ impl EvaluatioError{
     }   
 
     pub fn raise(&self) {
-        println!("Error: {} on line {:?}: {:?}", self.message, self.line_number, self.line_content);
+        panic!("Error: {} on line {:?}: {:?}", self.message, self.line_number, self.line_content);
     }
 }
