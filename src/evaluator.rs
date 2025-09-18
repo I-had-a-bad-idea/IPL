@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::fs;
 
+use crate::error::EvaluatioError;
+
 #[derive(Debug, Clone)]
 pub enum Value{
     Number(f64),
@@ -35,6 +37,10 @@ impl Evaluator{
             path: PathBuf::new(),
         }
     }
+    fn get_indentation(line: &str) -> usize {
+        line.chars().take_while(|c| c.is_whitespace()).count()
+    }
+
     pub fn ev_file(&mut self, file: &str) {
         let path = PathBuf::from(file);
         self.path = path.clone();
@@ -70,9 +76,55 @@ impl Evaluator{
         println!("Evaluating expression: {}", expr);
         return Value::None;
     }
-    fn ev_func(&self, name: &str, args: &[Value]) -> Value {
+    fn ev_func(&self, function_name: &str, args: &[Value]) -> Value {
+        let file = self.functions[function_name]["file"];
+        if file != self.path.to_str().unwrap() {
+            return self.evaluators[file].ev_func(function_name, args);
+        }
+
+        let function_arguments = self.functions[function_name]["arguments"];
+        let function_lines = self.functions[function_name]["function_body"];
+
+        println!("Executing function {} with lines: {:?}", function_name, function_lines);
+        println!("Function lines content:");
+        for i in function_lines {
+            println!("  {}: '{}'", i, self.lines[i]);
+        }
+        if args.len() != function_arguments.len() {
+            EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
+        }
+        let global_variables = self.variables.clone();
+
+        for name, value in function_arguments.iter().zip(args.iter()) {
+            self.variables.insert(name.clone(), format!("{:?}", value));
+        }
+        self.indentation_stack.push(("function".to_string(), Self::get_indentation(&self.lines[function_lines[0]])));
+
+        let result = self.execute_lines(function_lines[0], function_lines[function_lines.len() - 1] + 1);
+        
+        self.variables = global_variables;
+        self.indentation_stack.pop();
+
+        return result;
+
         // Placeholder for function evaluation logic
-        println!("Evaluating function: {} with args {:?}", name, args);
+        println!("Evaluating function: {} with args {:?}", function_name, args);
         return Value::None;
+
     }
+
+
+//         for name, value in zip(function_arguments, arguments):
+//             self.variables[name] = value
+
+//         self.indentation_stack.append(("function", get_indentation(self.lines[function_lines[0]])))
+
+//         result = self.execute_lines(function_lines[0], function_lines[-1] + 1)
+
+//         self.variables = global_variables
+
+//         self.indentation_stack.pop()
+
+//         return result
+
 }
