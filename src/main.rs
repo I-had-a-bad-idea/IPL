@@ -1,6 +1,7 @@
 use std::env;
 mod error;
 mod evaluator;
+mod tokenizer;
 
 use error::EvaluatioError;
 use evaluator::Evaluator;
@@ -17,5 +18,8 @@ fn main(){
         return;
     }
     let evaluator = Evaluator::new();
-    evaluator.ev_file(file)
+    evaluator.ev_file(file);
+    let tokenizer = tokenizer::Tokenizer::new();
+    let tokens = tokenizer.tokenize("h = variable + 3 * 3");
+    println!("Tokens: {:?}", tokens);
 }
