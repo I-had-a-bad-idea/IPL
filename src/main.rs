@@ -18,7 +18,7 @@ fn main(){
         EvaluatioError::new("File must be a IPL file".to_string(), None, None).raise();
         return;
     }
-    let evaluator = Evaluator::new();
+    let mut evaluator = Evaluator::new();
     evaluator.ev_file(file);
     let tokenizer = tokenizer::Tokenizer::new(evaluator);
     let tokens = tokenizer.tokenize("h = variable + 3 * 3");

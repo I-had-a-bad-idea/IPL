@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-
-
+use std::path::PathBuf;
+use std::fs;
 
 #[derive(Debug, Clone)]
 pub enum Value{
@@ -16,7 +16,10 @@ pub struct Evaluator{
     pub variables: HashMap<String, String>,
     pub functions: HashMap<String, HashMap<String, Value>>,
     evaluators: HashMap<String, Evaluator>,
-    indentation_stack : Vec<usize>,
+    indentation_stack : Vec<(String, usize)>,
+    
+    folder: String,
+    path: PathBuf,
 }
 
 impl Evaluator{
@@ -27,12 +30,35 @@ impl Evaluator{
             functions: HashMap::new(),
             evaluators: HashMap::new(),
             indentation_stack: vec![],
+            
+            folder: String::new(),
+            path: PathBuf::new(),
         }
     }
-    pub fn ev_file(&self, file: &str) {
-        // Placeholder for file evaluation logic
-        println!("Evaluating file: {}", file);
+    pub fn ev_file(&mut self, file: &str) {
+        let path = PathBuf::from(file);
+        self.path = path.clone();
+        self.folder = path
+            .parent()
+            .and_then(|p| p.to_str())
+            .unwrap_or("")
+            .to_string();
+        let contents = fs::read_to_string(file).expect("Should have been able to read the file");
+
+        self.lines = contents
+            .lines()
+            .map(|line| line.to_string())
+            .filter(|line| !line.trim().is_empty())
+            .collect();
+
+        self.lines.push("End of file".to_string());
+
+        self.indentation_stack = vec![("normal".to_string(), 0)];
+        
+        self.execute_lines(0, self.lines.len());
+        println!("variables {:#?}", self.variables);
     }
+
     fn execute_lines(&self, start: usize, end: usize) -> Value {
         // Placeholder for line execution logic
         println!("Executing lines from {} to {}", start, end);
