@@ -10,9 +10,9 @@ impl Tokenizer{
     }
     pub fn tokenize(&self, input: &str) -> Vec<String> {
         // Placeholder for tokenization logic
-        input = self.split(input);
-        input = self.shunting_yard(input);
-        return input;
+        let tokens = self.split(input);
+        let output = self.shunting_yard(tokens);
+        return output;
     }
 
     fn split(&self, input: &str) -> Vec<String> {
