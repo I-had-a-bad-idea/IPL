@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+
+
 #[derive(Debug, Clone)]
 pub enum Value{
     Number(f64),
@@ -11,8 +13,8 @@ pub enum Value{
 
 pub struct Evaluator{
     lines: Vec<String>,
-    variables: HashMap<String, String>,
-    functions: HashMap<String, HashMap<String, Value>>,
+    pub variables: HashMap<String, String>,
+    pub functions: HashMap<String, HashMap<String, Value>>,
     evaluators: HashMap<String, Evaluator>,
     indentation_stack : Vec<usize>,
 }

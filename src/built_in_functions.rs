@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-mod error;
-use error::EvaluatioError;
+use crate::error::EvaluatioError;
+use crate::evaluator::Value;
 
-let built_in_functions = HashMap::from([
+pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = std::sync::LazyLock::new(|| HashMap::from([
     ("out", vec!["output"]),
     ("value", vec!["number"]),
     ("in", vec!["message"]),
@@ -11,9 +11,9 @@ let built_in_functions = HashMap::from([
     ("max", vec![]),
     ("round", vec!["number"]),
     ("pow", vec!["base", "exp"]),
-]);
+]));
 
-fn call_built_in_function(name: &str, args: Vec<&str>) -> None {
+pub fn call_built_in_function(name: &str, args: Vec<&str>) -> Value {
     match name {
         "out" => {
             if let Some(output) = args.get(0) {
@@ -21,17 +21,19 @@ fn call_built_in_function(name: &str, args: Vec<&str>) -> None {
             } else {
                 EvaluatioError::new("Error: 'out' function requires 1 argument".to_string(), None, None).raise();
             }
+            return Value::None;
         }
         "value" => {
             if let Some(number) = args.get(0) {
                 if let Ok(num) = number.parse::<f64>() {
-                    return Some(num);
+                    return Value::Number(num);
                 } else {
                     EvaluatioError::new("Error: 'value' function requires a numeric argument".to_string(), None, None).raise();
                 }
             } else {
                 EvaluatioError::new("Error: 'value' function requires 1 argument".to_string(), None, None).raise();
             }
+            return Value::None;
         }
         "in" => {
             use std::io::{self, Write};
@@ -40,52 +42,64 @@ fn call_built_in_function(name: &str, args: Vec<&str>) -> None {
                 io::stdout().flush().unwrap();
                 let mut input = String::new();
                 io::stdin().read_line(&mut input).unwrap();
-                return Some(input.trim().to_string());
+                return Value::Str(input.trim().to_string());
             } else {
                 EvaluatioError::new("Error: 'in' function requires 1 argument".to_string(), None, None).raise();
             }
+            return Value::None;
         }
         "random" => {
             use rand::Rng;
             if args.len() == 2 {
                 if let (Ok(start), Ok(end)) = (args[0].parse::<i32>(), args[1].parse::<i32>()) {
-                    let mut rng = rand::thread_rng();
-                    return Some(rng.gen_range(start..=end) as f64);
+                    let mut rng = rand::rng();
+                    return Value::Number(rng.random_range(start..=end) as f64); 
                 } else {
                     EvaluatioError::new("Error: 'random' function requires two numeric arguments".to_string(), None, None).raise();
                 }
             } else {
                 EvaluatioError::new("Error: 'random' function requires 2 arguments".to_string(), None, None).raise();
             }
+            return Value::None;
         }
         "min" => {
             // Placeholder for min implementation
             println!("'min' function called");
+            return Value::None;
         }
         "max" => {
             // Placeholder for max implementation
             println!("'max' function called");
+            return Value::None;
         }
         "round" => {
             if let Some(number) = args.get(0) {
                 if let Ok(num) = number.parse::<f64>() {
-                    return Some(num.round());
+                    return Value::Number(num.round());
                 } else {
                     EvaluatioError::new("Error: 'round' function requires a numeric argument".to_string(), None, None).raise();
                 }
             } else {
                 EvaluatioError::new("Error: 'round' function requires 1 argument".to_string(), None, None).raise();
             }
+            return Value::None;
         }
         "pow" => {
             if args.len() == 2 {
                 if let (Ok(base), Ok(exp)) = (args[0].parse::<f64>(), args[1].parse::<f64>()) {
-                    return Some(base.powf(exp));
+                    return Value::Number(base.powf(exp));
                 } else {
                     EvaluatioError::new("Error: 'pow' function requires two numeric arguments".to_string(), None, None).raise();
                 }
             } else {
                 EvaluatioError::new("Error: 'pow' function requires 2 arguments".to_string(), None, None).raise();
             }
+            return Value::None;
         }
+        _ => {
+            EvaluatioError::new(format!("Error: Unknown built-in function '{}'", name), None, None).raise();
+            return Value::None;
+        }
+    }
+}
 
