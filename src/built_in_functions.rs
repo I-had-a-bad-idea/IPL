@@ -17,7 +17,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
     match name {
         "out" => {
             if let Some(output) = args.get(0) {
-                println!("{}", output);
+                println!("{:?}", output);
             } else {
                 EvaluatioError::new("Error: 'out' function requires 1 argument".to_string(), None, None).raise();
             }
@@ -25,8 +25,8 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         }
         "value" => {
             if let Some(number) = args.get(0) {
-                if let Ok(num) = number.parse::<f64>() {
-                    return Value::Number(num);
+                if let Value::Number(num) = number {
+                    return Value::Number(*num);
                 } else {
                     EvaluatioError::new("Error: 'value' function requires a numeric argument".to_string(), None, None).raise();
                 }
@@ -38,7 +38,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         "in" => {
             use std::io::{self, Write};
             if let Some(message) = args.get(0) {
-                print!("{}", message);
+                print!("{:?}", message);
                 io::stdout().flush().unwrap();
                 let mut input = String::new();
                 io::stdin().read_line(&mut input).unwrap();
@@ -51,9 +51,9 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         "random" => {
             use rand::Rng;
             if args.len() == 2 {
-                if let (Ok(start), Ok(end)) = (args[0].parse::<i32>(), args[1].parse::<i32>()) {
+                if let (Value::Number(start), Value::Number(end)) = (&args[0], &args[1]) {
                     let mut rng = rand::rng();
-                    return Value::Number(rng.random_range(start..=end) as f64); 
+                    return Value::Number(rng.random_range(*start as i32..=*end as i32) as f64);
                 } else {
                     EvaluatioError::new("Error: 'random' function requires two numeric arguments".to_string(), None, None).raise();
                 }
@@ -74,7 +74,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         }
         "round" => {
             if let Some(number) = args.get(0) {
-                if let Ok(num) = number.parse::<f64>() {
+                if let Value::Number(num) = number {
                     return Value::Number(num.round());
                 } else {
                     EvaluatioError::new("Error: 'round' function requires a numeric argument".to_string(), None, None).raise();
@@ -86,8 +86,8 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         }
         "pow" => {
             if args.len() == 2 {
-                if let (Ok(base), Ok(exp)) = (args[0].parse::<f64>(), args[1].parse::<f64>()) {
-                    return Value::Number(base.powf(exp));
+                if let (Value::Number(base), Value::Number(exp)) = (&args[0], &args[1]) {
+                    return Value::Number(base.powf(*exp));
                 } else {
                     EvaluatioError::new("Error: 'pow' function requires two numeric arguments".to_string(), None, None).raise();
                 }
