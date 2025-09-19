@@ -13,7 +13,7 @@ pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = s
     ("pow", vec!["base", "exp"]),
 ]));
 
-pub fn call_built_in_function(name: &str, args: Vec<&str>) -> Value {
+pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
     match name {
         "out" => {
             if let Some(output) = args.get(0) {

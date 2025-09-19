@@ -150,7 +150,7 @@ impl Evaluator{
         return Value::None;
     }
 
-    fn ev_expr(&self, expr: &str) -> Value {
+    fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
 
         let mut stack = vec![];
@@ -162,13 +162,18 @@ impl Evaluator{
                 stack.push((token[1..token.len()-1]).to_string());
             }
             else if self.variables.contains_key(&token) {
-                stack.push(self.variables[&token])
+                stack.push(self.variables[&token].clone())
             }
             else if self.functions.contains_key(token.split("(").collect::<Vec<_>>()[0]) || BUILT_IN_FUNCTIONS.contains_key(token.split("(").collect::<Vec<_>>()[0]) {
                 if token.contains("(") && token.ends_with(")"){
                     let function_name = token.split("(").collect::<Vec<_>>()[0];
                     let argument_str = token.split("(").collect::<Vec<_>>()[1].trim(); 
-                    let argument_values = vec![]; //TODO make the argument values
+                    let argument_values: Vec<Value> = argument_str
+                        .split(',')                    // split by comma
+                        .map(|a| a.trim())             // strip whitespace
+                        .filter(|a| !a.is_empty())     // skip empty strings
+                        .map(|a| self.ev_expr(a))      // evaluate each expression
+                        .collect();                    // collect into a Vec
 
                     if BUILT_IN_FUNCTIONS.contains_key(function_name){
                         stack.push(call_built_in_function(function_name, argument_values).to_string_value());
@@ -178,11 +183,11 @@ impl Evaluator{
                     }
                 }
                 else{
-                    if BUILT_IN_FUNCTIONS.contains_key(token){
+                    if BUILT_IN_FUNCTIONS.contains_key(&token.as_str()){
                         stack.push(call_built_in_function(&token, vec![]).to_string_value());
                     }
                     else if self.functions.contains_key(&token) {
-                        stack.push(self.ev_func(token, vec![]).to_string_value());
+                        stack.push(self.ev_func(&token, vec![]).to_string_value());
                     }
                 }
             }
@@ -230,11 +235,11 @@ impl Evaluator{
                 }
             }
         }
-    return Value::Str(stack[0]);
+    return Value::Str(stack[0].clone());
     }
 
 
-    fn ev_func(&mut self, function_name: &str, args: Vec<&str>) -> Value {
+    fn ev_func(&mut self, function_name: &str, args: Vec<Value>) -> Value {
         let file = &self.functions[function_name]["file"];
         if file.to_string_value() != self.path.to_str().unwrap() {
             if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
