@@ -164,11 +164,11 @@ impl Evaluator{
             else if self.variables.contains_key(&token) {
                 stack.push(self.variables[&token])
             }
-            else if self.functions.contains_key(token.split("(")[0]) || BUILT_IN_FUNCTIONS.contains_key(token.split("(")[0]) {
+            else if self.functions.contains_key(token.split("(").collect::<Vec<_>>()[0]) || BUILT_IN_FUNCTIONS.contains_key(token.split("(").collect::<Vec<_>>()[0]) {
                 if token.contains("(") && token.ends_with(")"){
-                    let function_name = token.split("(")[0];
-                    let argument_str = token.split("(")[1]; //TODO add strip()
-                    let argument_values = vec![];
+                    let function_name = token.split("(").collect::<Vec<_>>()[0];
+                    let argument_str = token.split("(").collect::<Vec<_>>()[1].trim(); 
+                    let argument_values = vec![]; //TODO make the argument values
 
                     if BUILT_IN_FUNCTIONS.contains_key(function_name){
                         stack.push(call_built_in_function(function_name, argument_values).to_string_value());
@@ -181,60 +181,60 @@ impl Evaluator{
                     if BUILT_IN_FUNCTIONS.contains_key(token){
                         stack.push(call_built_in_function(&token, vec![]).to_string_value());
                     }
-                    else if self.functions.contains_key(token) {
+                    else if self.functions.contains_key(&token) {
                         stack.push(self.ev_func(token, vec![]).to_string_value());
                     }
                 }
             }
             else{
-                let rhs = stack.pop();
-                let lhs = stack.pop();
+                let rhs = Value::Str(stack.pop().unwrap()).as_f64();
+                let lhs = Value::Str(stack.pop().unwrap()).as_f64();
 
                 if token == "+"{
-                    stack.push(lhs + rhs);
+                    stack.push((lhs + rhs).to_string());
                 }
                 else if token == "-" {
-                    token.push(lhs - rhs);
+                    stack.push((lhs - rhs).to_string());
                 }
                 else if token == "*" {
-                    stack.push(lhs * rhs);
+                    stack.push((lhs * rhs).to_string());
                 }
                 else if token == "/" {
-                    stack.push(lhs / rhs);
+                    stack.push((lhs / rhs).to_string());
                 }
 
                 else if token == "==" {
-                    stack.push(lhs == rhs);
+                    stack.push((lhs == rhs).to_string());
                 }
                 else if token == "!=" {
-                    stack.push(lhs != rhs);
+                    stack.push((lhs != rhs).to_string());
                 }
                 else if token == "<" {
-                    stack.push(lhs < rhs);
+                    stack.push((lhs < rhs).to_string());
                 }
                 else if token == "<=" {
-                    stack.push(lhs <= rhs);
+                    stack.push((lhs <= rhs).to_string());
                 }
                 else if token == ">" {
-                    stack.push(lhs > rhs);
+                    stack.push((lhs > rhs).to_string());
                 }
                 else if token == ">=" {
-                    stack.push(lhs >= rhs);
+                    stack.push((lhs >= rhs).to_string());
                 }
 
                 else if token == "and" {
-                    stack.push(lhs && rhs);    
+                    stack.push((Value::Number(lhs).as_bool() && Value::Number(rhs).as_bool()).to_string());    
                 }
                 else if token == "or" {
-                    stack.push(lhs || rhs);
+                    stack.push((Value::Number(lhs).as_bool() || Value::Number(rhs).as_bool()).to_string());
                 }
             }
         }
-    return stack[0];
+    return Value::Str(stack[0]);
     }
 
 
-    fn ev_func(&mut self, function_name: &str, args: &[Value]) -> Value {
+    fn ev_func(&mut self, function_name: &str, args: Vec<&str>) -> Value {
         let file = &self.functions[function_name]["file"];
         if file.to_string_value() != self.path.to_str().unwrap() {
             if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
