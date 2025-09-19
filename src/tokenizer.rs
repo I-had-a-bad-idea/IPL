@@ -1,23 +1,20 @@
 use regex::Regex;
 use std::collections::HashMap;
 
-use crate::{error::EvaluatioError, evaluator::{Evaluator}};
+use crate::{error::EvaluatioError, evaluator::{Value}};
 
 pub struct Tokenizer{
-    evaluator: Evaluator,
 }
 
 impl Tokenizer{
-    pub fn new(evaluator_: Evaluator) -> Self{
+    pub fn new() -> Self{
         Self {
-            evaluator: evaluator_,
-
         }
     }
-    pub fn tokenize(&self, input: &str) -> Vec<String> {
+    pub fn tokenize(&self, input: &str, variables: HashMap<String, String>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
         // Placeholder for tokenization logic
         let tokens = self.split(input);
-        let output = self.shunting_yard(tokens);
+        let output = self.shunting_yard(tokens, variables, functions);
         return output;
     }
 
@@ -29,7 +26,7 @@ impl Tokenizer{
             .collect();
         return tokens;
     }
-    fn shunting_yard(&self, tokens: Vec<String>) -> Vec<String> {
+    fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, String>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
         let prec = HashMap::from([
             ("or", 1), ("and", 2),
             ("==", 3), ("!=", 3), ("<", 3), ("<=", 3), (">", 3), (">=", 3),
@@ -43,7 +40,7 @@ impl Tokenizer{
             if token.starts_with('"') && token.ends_with('"') || token.starts_with("'") && token.ends_with("'"){
                 output.push(token.clone());
             }
-            else if token.trim_matches('.').parse::<f64>().is_ok() || self.evaluator.variables.contains_key(token) || self.evaluator.functions.contains_key(token){
+            else if token.trim_matches('.').parse::<f64>().is_ok() || variables.contains_key(token) || functions.contains_key(token){
                 output.push(token.clone());
             }
             else if prec.contains_key(token.as_str()) {

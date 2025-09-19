@@ -20,7 +20,7 @@ fn main(){
     }
     let mut evaluator = Evaluator::new();
     evaluator.ev_file(file);
-    let tokenizer = tokenizer::Tokenizer::new(evaluator);
-    let tokens = tokenizer.tokenize("h = variable + 3 * 3");
+    let tokenizer = tokenizer::Tokenizer::new();
+    let tokens = tokenizer.tokenize("h = variable + 3 * 3", evaluator.variables, evaluator.functions);
     println!("Tokens: {:?}", tokens);
 }

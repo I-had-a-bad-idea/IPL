@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::fs;
+use std::ops::Index;
+use std::ops::Add;
 
 use crate::error::EvaluatioError;
+use crate::tokenizer::Tokenizer;
 
 #[derive(Debug, Clone)]
 pub enum Value{
@@ -11,6 +14,79 @@ pub enum Value{
     Bool(bool),
     Str(String),
     None,
+}
+
+impl Index<usize> for Value {
+    type Output = Value;
+
+    fn index(&self, idx: usize) -> &Self::Output {
+        match self {
+            Value::List(vec) => &vec[idx],
+            _ => panic!("Indexing only supported on Value::List"),
+        }
+    }
+}
+
+impl Add for Value {
+    type Output = Value;
+
+    fn add(self, other: Value) -> Value {
+        match (self, other) {
+            (Value::Number(a), Value::Number(b)) => Value::Number(a + b),
+            (Value::Str(a), Value::Str(b)) => Value::Str(a + &b),
+            (Value::Str(a), Value::Number(b)) => Value::Str(a + &b.to_string()),
+            (Value::Number(a), Value::Str(b)) => Value::Str(a.to_string() + &b),
+            _ => Value::None,
+        }
+    }
+}
+
+impl Value {
+    fn as_f64(&self) -> f64 {
+        match self {
+            Value::Number(n) => n.clone(),
+            Value::Bool(b) => if *b { 1.0 } else { 0.0 },
+            _ => 0.0,
+        }
+    }
+    fn as_usize(&self) -> usize {
+        match self {
+            Value::Number(n) => *n as usize,
+            Value::Bool(b) => if *b { 1 } else { 0 }
+            _ => 0,
+        }
+    }
+    fn as_bool(&self) -> bool {
+        match self {
+            Value::Bool(b) => *b,
+            Value::Number(n) => *n != 0.0,
+            Value::Str(s) => !s.is_empty(),
+            Value::None => false,
+            _ => true,
+        }
+    }
+    fn to_string_value(&self) -> String {
+        match self {
+            Value::Number(n) => n.to_string(),
+            Value::Bool(b) => b.to_string(),
+            Value::Str(s) => s.clone(),
+            Value::None => "None".into(),
+            _ => "".to_string(),
+            }
+        }
+    fn length(&self) -> usize {
+        match self {
+            Value::List(v) => v.len(),
+            Value::Str(s) => s.len(),
+            _ => 0,
+        }
+    }
+    fn iter(&self) -> Box<dyn Iterator<Item = &Value> + '_> {
+        match self {
+            Value::List(v) => Box::new(v.iter()),
+            _ => Box::new(std::iter::empty()),
+        }
+    }
 }
 
 pub struct Evaluator{
@@ -72,35 +148,45 @@ impl Evaluator{
     }
 
     fn ev_expr(&self, expr: &str) -> Value {
+        let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
+
+        let stack = vec![];
+        for token in tokens{
+            if token.
+        }
         // Placeholder for expression evaluation logic
         println!("Evaluating expression: {}", expr);
         return Value::None;
     }
-    fn ev_func(&self, function_name: &str, args: &[Value]) -> Value {
-        let file = self.functions[function_name]["file"];
-        if file != self.path.to_str().unwrap() {
-            return self.evaluators[file].ev_func(function_name, args);
+    fn ev_func(&mut self, function_name: &str, args: &[Value]) -> Value {
+        let file = &self.functions[function_name]["file"];
+        if file.to_string_value() != self.path.to_str().unwrap() {
+            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
+                return ev.ev_func(function_name, args);
+            }   else {
+                EvaluatioError::new("Evaluator for file not found".to_string(), None, None).raise();
+                }
         }
 
-        let function_arguments = self.functions[function_name]["arguments"];
-        let function_lines = self.functions[function_name]["function_body"];
+        let function_arguments = &self.functions[function_name]["arguments"];
+        let function_lines = &self.functions[function_name]["function_body"];
 
         println!("Executing function {} with lines: {:?}", function_name, function_lines);
         println!("Function lines content:");
-        for i in function_lines {
-            println!("  {}: '{}'", i, self.lines[i]);
+        for i in function_lines.iter() {
+            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
         }
-        if args.len() != function_arguments.len() {
+        if args.len() != function_arguments.length() {
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
         let global_variables = self.variables.clone();
 
-        for name, value in function_arguments.iter().zip(args.iter()) {
-            self.variables.insert(name.clone(), format!("{:?}", value));
+        for (name, value) in function_arguments.iter().zip(args.iter()) {
+            self.variables.insert(name.to_string_value(), format!("{:?}", value));
         }
-        self.indentation_stack.push(("function".to_string(), Self::get_indentation(&self.lines[function_lines[0]])));
+        self.indentation_stack.push(("function".to_string(), Self::get_indentation(&self.lines[function_lines[0].as_usize()])));
 
-        let result = self.execute_lines(function_lines[0], function_lines[function_lines.len() - 1] + 1);
+        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize());
         
         self.variables = global_variables;
         self.indentation_stack.pop();
@@ -108,8 +194,6 @@ impl Evaluator{
         return result;
 
         // Placeholder for function evaluation logic
-        println!("Evaluating function: {} with args {:?}", function_name, args);
-        return Value::None;
 
     }
 
