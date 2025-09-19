@@ -4,6 +4,9 @@ use std::fs;
 use std::ops::Index;
 use std::ops::Add;
 
+use crate::built_in_functions;
+use crate::built_in_functions::call_built_in_function;
+use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::error::EvaluatioError;
 use crate::tokenizer::Tokenizer;
 
@@ -150,14 +153,87 @@ impl Evaluator{
     fn ev_expr(&self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
 
-        let stack = vec![];
+        let mut stack = vec![];
         for token in tokens{
-            if token.
+            if token.trim_matches('.').parse::<f64>().is_ok(){
+                stack.push(token);
+            }
+            else if (token.starts_with('"') && token.ends_with('"')) || (token.starts_with("'") && token.ends_with("'")){
+                stack.push((token[1..token.len()-1]).to_string());
+            }
+            else if self.variables.contains_key(&token) {
+                stack.push(self.variables[&token])
+            }
+            else if self.functions.contains_key(token.split("(")[0]) || BUILT_IN_FUNCTIONS.contains_key(token.split("(")[0]) {
+                if token.contains("(") && token.ends_with(")"){
+                    let function_name = token.split("(")[0];
+                    let argument_str = token.split("(")[1]; //TODO add strip()
+                    let argument_values = vec![];
+
+                    if BUILT_IN_FUNCTIONS.contains_key(function_name){
+                        stack.push(call_built_in_function(function_name, argument_values).to_string_value());
+                    }
+                    else if self.functions.contains_key(function_name) {
+                        stack.push(self.ev_func(function_name, argument_values).to_string_value());
+                    }
+                }
+                else{
+                    if BUILT_IN_FUNCTIONS.contains_key(token){
+                        stack.push(call_built_in_function(&token, vec![]).to_string_value());
+                    }
+                    else if self.functions.contains_key(token) {
+                        stack.push(self.ev_func(token, vec![]).to_string_value());
+                    }
+                }
+            }
+            else{
+                let rhs = stack.pop();
+                let lhs = stack.pop();
+
+                if token == "+"{
+                    stack.push(lhs + rhs);
+                }
+                else if token == "-" {
+                    token.push(lhs - rhs);
+                }
+                else if token == "*" {
+                    stack.push(lhs * rhs);
+                }
+                else if token == "/" {
+                    stack.push(lhs / rhs);
+                }
+
+                else if token == "==" {
+                    stack.push(lhs == rhs);
+                }
+                else if token == "!=" {
+                    stack.push(lhs != rhs);
+                }
+                else if token == "<" {
+                    stack.push(lhs < rhs);
+                }
+                else if token == "<=" {
+                    stack.push(lhs <= rhs);
+                }
+                else if token == ">" {
+                    stack.push(lhs > rhs);
+                }
+                else if token == ">=" {
+                    stack.push(lhs >= rhs);
+                }
+
+                else if token == "and" {
+                    stack.push(lhs && rhs);    
+                }
+                else if token == "or" {
+                    stack.push(lhs || rhs);
+                }
+            }
         }
-        // Placeholder for expression evaluation logic
-        println!("Evaluating expression: {}", expr);
-        return Value::None;
+    return stack[0];
     }
+
+
     fn ev_func(&mut self, function_name: &str, args: &[Value]) -> Value {
         let file = &self.functions[function_name]["file"];
         if file.to_string_value() != self.path.to_str().unwrap() {
