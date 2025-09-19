@@ -8,6 +8,7 @@ use crate::built_in_functions;
 use crate::built_in_functions::call_built_in_function;
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::error::EvaluatioError;
+use crate::evaluator;
 use crate::tokenizer::Tokenizer;
 
 #[derive(Debug, Clone)]
@@ -94,13 +95,17 @@ impl Value {
 
 pub struct Evaluator{
     lines: Vec<String>,
-    pub variables: HashMap<String, String>,
+    pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, HashMap<String, Value>>,
     evaluators: HashMap<String, Evaluator>,
     indentation_stack : Vec<(String, usize)>,
     
     folder: String,
     path: PathBuf,
+}
+
+fn get_indentation(line: &str) -> usize {
+    line.chars().take_while(|c| c.is_whitespace()).count()
 }
 
 impl Evaluator{
@@ -115,9 +120,6 @@ impl Evaluator{
             folder: String::new(),
             path: PathBuf::new(),
         }
-    }
-    fn get_indentation(line: &str) -> usize {
-        line.chars().take_while(|c| c.is_whitespace()).count()
     }
 
     pub fn ev_file(&mut self, file: &str) {
@@ -144,9 +146,165 @@ impl Evaluator{
         println!("variables {:#?}", self.variables);
     }
 
-    fn execute_lines(&self, start: usize, end: usize) -> Value {
-        // Placeholder for line execution logic
-        println!("Executing lines from {} to {}", start, end);
+    fn ev_func(&mut self, function_name: &str, args: Vec<Value>) -> Value {
+        let file = &self.functions[function_name]["file"];
+        if file.to_string_value() != self.path.to_str().unwrap() {
+            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
+                return ev.ev_func(function_name, args);
+            }   else {
+                EvaluatioError::new("Evaluator for file not found".to_string(), None, None).raise();
+                }
+        }
+
+        let function_arguments = &self.functions[function_name]["arguments"];
+        let function_lines = &self.functions[function_name]["function_body"];
+
+        println!("Executing function {} with lines: {:?}", function_name, function_lines);
+        println!("Function lines content:");
+        for i in function_lines.iter() {
+            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        }
+        if args.len() != function_arguments.length() {
+            EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
+        }
+        let global_variables = self.variables.clone();
+
+        for (name, value) in function_arguments.iter().zip(args.iter()) {
+            self.variables.insert(name.to_string_value(), value);
+        }
+        self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
+
+        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize());
+        
+        self.variables = global_variables;
+        self.indentation_stack.pop();
+
+        return result;
+
+        // Placeholder for function evaluation logic
+
+    }
+
+    fn execute_lines(&mut self, start: usize, end: usize) -> Value {
+        let mut programm_counter: usize = start;
+
+        println!("execute_lines called with start {} and end {}", start, end);
+
+        while programm_counter < end{
+            let mut line = self.lines[programm_counter].clone();
+            line = line.split("#").collect::<Vec<_>>()[0].to_string();
+
+            let indentation = get_indentation(&line);
+
+            if indentation <= self.indentation_stack[self.indentation_stack.len() - 1].1{
+                if self.indentation_stack[self.indentation_stack.len() - 1].0 == "while"{
+                    while self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] != "while"{
+                        programm_counter -= 1;
+                    }
+                    self.indentation_stack.pop();
+                    continue
+                }
+            } else if self.indentation_stack[self.indentation_stack.len() - 1].0 == "if"{
+                self.indentation_stack.pop();
+            } else if self.indentation_stack[self.indentation_stack.len() - 1].0 == "else"{
+                self.indentation_stack.pop();
+            }
+            let first_word = line
+                .splitn(2, ' ')
+                .next();
+            
+            let first_word = match first_word {
+                Some(word) if !word.is_empty() => word,
+                _ => {
+                    programm_counter += 1;
+                    continue;}
+            };
+            match line.split(" ").collect::<Vec<_>>()[0]{
+                "import" => {
+                    let file = self.folder + line.split(" ").collect::<Vec<_>>()[1];
+                    self.evaluators[&file] = Evaluator::new();
+                    self.evaluators[&file].ev_file(&file);
+                    self.functions.extend(self.evaluators[&file].functions.clone());
+                    self.variables.extend(self.evaluators[&file].variables.clone());
+
+                    programm_counter += 1;
+                    }
+                "while" => {
+                    if self.ev_expr(line.split(" ").collect::<Vec<_>>()[1]).as_bool() == true{
+                        programm_counter += 1;
+                        self.indentation_stack.push(("while".to_string(), indentation));
+                    } else{
+                        programm_counter += 1;
+                        while get_indentation(&self.lines[programm_counter].clone()) > self.indentation_stack[self.indentation_stack.len() - 1].1{
+                            programm_counter += 1
+                        }
+                    }
+                }
+                "if" => {
+                    if self.ev_expr(line.split(" ").collect::<Vec<_>>()[1]).as_bool() == true{
+                        programm_counter += 1;
+                        self.indentation_stack.push(("while".to_string(), indentation));
+                    }
+                    else{
+                        while true{
+                            programm_counter += 1;
+                            while get_indentation(&self.lines[programm_counter].clone()) > self.indentation_stack[self.indentation_stack.len() - 1].1{
+                                programm_counter += 1;
+                            }
+                            if self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] == "else" && get_indentation(&self.lines[programm_counter].clone()) == indentation{
+                                programm_counter += 1;
+                                self.indentation_stack.push(("else".to_string(), indentation));
+                                break
+                            }
+                            else{continue;}
+                        }
+                    }
+                }
+                "else" => {
+                    programm_counter += 1;
+                    while get_indentation(&self.lines[programm_counter].clone()) > self.indentation_stack[self.indentation_stack.len() - 1].1{
+                        programm_counter += 1;
+                    }
+                }
+                "return" => {
+                    let expr = line.split("return").collect::<Vec<_>>()[1];
+                    println!("Returning result of {}", expr);
+                    return self.ev_expr(expr);
+                }
+                "def" => {
+                    let function_decleration = line.split(" ").collect::<Vec<_>>()[1];
+                    let function_name = function_decleration.split("(").collect::<Vec<_>>()[0];
+                    let function_arguments = function_decleration.split("(").collect::<Vec<_>>()[1].replace(")", "").split(",");
+                    programm_counter += 1;
+                    let start_line = programm_counter;
+                    while get_indentation(&self.lines[programm_counter].clone()) > indentation{
+                        programm_counter += 1;
+                    }
+                    let function_lines: Vec<usize> = (start_line..programm_counter).collect();
+                    self.functions[function_name] = HashMap::new();
+                    self.functions[function_name].insert("file", self.path);
+                    self.functions[function_name].insert("arguments", function_arguments);
+                    self.functions[function_name].insert("function_body", function_lines);
+
+                    println!("functions: {:?}", self.functions);
+                }
+                _ => {
+                    if line == "End of file"{
+                        break;
+                    }
+                    if line.contains("="){
+                        if let Some((variable_name, expr)) = line.split_once("="){
+                            variable_name = variable_name.trim();
+                            self.variables[variable_name] = self.ev_expr(expr);
+                        }
+                    }
+                    else{
+                        self.ev_expr(line);
+                    }
+                    programm_counter += 1;
+                }
+            }
+        }
         return Value::None;
     }
 
@@ -237,59 +395,5 @@ impl Evaluator{
         }
     return Value::Str(stack[0].clone());
     }
-
-
-    fn ev_func(&mut self, function_name: &str, args: Vec<Value>) -> Value {
-        let file = &self.functions[function_name]["file"];
-        if file.to_string_value() != self.path.to_str().unwrap() {
-            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
-                return ev.ev_func(function_name, args);
-            }   else {
-                EvaluatioError::new("Evaluator for file not found".to_string(), None, None).raise();
-                }
-        }
-
-        let function_arguments = &self.functions[function_name]["arguments"];
-        let function_lines = &self.functions[function_name]["function_body"];
-
-        println!("Executing function {} with lines: {:?}", function_name, function_lines);
-        println!("Function lines content:");
-        for i in function_lines.iter() {
-            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
-        }
-        if args.len() != function_arguments.length() {
-            EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
-        }
-        let global_variables = self.variables.clone();
-
-        for (name, value) in function_arguments.iter().zip(args.iter()) {
-            self.variables.insert(name.to_string_value(), format!("{:?}", value));
-        }
-        self.indentation_stack.push(("function".to_string(), Self::get_indentation(&self.lines[function_lines[0].as_usize()])));
-
-        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize());
-        
-        self.variables = global_variables;
-        self.indentation_stack.pop();
-
-        return result;
-
-        // Placeholder for function evaluation logic
-
-    }
-
-
-//         for name, value in zip(function_arguments, arguments):
-//             self.variables[name] = value
-
-//         self.indentation_stack.append(("function", get_indentation(self.lines[function_lines[0]])))
-
-//         result = self.execute_lines(function_lines[0], function_lines[-1] + 1)
-
-//         self.variables = global_variables
-
-//         self.indentation_stack.pop()
-
-//         return result
 
 }
