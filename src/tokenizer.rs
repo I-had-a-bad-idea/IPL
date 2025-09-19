@@ -11,7 +11,7 @@ impl Tokenizer{
         Self {
         }
     }
-    pub fn tokenize(&self, input: &str, variables: HashMap<String, String>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
+    pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
         // Placeholder for tokenization logic
         let tokens = self.split(input);
         let output = self.shunting_yard(tokens, variables, functions);
@@ -26,7 +26,7 @@ impl Tokenizer{
             .collect();
         return tokens;
     }
-    fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, String>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
+    fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
         let prec = HashMap::from([
             ("or", 1), ("and", 2),
             ("==", 3), ("!=", 3), ("<", 3), ("<=", 3), (">", 3), (">=", 3),
@@ -82,45 +82,7 @@ impl Tokenizer{
             }
         }
 
-        // Placeholder for shunting yard algorithm
         return tokens;
     }
 }
 
-
-    // def shunting_yard(self, tokens):
-    //     prec = {
-    //         "or": 1, "and": 2,
-    //         "==": 3, "!=": 3, "<": 3, "<=": 3, ">": 3, ">=": 3,
-    //         "+": 4, "-": 4,
-    //         "*": 5, "/": 5
-    //     }
-    //     output = []
-    //     stack = []
-
-    //     for token in tokens:
-    //         if (token.startswith('"') and token.endswith('"')) or (token.startswith("'") and token.endswith("'")): #If it is a string
-    //             output.append(token)
-    //         elif token.strip(".").isdigit() or token in self.variables or token.split("(")[0] in self.functions or token.split("(")[0] in built_in_functions:
-    //             output.append(token)
-    //         elif token in prec:
-    //             while stack and stack[-1] in prec and prec[stack[-1]] >= prec[token]:
-    //                 output.append(stack.pop())
-    //             stack.append(token)
-    //         elif token == "(":
-    //             stack.append(token)
-    //         elif token == ")":
-    //             while stack and stack[-1] != "(":
-    //                 output.append(stack.pop())
-    //             if not stack:
-    //                 raise EvaluationError("Mismatched parentheses")
-    //             stack.pop()  # remove "("
-    //         else:
-    //             raise EvaluationError(f"Unknown token {token}")
-
-    //     while stack:
-    //         if stack[-1] in ("(", ")"):
-    //             raise EvaluationError("Mismatched parentheses")
-    //         output.append(stack.pop())
-
-    //     return output   

@@ -4,11 +4,9 @@ use std::fs;
 use std::ops::Index;
 use std::ops::Add;
 
-use crate::built_in_functions;
 use crate::built_in_functions::call_built_in_function;
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::error::EvaluatioError;
-use crate::evaluator;
 use crate::tokenizer::Tokenizer;
 
 #[derive(Debug, Clone)]
@@ -17,6 +15,7 @@ pub enum Value{
     List(Vec<Value>),
     Bool(bool),
     Str(String),
+    Path(PathBuf),
     None,
 }
 
@@ -170,7 +169,7 @@ impl Evaluator{
         let global_variables = self.variables.clone();
 
         for (name, value) in function_arguments.iter().zip(args.iter()) {
-            self.variables.insert(name.to_string_value(), value);
+            self.variables.insert(name.to_string_value(), value.clone());
         }
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
 
@@ -246,7 +245,7 @@ impl Evaluator{
                         self.indentation_stack.push(("while".to_string(), indentation));
                     }
                     else{
-                        while true{
+                        loop{
                             programm_counter += 1;
                             while get_indentation(&self.lines[programm_counter].clone()) > self.indentation_stack[self.indentation_stack.len() - 1].1{
                                 programm_counter += 1;
@@ -274,17 +273,20 @@ impl Evaluator{
                 "def" => {
                     let function_decleration = line.split(" ").collect::<Vec<_>>()[1];
                     let function_name = function_decleration.split("(").collect::<Vec<_>>()[0];
-                    let function_arguments = function_decleration.split("(").collect::<Vec<_>>()[1].replace(")", "").split(",");
+                    let function_arguments_split = function_decleration.split("(").collect::<Vec<&str>>()[1].replace(")", "").split(",");
+                    let function_arguments = function_arguments_split.map(|n| Value::Str(n.to_string())).collect::<Vec<Value>>();
                     programm_counter += 1;
                     let start_line = programm_counter;
                     while get_indentation(&self.lines[programm_counter].clone()) > indentation{
                         programm_counter += 1;
                     }
-                    let function_lines: Vec<usize> = (start_line..programm_counter).collect();
+                    let function_lines = (start_line..programm_counter)
+                        .map(|n| Value::Number(n as f64))
+                        .collect::<Vec<Value>>();
                     self.functions[function_name] = HashMap::new();
-                    self.functions[function_name].insert("file", self.path);
-                    self.functions[function_name].insert("arguments", function_arguments);
-                    self.functions[function_name].insert("function_body", function_lines);
+                    self.functions[function_name].insert("file".to_string(), Value::Path(self.path));
+                    self.functions[function_name].insert("arguments".to_string(), Value::List(function_arguments));
+                    self.functions[function_name].insert("function_body".to_string(), Value::List(function_lines));
 
                     println!("functions: {:?}", self.functions);
                 }
@@ -299,7 +301,7 @@ impl Evaluator{
                         }
                     }
                     else{
-                        self.ev_expr(line);
+                        self.ev_expr(&line);
                     }
                     programm_counter += 1;
                 }
@@ -320,7 +322,7 @@ impl Evaluator{
                 stack.push((token[1..token.len()-1]).to_string());
             }
             else if self.variables.contains_key(&token) {
-                stack.push(self.variables[&token].clone())
+                stack.push(self.variables[&token].clone().to_string_value())
             }
             else if self.functions.contains_key(token.split("(").collect::<Vec<_>>()[0]) || BUILT_IN_FUNCTIONS.contains_key(token.split("(").collect::<Vec<_>>()[0]) {
                 if token.contains("(") && token.ends_with(")"){
