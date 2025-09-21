@@ -190,11 +190,14 @@ impl Evaluator{
         println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end{
+            println!("At line {}", programm_counter);
+
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
 
             let indentation = get_indentation(&line);
 
+            println!("Indentation_stack: {:?}", self.indentation_stack);
             if indentation <= self.indentation_stack[self.indentation_stack.len() - 1].1{
                 if self.indentation_stack[self.indentation_stack.len() - 1].0 == "while"{
                     while self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] != "while"{
@@ -244,7 +247,7 @@ impl Evaluator{
                 "if" => {
                     if self.ev_expr(line.split(" ").collect::<Vec<_>>()[1]).as_bool() == true{
                         programm_counter += 1;
-                        self.indentation_stack.push(("while".to_string(), indentation));
+                        self.indentation_stack.push(("if".to_string(), indentation));
                     }
                     else{
                         loop{
@@ -256,6 +259,8 @@ impl Evaluator{
                                 programm_counter += 1;
                                 self.indentation_stack.push(("else".to_string(), indentation));
                                 break
+                            }
+                            else if self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] == "else" && get_indentation(&self.lines[programm_counter].clone()) == indentation{                                
                             }
                             else{continue;}
                         }
@@ -308,8 +313,10 @@ impl Evaluator{
                         break;
                     }
                     if line.contains("="){
+                        println!("Is assignment");
                         if let Some((mut variable_name, expr)) = line.split_once("="){
                             variable_name = variable_name.trim();
+                            println!("Variable name: {}, expr: {}", variable_name, expr);
                             let result = self.ev_expr(expr);
                             self.variables.insert(variable_name.to_string(), result);
                         }
@@ -327,8 +334,11 @@ impl Evaluator{
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
 
+        println!("tokens: {:?}", tokens);
+
         let mut stack = vec![];
         for token in tokens{
+            println!("token: {}", token);
             if token.trim_matches('.').parse::<f64>().is_ok(){
                 stack.push(token);
             }
