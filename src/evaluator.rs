@@ -260,13 +260,27 @@ impl Evaluator{
                                 self.indentation_stack.push(("else".to_string(), indentation));
                                 break
                             }
-                            else if self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] == "else" && get_indentation(&self.lines[programm_counter].clone()) == indentation{                                
+                            else if self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] == "elif" && get_indentation(&self.lines[programm_counter].clone()) == indentation{                                
+                                let condition = line.split(" ").collect::<Vec<_>>()[2..].join(" ");
+                                println!("Elif with condition: {}", condition);
+                                if self.ev_expr(&condition).as_bool() == true{
+                                    programm_counter += 1;
+                                    self.indentation_stack.push(("if".to_string(), indentation));
+                                    break;
+                                }
+                                else{continue;}
                             }
                             else{continue;}
                         }
                     }
                 }
                 "else" => {
+                    programm_counter += 1;
+                    while get_indentation(&self.lines[programm_counter].clone()) > self.indentation_stack[self.indentation_stack.len() - 1].1{
+                        programm_counter += 1;
+                    }
+                }
+                "elif" => {
                     programm_counter += 1;
                     while get_indentation(&self.lines[programm_counter].clone()) > self.indentation_stack[self.indentation_stack.len() - 1].1{
                         programm_counter += 1;
