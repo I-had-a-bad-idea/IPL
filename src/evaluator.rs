@@ -220,9 +220,11 @@ impl Evaluator{
             };
             match line.split(" ").collect::<Vec<_>>()[0]{
                 "import" => {
-                    let file = self.folder + line.split(" ").collect::<Vec<_>>()[1];
-                    self.evaluators[&file] = Evaluator::new();
-                    self.evaluators[&file].ev_file(&file);
+                    let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
+                    self.evaluators.insert(file.clone(), Evaluator::new());
+                    if let Some(evaluator) = self.evaluators.get_mut(&file) {
+                        evaluator.ev_file(&file);
+                    }
                     self.functions.extend(self.evaluators[&file].functions.clone());
                     self.variables.extend(self.evaluators[&file].variables.clone());
 
@@ -273,20 +275,31 @@ impl Evaluator{
                 "def" => {
                     let function_decleration = line.split(" ").collect::<Vec<_>>()[1];
                     let function_name = function_decleration.split("(").collect::<Vec<_>>()[0];
-                    let function_arguments_split = function_decleration.split("(").collect::<Vec<&str>>()[1].replace(")", "").split(",");
-                    let function_arguments = function_arguments_split.map(|n| Value::Str(n.to_string())).collect::<Vec<Value>>();
+                    let args = function_decleration
+                                        .split_once('(') // returns Option<(&str, &str)>
+                                        .and_then(|(_, rest)| rest.split_once(')')) // safely get the inside of the parentheses
+                                        .map(|(args_str, _)| {
+                                            args_str
+                                                .split(',')
+                                                .map(str::trim)
+                                                .filter(|s| !s.is_empty())
+                                                .collect::<Vec<_>>()
+                                        })
+                                        .unwrap_or_else(|| Vec::new());
+                    let function_arguments = args.iter().map(|n| Value::Str(n.to_string())).collect::<Vec<Value>>();
                     programm_counter += 1;
                     let start_line = programm_counter;
-                    while get_indentation(&self.lines[programm_counter].clone()) > indentation{
+                    while get_indentation(&self.lines[programm_counter]) > indentation{
                         programm_counter += 1;
                     }
                     let function_lines = (start_line..programm_counter)
                         .map(|n| Value::Number(n as f64))
                         .collect::<Vec<Value>>();
-                    self.functions[function_name] = HashMap::new();
-                    self.functions[function_name].insert("file".to_string(), Value::Path(self.path));
-                    self.functions[function_name].insert("arguments".to_string(), Value::List(function_arguments));
-                    self.functions[function_name].insert("function_body".to_string(), Value::List(function_lines));
+                    let mut function_hash_map: HashMap<String, Value> = HashMap::new();
+                    function_hash_map.insert("file".to_string(), Value::Path(self.path.clone()));
+                    function_hash_map.insert("arguments".to_string(), Value::List(function_arguments));
+                    function_hash_map.insert("function_body".to_string(), Value::List(function_lines));
+                    self.functions.insert(function_name.to_string(), function_hash_map);
 
                     println!("functions: {:?}", self.functions);
                 }
@@ -295,9 +308,10 @@ impl Evaluator{
                         break;
                     }
                     if line.contains("="){
-                        if let Some((variable_name, expr)) = line.split_once("="){
+                        if let Some((mut variable_name, expr)) = line.split_once("="){
                             variable_name = variable_name.trim();
-                            self.variables[variable_name] = self.ev_expr(expr);
+                            let result = self.ev_expr(expr);
+                            self.variables.insert(variable_name.to_string(), result);
                         }
                     }
                     else{
