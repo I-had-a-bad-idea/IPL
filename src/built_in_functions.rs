@@ -11,10 +11,15 @@ pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = s
     ("max", vec![]),
     ("round", vec!["number"]),
     ("pow", vec!["base", "exp"]),
+    ("test", vec![]),
 ]));
 
 pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
+    println!("Called built in function {} with arguments {:?}", name, args);
     match name {
+        "test" => {
+            return Value::Number(24.0);
+        }
         "out" => {
             if let Some(output) = args.get(0) {
                 println!("{:?}", output);

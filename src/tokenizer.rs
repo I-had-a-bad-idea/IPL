@@ -14,13 +14,13 @@ impl Tokenizer{
     pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
         // Placeholder for tokenization logic
         let tokens = self.split(input);
-        //println!("tokens after splitting: {:?}", tokens);
+        println!("tokens after splitting: {:?}", tokens);
         let output = self.shunting_yard(tokens, variables, functions);
         return output;
     }
 
     fn split(&self, input: &str) -> Vec<String> {
-        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>]|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+(\.\d+)?"#;
+        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|,|[+\-*/=()<>]|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+(\.\d+)?"#;
 
         let re = Regex::new(token_pattern).unwrap();
         let tokens: Vec<String> = re.find_iter(input)
@@ -28,7 +28,7 @@ impl Tokenizer{
             .collect();
         return tokens;
     }
-    fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
+        fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
         let prec = HashMap::from([
             ("or", 1), ("and", 2),
             ("==", 3), ("!=", 3), ("<", 3), ("<=", 3), (">", 3), (">=", 3),
@@ -38,8 +38,7 @@ impl Tokenizer{
         let mut output: Vec<String> = vec![];
         let mut stack: Vec<String> = vec![];
 
-        for token in &tokens{
-            //println!("At token {}, output: {:?}", token, output);
+        for token in &tokens {
             if token.starts_with('"') && token.ends_with('"') || token.starts_with("'") && token.ends_with("'"){
                 output.push(token.clone());
             }
@@ -55,11 +54,22 @@ impl Tokenizer{
                         break;
                     }
                 }
-                stack.push(token.clone()); //push the operator itself
+                stack.push(token.clone());
             }
             else if token == "("{
                 stack.push(token.clone());
-                
+            }
+            else if token == "," {
+                // Pop operators until we reach a left parenthesis
+                while let Some(last) = stack.last() {
+                    if last != "(" {
+                        output.push(stack.pop().unwrap());
+                    } else {
+                        break;
+                    }
+                }
+                // Add the comma to the output
+                output.push(token.clone());
             }
             else if token == ")"{
                 while let Some(last) = stack.last(){
@@ -79,10 +89,8 @@ impl Tokenizer{
                 EvaluatioError::new(format!("Unknown token {}", token), None, None).raise();
             }
         }
-        //println!("Remaining stack: {:?}", stack);
+
         while let Some(last) = stack.last(){
-            // println!("Last: {}", last);
-            // println!("Remaining stack: {:?}", stack);
             if last == "(" || last == ")"{
                 EvaluatioError::new("Mismatched parentheses".to_string(), None, None).raise();
             }

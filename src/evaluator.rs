@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::fs;
 use std::ops::Index;
 use std::ops::Add;
+use std::result;
 
 use crate::built_in_functions::call_built_in_function;
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
@@ -237,7 +238,11 @@ impl Evaluator{
                     programm_counter += 1;
                     }
                 "while" => {
-                    if self.ev_expr(line.split(" ").collect::<Vec<_>>()[1]).as_bool() == true{
+                    let mut result = false;
+                    if let Some((_first, rest)) = line.split_once(' ') {
+                        result = self.ev_expr(rest).as_bool(); // or whatever you want to do with `rest`
+                    }
+                    if result == true{
                         programm_counter += 1;
                         self.indentation_stack.push(("while".to_string(), indentation));
                     } else{
@@ -248,7 +253,11 @@ impl Evaluator{
                     }
                 }
                 "if" => {
-                    if self.ev_expr(line.split(" ").collect::<Vec<_>>()[1]).as_bool() == true{
+                    let mut result = false;
+                    if let Some((_first, rest)) = line.split_once(' ') {
+                        result = self.ev_expr(rest).as_bool(); // or whatever you want to do with `rest`
+                    }
+                    if result == true{
                         programm_counter += 1;
                         self.indentation_stack.push(("if".to_string(), indentation));
                     }
@@ -264,9 +273,11 @@ impl Evaluator{
                                 break
                             }
                             else if self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] == "elif" && get_indentation(&self.lines[programm_counter].clone()) == indentation{                                
-                                let condition = line.split(" ").collect::<Vec<_>>()[2..].join(" ");
-                                println!("Elif with condition: {}", condition);
-                                if self.ev_expr(&condition).as_bool() == true{
+                                let mut result = false;
+                                if let Some((_first, rest)) = line.split_once(' ') {
+                                    result = self.ev_expr(rest).as_bool(); // or whatever you want to do with `rest`
+                                }
+                                if result == true{
                                     programm_counter += 1;
                                     self.indentation_stack.push(("if".to_string(), indentation));
                                     break;
@@ -368,27 +379,35 @@ impl Evaluator{
                 stack.push(self.variables[&token].clone().to_string_value())
             }
             else if self.functions.contains_key(&token)|| BUILT_IN_FUNCTIONS.contains_key(&token as &str) {
-                if tokens.get(i + 1).expect("Empty token").to_string() == "("{
-                    let function_name = &token;
-                    let mut arguments: Vec<Value> = vec![];
-                    let mut function_i = i + 1;
-                    while tokens.get(function_i).expect("Empty token").to_string() != ")"{
-                        let function_token = tokens.get(function_i).expect("Empty token").to_string();
-                        if function_token == ","{
-                            function_i += 1;
-                            continue;
-                        }
-                        arguments.push(self.ev_expr(&function_token)); // Evaluate arguments
+                println!("Found function");
+                let function_name = &token;
+                let mut args: Vec<Value> = vec![];
+                let mut func_i = i + 1;
+                let required_args = BUILT_IN_FUNCTIONS[&function_name as &str].clone();
+                loop{
+                    if args.len() >= required_args.len(){
+                        i += func_i - i - 1;
+                        break;
                     }
-
-                    if BUILT_IN_FUNCTIONS.contains_key(function_name as &str){
-                        stack.push(call_built_in_function(function_name, arguments).to_string_value());
+                    let func_token = tokens.get(func_i).expect("Empty token").to_string();
+                    args.push(self.ev_expr(&func_token));
+                    if func_i + 1 >= tokens.len(){
+                        i += func_i - i - 1;
+                        break;
                     }
-                    else if self.functions.contains_key(function_name) {
-                        stack.push(self.ev_func(function_name, arguments).to_string_value());
+                    if tokens.get(func_i + 1).expect("Empty token").to_string() != ","{
+                        i += func_i - i - 1;
+                        break
                     }
-                    i += function_i - i - 1;
+                    func_i += 2;
                 }
+                if BUILT_IN_FUNCTIONS.contains_key(function_name as &str){
+                    stack.push(call_built_in_function(function_name, args).to_string_value());
+                }
+                else if self.functions.contains_key(function_name) {
+                    stack.push(self.ev_func(function_name, args).to_string_value());
+                }
+                i += func_i - i - 1;
             }
             else{
                 let rhs = Value::Str(stack.pop().unwrap()).as_f64();
