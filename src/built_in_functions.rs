@@ -22,7 +22,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         }
         "out" => {
             if let Some(output) = args.get(0) {
-                println!("{:?}", output);
+                println!("{}", output.to_string_value());
             } else {
                 EvaluatioError::new("Error: 'out' function requires 1 argument".to_string(), None, None).raise();
             }

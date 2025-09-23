@@ -47,21 +47,22 @@ impl Add for Value {
 }
 
 impl Value {
-    fn as_f64(&self) -> f64 {
+    pub fn as_f64(&self) -> f64 {
         match self {
             Value::Number(n) => n.clone(),
             Value::Bool(b) => if *b { 1.0 } else { 0.0 },
+            Value::Str(s) => s.parse::<f64>().unwrap_or(0.0),
             _ => 0.0,
         }
     }
-    fn as_usize(&self) -> usize {
+    pub fn as_usize(&self) -> usize {
         match self {
             Value::Number(n) => *n as usize,
             Value::Bool(b) => if *b { 1 } else { 0 }
             _ => 0,
         }
     }
-    fn as_bool(&self) -> bool {
+    pub fn as_bool(&self) -> bool {
         match self {
             Value::Bool(b) => *b,
             Value::Number(n) => *n != 0.0,
@@ -70,7 +71,7 @@ impl Value {
             _ => true,
         }
     }
-    fn to_string_value(&self) -> String {
+    pub fn to_string_value(&self) -> String {
         match self {
             Value::Number(n) => n.to_string(),
             Value::Bool(b) => b.to_string(),
@@ -79,14 +80,14 @@ impl Value {
             _ => "".to_string(),
             }
         }
-    fn length(&self) -> usize {
+    pub fn length(&self) -> usize {
         match self {
             Value::List(v) => v.len(),
             Value::Str(s) => s.len(),
             _ => 0,
         }
     }
-    fn iter(&self) -> Box<dyn Iterator<Item = &Value> + '_> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = &Value> + '_> {
         match self {
             Value::List(v) => Box::new(v.iter()),
             _ => Box::new(std::iter::empty()),
@@ -162,10 +163,10 @@ impl Evaluator{
         let function_lines = &self.functions[function_name]["function_body"];
 
         println!("Executing function {} with lines: {:?}", function_name, function_lines);
-        println!("Function lines content:");
-        for i in function_lines.iter() {
-            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
-        }
+        // println!("Function lines content:");
+        // for i in function_lines.iter() {
+        //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        //}
         if args.len() != function_arguments.length() {
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
@@ -193,14 +194,14 @@ impl Evaluator{
         println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end{
-            println!("At line {}", programm_counter);
+            // println!("At line {}", programm_counter);
 
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
 
             let indentation = get_indentation(&line);
 
-            println!("Indentation_stack: {:?}", self.indentation_stack);
+            // println!("Indentation_stack: {:?}", self.indentation_stack);
             if indentation <= self.indentation_stack[self.indentation_stack.len() - 1].1{
                 if self.indentation_stack[self.indentation_stack.len() - 1].0 == "while"{
                     while self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] != "while"{
@@ -227,7 +228,6 @@ impl Evaluator{
             match line.split(" ").collect::<Vec<_>>()[0]{
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
-                    println!("File path to be impprted: {}", file);
                     self.evaluators.insert(file.clone(), Evaluator::new());
                     if let Some(evaluator) = self.evaluators.get_mut(&file) {
                         evaluator.ev_file(&file);
@@ -302,7 +302,6 @@ impl Evaluator{
                 }
                 "return" => {
                     let expr = line.split("return").collect::<Vec<_>>()[1];
-                    println!("Returning result of {}", expr);
                     return self.ev_expr(expr);
                 }
                 "def" => {
@@ -334,17 +333,15 @@ impl Evaluator{
                     function_hash_map.insert("function_body".to_string(), Value::List(function_lines));
                     self.functions.insert(function_name.to_string(), function_hash_map);
 
-                    println!("functions: {:?}", self.functions);
                 }
                 _ => {
                     if line == "End of file"{
                         break;
                     }
                     if line.contains("="){
-                        println!("Is assignment");
                         if let Some((mut variable_name, expr)) = line.split_once("="){
                             variable_name = variable_name.trim();
-                            println!("Variable name: {}, expr: {}", variable_name, expr);
+                            // println!("Variable name: {}, expr: {}", variable_name, expr);
                             let result = self.ev_expr(expr);
                             self.variables.insert(variable_name.to_string(), result);
                         }
@@ -362,13 +359,13 @@ impl Evaluator{
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
 
-        println!("tokens: {:?}", tokens);
+        // println!("tokens: {:?}", tokens);
 
         let mut stack = vec![];
         let mut i = 0;
         while i < tokens.len(){
             let token = tokens.get(i).expect("Empty token").to_string();
-            println!("token: {}", token);
+            // println!("token: {}", token);
             if token.trim_matches('.').parse::<f64>().is_ok(){
                 stack.push(token);
             }
@@ -379,7 +376,6 @@ impl Evaluator{
                 stack.push(self.variables[&token].clone().to_string_value())
             }
             else if self.functions.contains_key(&token)|| BUILT_IN_FUNCTIONS.contains_key(&token as &str) {
-                println!("Found function");
                 let function_name = &token;
                 let mut args: Vec<Value> = vec![];
                 let mut func_i = i + 1;
@@ -401,17 +397,21 @@ impl Evaluator{
                     }
                     func_i += 2;
                 }
-                if BUILT_IN_FUNCTIONS.contains_key(function_name as &str){
-                    stack.push(call_built_in_function(function_name, args).to_string_value());
-                }
-                else if self.functions.contains_key(function_name) {
-                    stack.push(self.ev_func(function_name, args).to_string_value());
-                }
+                let result = if BUILT_IN_FUNCTIONS.contains_key(function_name as &str) {
+                    call_built_in_function(function_name, args)
+                } else if self.functions.contains_key(function_name) {
+                    self.ev_func(function_name, args)
+                } else {
+                    Value::None
+                };
+                stack.push(result.to_string_value());
                 i += func_i - i - 1;
             }
             else{
-                let rhs = Value::Str(stack.pop().unwrap()).as_f64();
-                let lhs = Value::Str(stack.pop().unwrap()).as_f64();
+                let rhs_str = stack.pop().unwrap();
+                let lhs_str = stack.pop().unwrap();
+                let rhs = Value::Str(rhs_str).as_f64();
+                let lhs = Value::Str(lhs_str).as_f64();
 
                 if token == "+"{
                     stack.push((lhs + rhs).to_string());
