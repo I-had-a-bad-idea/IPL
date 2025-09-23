@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::error::EvaluatioError;
+use crate::debug::EvaluatioError;
 use crate::evaluator::Value;
 
 pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = std::sync::LazyLock::new(|| HashMap::from([

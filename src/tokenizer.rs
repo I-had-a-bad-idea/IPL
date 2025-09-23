@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::collections::HashMap;
 
-use crate::{error::EvaluatioError, evaluator::Value, built_in_functions::BUILT_IN_FUNCTIONS};
+use crate::{debug::EvaluatioError, evaluator::Value, built_in_functions::BUILT_IN_FUNCTIONS};
 
 pub struct Tokenizer{
 }
@@ -14,7 +14,7 @@ impl Tokenizer{
     pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
         // Placeholder for tokenization logic
         let tokens = self.split(input);
-        println!("tokens after splitting: {:?}", tokens);
+        //println!("tokens after splitting: {:?}", tokens);
         let output = self.shunting_yard(tokens, variables, functions);
         return output;
     }
@@ -39,7 +39,7 @@ impl Tokenizer{
         let mut stack: Vec<String> = vec![];
 
         for token in &tokens{
-            println!("At token {}, output: {:?}", token, output);
+            //println!("At token {}, output: {:?}", token, output);
             if token.starts_with('"') && token.ends_with('"') || token.starts_with("'") && token.ends_with("'"){
                 output.push(token.clone());
             }
@@ -79,7 +79,7 @@ impl Tokenizer{
                 EvaluatioError::new(format!("Unknown token {}", token), None, None).raise();
             }
         }
-        println!("Remaining stack: {:?}", stack);
+        //println!("Remaining stack: {:?}", stack);
         while let Some(last) = stack.last(){
             // println!("Last: {}", last);
             // println!("Remaining stack: {:?}", stack);

@@ -1,10 +1,10 @@
 use std::env;
-mod error;
+mod debug;
 mod evaluator;
 mod tokenizer;
 mod built_in_functions;
 
-use error::EvaluatioError;
+use debug::EvaluatioError;
 use evaluator::Evaluator;
 
 fn main(){
@@ -20,7 +20,4 @@ fn main(){
     }
     let mut evaluator = Evaluator::new();
     evaluator.ev_file(file);
-    let tokenizer = tokenizer::Tokenizer::new();
-    let tokens = tokenizer.tokenize("h = variable + 3 * 3", evaluator.variables, evaluator.functions);
-    println!("Tokens: {:?}", tokens);
 }

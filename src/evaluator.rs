@@ -6,8 +6,9 @@ use std::ops::Add;
 
 use crate::built_in_functions::call_built_in_function;
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
-use crate::error::EvaluatioError;
+use crate::debug::EvaluatioError;
 use crate::tokenizer::Tokenizer;
+
 
 #[derive(Debug, Clone)]
 pub enum Value{
@@ -129,6 +130,7 @@ impl Evaluator{
             .and_then(|p| p.to_str())
             .unwrap_or("")
             .to_string();
+        self.folder += "//";
         let contents = fs::read_to_string(file).expect("Should have been able to read the file");
 
         self.lines = contents
@@ -224,6 +226,7 @@ impl Evaluator{
             match line.split(" ").collect::<Vec<_>>()[0]{
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
+                    println!("File path to be impprted: {}", file);
                     self.evaluators.insert(file.clone(), Evaluator::new());
                     if let Some(evaluator) = self.evaluators.get_mut(&file) {
                         evaluator.ev_file(&file);
