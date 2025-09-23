@@ -351,7 +351,9 @@ impl Evaluator{
         println!("tokens: {:?}", tokens);
 
         let mut stack = vec![];
-        for token in tokens{
+        let mut i = 0;
+        while i < tokens.len(){
+            let token = tokens.get(i).expect("Empty token").to_string();
             println!("token: {}", token);
             if token.trim_matches('.').parse::<f64>().is_ok(){
                 stack.push(token);
@@ -362,31 +364,27 @@ impl Evaluator{
             else if self.variables.contains_key(&token) {
                 stack.push(self.variables[&token].clone().to_string_value())
             }
-            else if self.functions.contains_key(token.split("(").collect::<Vec<_>>()[0]) || BUILT_IN_FUNCTIONS.contains_key(token.split("(").collect::<Vec<_>>()[0]) {
-                if token.contains("(") && token.ends_with(")"){
-                    let function_name = token.split("(").collect::<Vec<_>>()[0];
-                    let argument_str = token.split("(").collect::<Vec<_>>()[1].trim(); 
-                    let argument_values: Vec<Value> = argument_str
-                        .split(',')                    // split by comma
-                        .map(|a| a.trim())             // strip whitespace
-                        .filter(|a| !a.is_empty())     // skip empty strings
-                        .map(|a| self.ev_expr(a))      // evaluate each expression
-                        .collect();                    // collect into a Vec
+            else if self.functions.contains_key(&token)|| BUILT_IN_FUNCTIONS.contains_key(&token as &str) {
+                if tokens.get(i + 1).expect("Empty token").to_string() == "("{
+                    let function_name = &token;
+                    let mut arguments: Vec<Value> = vec![];
+                    let mut function_i = i + 1;
+                    while tokens.get(function_i).expect("Empty token").to_string() != ")"{
+                        let function_token = tokens.get(function_i).expect("Empty token").to_string();
+                        if function_token == ","{
+                            function_i += 1;
+                            continue;
+                        }
+                        arguments.push(self.ev_expr(&function_token)); // Evaluate arguments
+                    }
 
-                    if BUILT_IN_FUNCTIONS.contains_key(function_name){
-                        stack.push(call_built_in_function(function_name, argument_values).to_string_value());
+                    if BUILT_IN_FUNCTIONS.contains_key(function_name as &str){
+                        stack.push(call_built_in_function(function_name, arguments).to_string_value());
                     }
                     else if self.functions.contains_key(function_name) {
-                        stack.push(self.ev_func(function_name, argument_values).to_string_value());
+                        stack.push(self.ev_func(function_name, arguments).to_string_value());
                     }
-                }
-                else{
-                    if BUILT_IN_FUNCTIONS.contains_key(&token.as_str()){
-                        stack.push(call_built_in_function(&token, vec![]).to_string_value());
-                    }
-                    else if self.functions.contains_key(&token) {
-                        stack.push(self.ev_func(&token, vec![]).to_string_value());
-                    }
+                    i += function_i - i - 1;
                 }
             }
             else{
@@ -432,6 +430,7 @@ impl Evaluator{
                     stack.push((Value::Number(lhs).as_bool() || Value::Number(rhs).as_bool()).to_string());
                 }
             }
+            i += 1;
         }
     return Value::Str(stack[0].clone());
     }

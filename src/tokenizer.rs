@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::collections::HashMap;
 
-use crate::{error::EvaluatioError, evaluator::{Value}};
+use crate::{error::EvaluatioError, evaluator::Value, built_in_functions::BUILT_IN_FUNCTIONS};
 
 pub struct Tokenizer{
 }
@@ -43,9 +43,8 @@ impl Tokenizer{
             if token.starts_with('"') && token.ends_with('"') || token.starts_with("'") && token.ends_with("'"){
                 output.push(token.clone());
             }
-            else if token.trim_matches('.').parse::<f64>().is_ok() || variables.contains_key(token) || functions.contains_key(token){
+            else if token.trim_matches('.').parse::<f64>().is_ok() || variables.contains_key(token) || functions.contains_key(token) || BUILT_IN_FUNCTIONS.contains_key(&token as &str){
                 output.push(token.clone());
-                println!("Pushed number");
             }
             else if prec.contains_key(token.as_str()) {
                 while let Some(last) = stack.last() {
@@ -56,7 +55,7 @@ impl Tokenizer{
                         break;
                     }
                 }
-                stack.push(token.clone()); //push the operator itself ||| leads to infinte loop
+                stack.push(token.clone()); //push the operator itself
             }
             else if token == "("{
                 stack.push(token.clone());
