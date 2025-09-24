@@ -16,6 +16,6 @@ else
 
 out(24)
 
-y = test() + 20
+y = 24 + 20
 
 out(y)

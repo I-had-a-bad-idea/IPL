@@ -93,6 +93,18 @@ impl Value {
             _ => Box::new(std::iter::empty()),
         }
     }
+    pub fn as_vec(&self) -> Vec<&str> {
+        match self {
+            Value::List(v) => v.iter().filter_map(|val| {
+                if let Value::Str(s) = val {
+                    Some(s.as_str())
+                } else {
+                    None
+                }
+            }).collect(),
+            _ => vec![],
+        }
+    }
 }
 
 pub struct Evaluator{
@@ -380,7 +392,7 @@ impl Evaluator{
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
 
-        //println!("tokens: {:?}", tokens);
+        println!("tokens: {:?}", tokens);
 
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
@@ -400,7 +412,14 @@ impl Evaluator{
                 let function_name = &token;
                 let mut args: Vec<Value> = vec![];
                 let mut func_i = i + 1;
-                let required_args = BUILT_IN_FUNCTIONS[&function_name as &str].clone();
+                println!("Function call detected: {}", function_name);
+                println!("Functions: {:?}", self.functions);
+                let mut required_args: Vec<&str> = vec![];
+                if self.functions.contains_key(function_name) { //FIXME temorary value dropped while borrowed
+                    required_args = self.functions[function_name]["arguments"].clone().as_vec();
+                } else if BUILT_IN_FUNCTIONS.contains_key(function_name as &str) {
+                    required_args = BUILT_IN_FUNCTIONS[&function_name as &str].clone();
+                }
                 loop{
                     if args.len() >= required_args.len(){
                         i += func_i - i - 1;
