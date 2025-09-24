@@ -114,11 +114,15 @@ impl Evaluator{
     pub fn new() -> Self{
         Self{
             lines: vec![],
-            variables: HashMap::new(),
+            variables: HashMap::from([
+                ("True".to_string(), Value::Bool(true)),
+                ("False".to_string(), Value::Bool(false)),
+                ("None".to_string(), Value::None),
+            ]),
             functions: HashMap::new(),
             evaluators: HashMap::new(),
             indentation_stack: vec![],
-            
+
             folder: String::new(),
             path: PathBuf::new(),
         }
@@ -194,7 +198,7 @@ impl Evaluator{
         println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end{
-            // println!("At line {}", programm_counter);
+            println!("At line {}", programm_counter);
 
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
@@ -240,7 +244,7 @@ impl Evaluator{
                 "while" => {
                     let mut result = false;
                     if let Some((_first, rest)) = line.split_once(' ') {
-                        result = self.ev_expr(rest).as_bool(); // or whatever you want to do with `rest`
+                        result = self.ev_expr(rest).as_bool();
                     }
                     if result == true{
                         programm_counter += 1;
@@ -255,7 +259,7 @@ impl Evaluator{
                 "if" => {
                     let mut result = false;
                     if let Some((_first, rest)) = line.split_once(' ') {
-                        result = self.ev_expr(rest).as_bool(); // or whatever you want to do with `rest`
+                        result = self.ev_expr(rest).as_bool();
                     }
                     if result == true{
                         programm_counter += 1;
@@ -274,8 +278,8 @@ impl Evaluator{
                             }
                             else if self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] == "elif" && get_indentation(&self.lines[programm_counter].clone()) == indentation{                                
                                 let mut result = false;
-                                if let Some((_first, rest)) = line.split_once(' ') {
-                                    result = self.ev_expr(rest).as_bool(); // or whatever you want to do with `rest`
+                                if let Some((_first, rest)) = self.lines[programm_counter].clone().split_once(' ') {
+                                    result = self.ev_expr(rest).as_bool();
                                 }
                                 if result == true{
                                     programm_counter += 1;
@@ -361,19 +365,19 @@ impl Evaluator{
 
         // println!("tokens: {:?}", tokens);
 
-        let mut stack = vec![];
+        let mut stack: Vec<Value> = vec![];
         let mut i = 0;
         while i < tokens.len(){
             let token = tokens.get(i).expect("Empty token").to_string();
-            // println!("token: {}", token);
+            println!("token: {} , stack: {:?}", token, stack);
             if token.trim_matches('.').parse::<f64>().is_ok(){
-                stack.push(token);
+                stack.push(Value::Number(token.parse::<f64>().unwrap()));
             }
             else if (token.starts_with('"') && token.ends_with('"')) || (token.starts_with("'") && token.ends_with("'")){
-                stack.push((token[1..token.len()-1]).to_string());
+                stack.push(Value::Str(token[1..token.len()-1].to_string()));
             }
             else if self.variables.contains_key(&token) {
-                stack.push(self.variables[&token].clone().to_string_value())
+                stack.push(self.variables[&token].clone());
             }
             else if self.functions.contains_key(&token)|| BUILT_IN_FUNCTIONS.contains_key(&token as &str) {
                 let function_name = &token;
@@ -404,57 +408,57 @@ impl Evaluator{
                 } else {
                     Value::None
                 };
-                stack.push(result.to_string_value());
+                stack.push(result);
                 i += func_i - i - 1;
             }
-            else{
-                let rhs_str = stack.pop().unwrap();
-                let lhs_str = stack.pop().unwrap();
-                let rhs = Value::Str(rhs_str).as_f64();
-                let lhs = Value::Str(lhs_str).as_f64();
+            else{ 
+
+                let rhs = stack.pop().expect("Not enough values on stack");
+                let lhs = stack.pop().expect("Not enough values on stack");
+                
 
                 if token == "+"{
-                    stack.push((lhs + rhs).to_string());
+                    stack.push(Value::Number(lhs.as_f64() + rhs.as_f64()));
                 }
                 else if token == "-" {
-                    stack.push((lhs - rhs).to_string());
+                    stack.push(Value::Number(lhs.as_f64() - rhs.as_f64()));
                 }
                 else if token == "*" {
-                    stack.push((lhs * rhs).to_string());
+                    stack.push(Value::Number(lhs.as_f64() * rhs.as_f64()));
                 }
                 else if token == "/" {
-                    stack.push((lhs / rhs).to_string());
+                    stack.push(Value::Number(lhs.as_f64() / rhs.as_f64()));
                 }
 
                 else if token == "==" {
-                    stack.push((lhs == rhs).to_string());
+                    stack.push(Value::Bool(lhs.as_f64() == rhs.as_f64()));
                 }
                 else if token == "!=" {
-                    stack.push((lhs != rhs).to_string());
+                    stack.push(Value::Bool(lhs.as_f64() != rhs.as_f64()));
                 }
                 else if token == "<" {
-                    stack.push((lhs < rhs).to_string());
+                    stack.push(Value::Bool(lhs.as_f64() < rhs.as_f64()));
                 }
                 else if token == "<=" {
-                    stack.push((lhs <= rhs).to_string());
+                    stack.push(Value::Bool(lhs.as_f64() <= rhs.as_f64()));
                 }
                 else if token == ">" {
-                    stack.push((lhs > rhs).to_string());
+                    stack.push(Value::Bool(lhs.as_f64() > rhs.as_f64()));
                 }
                 else if token == ">=" {
-                    stack.push((lhs >= rhs).to_string());
+                    stack.push(Value::Bool(lhs.as_f64() >= rhs.as_f64()));
                 }
 
                 else if token == "and" {
-                    stack.push((Value::Number(lhs).as_bool() && Value::Number(rhs).as_bool()).to_string());    
+                    stack.push(Value::Bool(lhs.as_bool() && rhs.as_bool()));    
                 }
                 else if token == "or" {
-                    stack.push((Value::Number(lhs).as_bool() || Value::Number(rhs).as_bool()).to_string());
+                    stack.push(Value::Bool(lhs.as_bool() || rhs.as_bool()));
                 }
             }
             i += 1;
         }
-    return Value::Str(stack[0].clone());
+    return stack.pop().unwrap_or(Value::None); 
     }
 
 }

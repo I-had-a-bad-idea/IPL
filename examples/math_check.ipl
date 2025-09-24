@@ -7,6 +7,13 @@ elif 24 > 100
 elif 12 > 3
     out(1)
 
+if True
+    out("if")
+elif False
+    out("elif)
+else 
+    out("none")
+
 out(24)
 
 y = test() + 20
