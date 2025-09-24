@@ -15,7 +15,7 @@ pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = s
 ]));
 
 pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
-    println!("Called built in function {} with arguments {:?}", name, args);
+    //println!("Called built in function {} with arguments {:?}", name, args);
     match name {
         "test" => {
             return Value::Number(24.0);

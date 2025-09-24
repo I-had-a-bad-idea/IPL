@@ -198,12 +198,16 @@ impl Evaluator{
         println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end{
-            println!("At line {}", programm_counter);
+            //println!("At line {}", programm_counter);
 
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
 
+            //println!("Current line: '{}'", line);
+
             let indentation = get_indentation(&line);
+
+            line = line.trim().to_string();
 
             // println!("Indentation_stack: {:?}", self.indentation_stack);
             if indentation <= self.indentation_stack[self.indentation_stack.len() - 1].1{
@@ -266,29 +270,42 @@ impl Evaluator{
                         self.indentation_stack.push(("if".to_string(), indentation));
                     }
                     else{
-                        loop{
-                            programm_counter += 1;
-                            while get_indentation(&self.lines[programm_counter].clone()) > self.indentation_stack[self.indentation_stack.len() - 1].1{
+                        programm_counter += 1;
+                        while programm_counter < end{
+                            let current_line = self.lines[programm_counter].clone();
+                            let current_indent = get_indentation(&current_line);
+                            let first_word = current_line.split_whitespace().next().unwrap_or("");
+                            
+                            if current_indent > indentation{
                                 programm_counter += 1;
+                                continue;
                             }
-                            if self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] == "else" && get_indentation(&self.lines[programm_counter].clone()) == indentation{
+                            if current_indent < indentation{
+                                break;
+                            }
+
+                            if first_word == "elif" {
+                                if let Some((_first, rest)) = current_line.split_once(' ') {
+                                    if self.ev_expr(rest).as_bool() {
+                                        programm_counter += 1;
+                                        self.indentation_stack.push(("if".to_string(), indentation));
+                                        break;
+                                    } else {
+                                        // Skip block
+                                        programm_counter += 1;
+                                        while programm_counter < end && get_indentation(&self.lines[programm_counter]) > indentation {
+                                            programm_counter += 1;
+                                        }
+                                    }
+                                }
+                            } else if first_word == "else" {
                                 programm_counter += 1;
                                 self.indentation_stack.push(("else".to_string(), indentation));
-                                break
-                            }
-                            else if self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] == "elif" && get_indentation(&self.lines[programm_counter].clone()) == indentation{                                
-                                let mut result = false;
-                                if let Some((_first, rest)) = self.lines[programm_counter].clone().split_once(' ') {
-                                    result = self.ev_expr(rest).as_bool();
-                                }
-                                if result == true{
-                                    programm_counter += 1;
-                                    self.indentation_stack.push(("if".to_string(), indentation));
-                                    break;
-                                }
-                                else{continue;}
-                            }
-                            else{continue;}
+                                break;
+                            } else {
+                                programm_counter += 1;
+                                break;
+                            } 
                         }
                     }
                 }
@@ -363,13 +380,13 @@ impl Evaluator{
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
 
-        // println!("tokens: {:?}", tokens);
+        //println!("tokens: {:?}", tokens);
 
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
         while i < tokens.len(){
             let token = tokens.get(i).expect("Empty token").to_string();
-            println!("token: {} , stack: {:?}", token, stack);
+            //println!("token: {} , stack: {:?}", token, stack);
             if token.trim_matches('.').parse::<f64>().is_ok(){
                 stack.push(Value::Number(token.parse::<f64>().unwrap()));
             }

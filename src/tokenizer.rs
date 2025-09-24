@@ -14,7 +14,7 @@ impl Tokenizer{
     pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<String> {
         // Placeholder for tokenization logic
         let tokens = self.split(input);
-        println!("tokens after splitting: {:?}", tokens);
+        //println!("tokens after splitting: {:?}", tokens);
         let output = self.shunting_yard(tokens, variables, functions);
         return output;
     }
