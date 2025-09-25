@@ -76,6 +76,7 @@ impl Value {
             Value::Number(n) => n.to_string(),
             Value::Bool(b) => b.to_string(),
             Value::Str(s) => s.clone(),
+            Value::Path(p) => p.to_str().unwrap_or("").to_string(),
             Value::None => "None".into(),
             _ => "".to_string(),
             }
@@ -392,7 +393,7 @@ impl Evaluator{
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
 
-        println!("tokens: {:?}", tokens);
+        //println!("tokens: {:?}", tokens);
 
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
@@ -412,19 +413,9 @@ impl Evaluator{
                 let function_name = &token;
                 let mut args: Vec<Value> = vec![];
                 let mut func_i = i + 1;
-                println!("Function call detected: {}", function_name);
-                println!("Functions: {:?}", self.functions);
-                let mut required_args: Vec<&str> = vec![];
-                if self.functions.contains_key(function_name) { //FIXME temorary value dropped while borrowed
-                    required_args = self.functions[function_name]["arguments"].clone().as_vec();
-                } else if BUILT_IN_FUNCTIONS.contains_key(function_name as &str) {
-                    required_args = BUILT_IN_FUNCTIONS[&function_name as &str].clone();
-                }
+                //println!("Function call detected: {}", function_name);
+                //println!("Functions: {:?}", self.functions);
                 loop{
-                    if args.len() >= required_args.len(){
-                        i += func_i - i - 1;
-                        break;
-                    }
                     let func_token = tokens.get(func_i).expect("Empty token").to_string();
                     args.push(self.ev_expr(&func_token));
                     if func_i + 1 >= tokens.len(){

@@ -14,7 +14,10 @@ pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = s
 ]));
 
 pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
-    println!("Called built in function {} with arguments {:?}", name, args);
+    //println!("Called built in function {} with arguments {:?}", name, args);
+    if args.len() != BUILT_IN_FUNCTIONS[name].len(){
+        EvaluatioError::new(format!("Error: Function '{}' expects {} arguments, but got {}", name, BUILT_IN_FUNCTIONS[name].len(), args.len()), None, None).raise();
+    }
     match name {
         "out" => {
             if let Some(output) = args.get(0) {
