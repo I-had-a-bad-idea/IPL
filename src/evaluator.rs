@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use std::fs;
 use std::ops::Index;
 use std::ops::Add;
-use std::result;
 
 use crate::built_in_functions::call_built_in_function;
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
@@ -92,18 +91,6 @@ impl Value {
         match self {
             Value::List(v) => Box::new(v.iter()),
             _ => Box::new(std::iter::empty()),
-        }
-    }
-    pub fn as_vec(&self) -> Vec<&str> {
-        match self {
-            Value::List(v) => v.iter().filter_map(|val| {
-                if let Value::Str(s) = val {
-                    Some(s.as_str())
-                } else {
-                    None
-                }
-            }).collect(),
-            _ => vec![],
         }
     }
 }
@@ -273,6 +260,26 @@ impl Evaluator{
                         }
                     }
                 }
+                "for" =>{
+                    let variable_name = line.split(" ").collect::<Vec<_>>()[1];
+                    let iterable_expr = line.split("in").collect::<Vec<_>>()[1].trim();
+                    println!("For loop variable: {}, iterable expression: {}", variable_name, iterable_expr);
+                    let iterable = self.ev_expr(iterable_expr); 
+
+                    let start_line = programm_counter + 1;
+                    let mut end_line = start_line;
+                    while get_indentation(&self.lines[end_line]) > indentation{
+                        end_line += 1;
+                    }
+
+                    self.indentation_stack.push(("for".to_string(), indentation));
+                    for value in iterable.iter(){
+                        self.variables.insert(variable_name.to_string(), value.clone());
+                        self.execute_lines(start_line, end_line);
+                    }
+                    self.indentation_stack.pop();
+                    programm_counter = end_line;
+                }
                 "if" => {
                     let mut result = false;
                     if let Some((_first, rest)) = line.split_once(' ') {
@@ -429,14 +436,19 @@ impl Evaluator{
                 //println!("Function call detected: {}", function_name);
                 //println!("Functions: {:?}", self.functions);
                 loop{
+                    if func_i >= tokens.len(){
+                        i += func_i - i - 1;
+                        break;
+                    }
                     let func_token = tokens.get(func_i).expect("Empty token").to_string();
                     args.push(self.ev_expr(&func_token));
+
                     if func_i + 1 >= tokens.len(){
                         i += func_i - i - 1;
                         break;
                     }
                     if tokens.get(func_i + 1).expect("Empty token").to_string() != ","{
-                        i += func_i - i - 1;
+                        i += func_i - i + 1;
                         break
                     }
                     func_i += 2;

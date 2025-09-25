@@ -1,0 +1,6 @@
+list = test()
+
+for number in list
+    out(number)
+
+out("Done")
