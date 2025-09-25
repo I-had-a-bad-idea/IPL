@@ -14,6 +14,8 @@ def add(a,b)
 
 while x < 10 and z == 3
     out(x)
+    if x == 7
+        break
     x = x + 1
 
 if x == 10

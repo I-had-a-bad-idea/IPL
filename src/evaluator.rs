@@ -293,7 +293,7 @@ impl Evaluator{
                                 programm_counter += 1;
                                 continue;
                             }
-                            if current_indent < indentation{
+                            if current_indent <= indentation{
                                 break;
                             }
 
@@ -334,6 +334,19 @@ impl Evaluator{
                         programm_counter += 1;
                     }
                 }
+                "break" => {
+                    while let Some(x) = self.indentation_stack.pop(){
+                        if x.0 == "while"{
+                            while get_indentation(&self.lines[programm_counter]) > x.1{
+                                programm_counter += 1;
+                            }
+                            break;
+                       }
+                        else if x.0 == "normal"{
+                            EvaluatioError::new("Error: 'break' outside loop".to_string(), None, None).raise();
+                        }
+                    }
+                }  
                 "return" => {
                     let expr = line.split("return").collect::<Vec<_>>()[1];
                     return self.ev_expr(expr);
