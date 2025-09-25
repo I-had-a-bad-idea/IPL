@@ -210,7 +210,10 @@ impl Evaluator{
             line = line.trim().to_string();
 
             // println!("Indentation_stack: {:?}", self.indentation_stack);
-            if indentation <= self.indentation_stack[self.indentation_stack.len() - 1].1{
+            if indentation <= self.indentation_stack.last().unwrap_or(&("".to_string(), 0)).1{
+                if self.indentation_stack.last().is_none(){
+                    return Value::None;
+                }
                 if self.indentation_stack[self.indentation_stack.len() - 1].0 == "while"{
                     while self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] != "while"{
                         programm_counter -= 1;
@@ -223,16 +226,7 @@ impl Evaluator{
             } else if self.indentation_stack[self.indentation_stack.len() - 1].0 == "else"{
                 self.indentation_stack.pop();
             }
-            let first_word = line
-                .splitn(2, ' ')
-                .next();
-            
-            let first_word = match first_word {
-                Some(word) if !word.is_empty() => word,
-                _ => {
-                    programm_counter += 1;
-                    continue;}
-            };
+
             match line.split(" ").collect::<Vec<_>>()[0]{
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
@@ -353,7 +347,23 @@ impl Evaluator{
                             EvaluatioError::new("Error: 'break' outside loop".to_string(), None, None).raise();
                         }
                     }
-                }  
+                } 
+                "continue" => {
+                    while let Some(x) = self.indentation_stack.pop(){
+                        if x.0 == "while"{
+                            while self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0] != "while"{
+                                programm_counter -= 1;
+                                continue;
+                            }
+                        }
+                        else if x.0 == "for" {
+                            return Value::None; // Stop execution of current iteration
+                        }
+                        else if x.0 == "normal"{
+                            EvaluatioError::new("Error: 'continue' outside loop".to_string(), None, None).raise();
+                        }
+                    }
+                } 
                 "return" => {
                     let expr = line.split("return").collect::<Vec<_>>()[1];
                     return self.ev_expr(expr);
