@@ -42,7 +42,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         "in" => {
             use std::io::{self, Write};
             if let Some(message) = args.get(0) {
-                print!("{:?}", message);
+                println!("{}", message.to_string_value());
                 io::stdout().flush().unwrap();
                 let mut input = String::new();
                 io::stdin().read_line(&mut input).unwrap();

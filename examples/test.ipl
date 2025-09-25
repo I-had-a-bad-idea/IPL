@@ -28,9 +28,7 @@ y = add(3,5)
 
 z = sub(5,3)
 
-test = "Enter something:    "
-
-input = in(test)
+input = in("Enter something:    ")
 
 out(input)
 
