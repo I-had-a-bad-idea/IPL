@@ -3,6 +3,6 @@ list = [1, 2, 3, 4]
 for number in list
     if number == 2
         continue
-    out(number)
+    out(number + 2)
 
 out("Done")
