@@ -14,13 +14,13 @@ impl Tokenizer{
     pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<Value> {
         // Placeholder for tokenization logic
         let tokens = self.split(input);
-        //println!("tokens after splitting: {:?}", tokens);
+        // println!("tokens after splitting: {:?}", tokens);
         let output = self.shunting_yard(tokens, variables, functions);
         return output;
     }
 
     fn split(&self, input: &str) -> Vec<String> {
-        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|,|[+\-*/=()<>]|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+(\.\d+)?"#;
+        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|,|[+\-*/=()<>\[\]]|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+(\.\d+)?"#;
 
         let re = Regex::new(token_pattern).unwrap();
         let tokens: Vec<String> = re.find_iter(input)
@@ -67,7 +67,8 @@ impl Tokenizer{
                         }
                         println!("Pushing argument: {}", argument);
                         function_arguments.push(Value::Str(argument.clone()));
-                        i += 2;
+                        argument.clear();
+                        i += 1;
                     }
                     else {
                         argument += next_token;
@@ -87,6 +88,32 @@ impl Tokenizer{
                     }
                 }
                 stack.push(Value::Str(token.clone()));
+            }
+            else if token == "["{
+                let mut list_elements = vec![];
+                let mut element: String = String::new();
+                while let Some(next_token) = tokens.get(i+1) {
+                    if next_token == "]" {
+                        i += 1;
+                        break;
+                    }
+                    else if next_token == "," {
+                        if element.is_empty() {
+                            i += 1;
+                            continue;
+                        }
+                        println!("Pushing element: {}", element);
+                        list_elements.push(Value::Str(element.clone()));
+                        element.clear();
+                        i += 1;
+                    }
+                    else {
+                        element += next_token;
+                        i += 1;
+                    }
+                }
+                list_elements.push(Value::Str(element.clone()));
+                output.push(Value::List(list_elements));
             }
             else if token == "("{
                 stack.push(Value::Str(token.clone()));
@@ -123,8 +150,8 @@ impl Tokenizer{
             i += 1;
         }
 
-        // println!("Stack after processing tokens: {:?}", stack);
-        // println!("Output after processing tokens: {:?}", output);
+        //println!("Stack after processing tokens: {:?}", stack);
+        //println!("Output after processing tokens: {:?}", output);
         while let Some(last) = stack.last(){
             if last.to_string_value() == "(" || last.to_string_value() == ")"{
                 EvaluatioError::new("Mismatched parentheses".to_string(), None, None).raise();

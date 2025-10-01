@@ -259,7 +259,7 @@ impl Evaluator{
                     let iterable_expr = line.split("in").collect::<Vec<_>>()[1].trim();
                     println!("For loop variable: {}, iterable expression: {}", variable_name, iterable_expr);
                     let iterable = self.ev_expr(iterable_expr); 
-
+                    println!("Iterable evaluated to: {:?}", iterable);
                     let start_line = programm_counter + 1;
                     let mut end_line = start_line;
                     while get_indentation(&self.lines[end_line]) > indentation{
@@ -428,19 +428,23 @@ impl Evaluator{
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
         while i < tokens.len(){
-            let token = tokens.get(i).expect("Empty token").to_string_value();
+            let token = tokens.get(i).expect("Empty token");
+            let token_str = token.to_string_value();
             //println!("token: {} , stack: {:?}", token, stack);
-            if token.trim_matches('.').parse::<f64>().is_ok(){
-                stack.push(Value::Number(token.parse::<f64>().unwrap()));
+            if token_str.trim_matches('.').parse::<f64>().is_ok(){
+                stack.push(Value::Number(token_str.parse::<f64>().unwrap()));
             }
-            else if (token.starts_with('"') && token.ends_with('"')) || (token.starts_with("'") && token.ends_with("'")){
-                stack.push(Value::Str(token[1..token.len()-1].to_string()));
+            else if (token_str.starts_with('"') && token_str.ends_with('"')) || (token_str.starts_with("'") && token_str.ends_with("'")){
+                stack.push(Value::Str(token_str[1..token_str.len()-1].to_string()));
             }
-            else if self.variables.contains_key(&token) {
-                stack.push(self.variables[&token].clone());
+            else if matches!(token, Value::List(_)) {
+                stack.push(token.clone());
             }
-            else if self.functions.contains_key(&token)|| BUILT_IN_FUNCTIONS.contains_key(&token as &str) {
-                let function_name = &token;
+            else if self.variables.contains_key(&token_str) {
+                stack.push(self.variables[&token_str].clone());
+            }
+            else if self.functions.contains_key(&token_str)|| BUILT_IN_FUNCTIONS.contains_key(&token_str as &str) {
+                let function_name = &token_str;
                 let mut args: Vec<Value> = vec![];
                 //println!("Function call detected: {}", function_name);
                 //println!("Functions: {:?}", self.functions);
@@ -473,42 +477,42 @@ impl Evaluator{
                 let lhs = stack.pop().expect("Not enough values on stack");
                 
 
-                if token == "+"{
+                if token_str == "+"{
                     stack.push(Value::Number(lhs.as_f64() + rhs.as_f64()));
                 }
-                else if token == "-" {
+                else if token_str == "-" {
                     stack.push(Value::Number(lhs.as_f64() - rhs.as_f64()));
                 }
-                else if token == "*" {
+                else if token_str == "*" {
                     stack.push(Value::Number(lhs.as_f64() * rhs.as_f64()));
                 }
-                else if token == "/" {
+                else if token_str == "/" {
                     stack.push(Value::Number(lhs.as_f64() / rhs.as_f64()));
                 }
 
-                else if token == "==" {
+                else if token_str == "==" {
                     stack.push(Value::Bool(lhs.as_f64() == rhs.as_f64()));
                 }
-                else if token == "!=" {
+                else if token_str == "!=" {
                     stack.push(Value::Bool(lhs.as_f64() != rhs.as_f64()));
                 }
-                else if token == "<" {
+                else if token_str == "<" {
                     stack.push(Value::Bool(lhs.as_f64() < rhs.as_f64()));
                 }
-                else if token == "<=" {
+                else if token_str == "<=" {
                     stack.push(Value::Bool(lhs.as_f64() <= rhs.as_f64()));
                 }
-                else if token == ">" {
+                else if token_str == ">" {
                     stack.push(Value::Bool(lhs.as_f64() > rhs.as_f64()));
                 }
-                else if token == ">=" {
+                else if token_str == ">=" {
                     stack.push(Value::Bool(lhs.as_f64() >= rhs.as_f64()));
                 }
 
-                else if token == "and" {
+                else if token_str == "and" {
                     stack.push(Value::Bool(lhs.as_bool() && rhs.as_bool()));    
                 }
-                else if token == "or" {
+                else if token_str == "or" {
                     stack.push(Value::Bool(lhs.as_bool() || rhs.as_bool()));
                 }
             }
