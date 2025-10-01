@@ -166,7 +166,7 @@ impl Evaluator{
         let function_arguments = &self.functions[function_name]["arguments"];
         let function_lines = &self.functions[function_name]["function_body"];
 
-        println!("Executing function {} with lines: {:?}", function_name, function_lines);
+        //println!("Executing function {} with lines: {:?}", function_name, function_lines);
         // println!("Function lines content:");
         // for i in function_lines.iter() {
         //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
@@ -428,7 +428,7 @@ impl Evaluator{
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
         while i < tokens.len(){
-            let token = tokens.get(i).expect("Empty token").to_string();
+            let token = tokens.get(i).expect("Empty token").to_string_value();
             //println!("token: {} , stack: {:?}", token, stack);
             if token.trim_matches('.').parse::<f64>().is_ok(){
                 stack.push(Value::Number(token.parse::<f64>().unwrap()));
@@ -442,27 +442,21 @@ impl Evaluator{
             else if self.functions.contains_key(&token)|| BUILT_IN_FUNCTIONS.contains_key(&token as &str) {
                 let function_name = &token;
                 let mut args: Vec<Value> = vec![];
-                let mut func_i = i + 1;
                 //println!("Function call detected: {}", function_name);
                 //println!("Functions: {:?}", self.functions);
-                loop{
-                    if func_i >= tokens.len(){
-                        i += func_i - i - 1;
-                        break;
+                let function_args = tokens.get(i + 1);
+                for arg in function_args.unwrap_or(&Value::None).iter(){
+                    if let Value::Str(s) = arg {
+                        let evaluated_arg = self.ev_expr(s);
+                        args.push(evaluated_arg);
+                    } else {
+                        args.push(arg.clone());
                     }
-                    let func_token = tokens.get(func_i).expect("Empty token").to_string();
-                    args.push(self.ev_expr(&func_token));
-
-                    if func_i + 1 >= tokens.len(){
-                        i += func_i - i - 1;
-                        break;
-                    }
-                    if tokens.get(func_i + 1).expect("Empty token").to_string() != ","{
-                        i += func_i - i + 1;
-                        break
-                    }
-                    func_i += 2;
                 }
+                if args.len() == 1 && args[0].to_string_value() == Value::None.to_string_value(){
+                    args = vec![];
+                }
+                println!("Function {} called with arguments: {:?}", function_name, args);
                 let result = if BUILT_IN_FUNCTIONS.contains_key(function_name as &str) {
                     call_built_in_function(function_name, args)
                 } else if self.functions.contains_key(function_name) {
@@ -471,7 +465,7 @@ impl Evaluator{
                     Value::None
                 };
                 stack.push(result);
-                i += func_i - i - 1;
+                i += 1; // Skip the next token which is the argument list
             }
             else{ 
 

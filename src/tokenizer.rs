@@ -123,8 +123,8 @@ impl Tokenizer{
             i += 1;
         }
 
-        println!("Stack after processing tokens: {:?}", stack);
-        println!("Output after processing tokens: {:?}", output);
+        // println!("Stack after processing tokens: {:?}", stack);
+        // println!("Output after processing tokens: {:?}", output);
         while let Some(last) = stack.last(){
             if last.to_string_value() == "(" || last.to_string_value() == ")"{
                 EvaluatioError::new("Mismatched parentheses".to_string(), None, None).raise();
