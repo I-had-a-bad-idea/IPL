@@ -1,3 +1,3 @@
 class Test
-    number = 20
-    string = "Test"
+    self.number = 20
+    self.string = "Test"

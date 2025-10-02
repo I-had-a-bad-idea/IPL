@@ -387,19 +387,29 @@ impl Evaluator{
                     let class_name = line.split(" ").collect::<Vec<_>>()[1];
                     let start_line = programm_counter + 1;
                     let mut end_line = start_line;
-                    let mut end_of_class_decleration = start_line;
                     while get_indentation(&self.lines[end_line]) > indentation{
                         end_line += 1;
                     }
+                    
+                    self.indentation_stack.push(("class".to_string(), indentation + 1));
+                    let vars = self.variables.clone();
+                    let funcs = self.functions.clone();
+                    self.variables.clear();
+                    self.functions.clear();
+                    self.execute_lines(start_line, end_line);
                     let function_lines = (start_line..end_line)
                         .map(|n| Value::Number(n as f64))
                         .collect::<Vec<Value>>();
                     self.classes.insert(class_name.to_string(), Class {
-                        functions: HashMap::new(),
-                        variables: HashMap::new(),
+                        functions: self.functions.clone(),
+                        variables: self.variables.clone(),
                         file: self.path.clone(),
                         body: Value::List(function_lines),
                     });
+                    self.variables = vars;
+                    self.functions = funcs;
+
+                    self.indentation_stack.pop();
                     programm_counter = end_line;
                 }
                 "def" => {
