@@ -9,6 +9,19 @@ use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
 use crate::tokenizer::Tokenizer;
 
+#[derive(Debug, Clone)]
+pub struct Class {
+    file: PathBuf,
+    body: Value,
+    functions: HashMap<String, HashMap<String, Value>>,
+    variables: HashMap<String, Value>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Instance {
+    class: Class,
+    variables: HashMap<String, Value>,
+}
 
 #[derive(Debug, Clone)]
 pub enum Value{
@@ -99,6 +112,7 @@ pub struct Evaluator{
     lines: Vec<String>,
     pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, HashMap<String, Value>>,
+    pub classes: HashMap<String, Class>,
     evaluators: HashMap<String, Evaluator>,
     indentation_stack : Vec<(String, usize)>,
     
@@ -121,6 +135,7 @@ impl Evaluator{
             ]),
             functions: HashMap::new(),
             evaluators: HashMap::new(),
+            classes: HashMap::new(),
             indentation_stack: vec![],
 
             folder: String::new(),
@@ -151,6 +166,8 @@ impl Evaluator{
         
         self.execute_lines(0, self.lines.len());
         println!("variables {:#?}", self.variables);
+        println!("classes {:#?}", self.classes);
+        println!("functions {:#?}", self.functions);
     }
 
     fn ev_func(&mut self, function_name: &str, args: Vec<Value>) -> Value {
@@ -365,6 +382,25 @@ impl Evaluator{
                 "return" => {
                     let expr = line.split("return").collect::<Vec<_>>()[1];
                     return self.ev_expr(expr);
+                }
+                "class" => {
+                    let class_name = line.split(" ").collect::<Vec<_>>()[1];
+                    let start_line = programm_counter + 1;
+                    let mut end_line = start_line;
+                    let mut end_of_class_decleration = start_line;
+                    while get_indentation(&self.lines[end_line]) > indentation{
+                        end_line += 1;
+                    }
+                    let function_lines = (start_line..end_line)
+                        .map(|n| Value::Number(n as f64))
+                        .collect::<Vec<Value>>();
+                    self.classes.insert(class_name.to_string(), Class {
+                        functions: HashMap::new(),
+                        variables: HashMap::new(),
+                        file: self.path.clone(),
+                        body: Value::List(function_lines),
+                    });
+                    programm_counter = end_line;
                 }
                 "def" => {
                     let function_decleration = line.split(" ").collect::<Vec<_>>()[1];
