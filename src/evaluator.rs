@@ -166,7 +166,7 @@ impl Evaluator{
         let function_arguments = &self.functions[function_name]["arguments"];
         let function_lines = &self.functions[function_name]["function_body"];
 
-        //println!("Executing function {} with lines: {:?}", function_name, function_lines);
+        // println!("Executing function {} with lines: {:?}", function_name, function_lines);
         // println!("Function lines content:");
         // for i in function_lines.iter() {
         //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
@@ -198,12 +198,12 @@ impl Evaluator{
         println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end{
-            //println!("At line {}", programm_counter);
+            // println!("At line {}", programm_counter);
 
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
 
-            //println!("Current line: '{}'", line);
+            // println!("Current line: '{}'", line);
 
             let indentation = get_indentation(&line);
 
@@ -257,9 +257,9 @@ impl Evaluator{
                 "for" =>{
                     let variable_name = line.split(" ").collect::<Vec<_>>()[1];
                     let iterable_expr = line.split("in").collect::<Vec<_>>()[1].trim();
-                    println!("For loop variable: {}, iterable expression: {}", variable_name, iterable_expr);
+                    // println!("For loop variable: {}, iterable expression: {}", variable_name, iterable_expr);
                     let iterable = self.ev_expr(iterable_expr); 
-                    println!("Iterable evaluated to: {:?}", iterable);
+                    // println!("Iterable evaluated to: {:?}", iterable);
                     let start_line = programm_counter + 1;
                     let mut end_line = start_line;
                     while get_indentation(&self.lines[end_line]) > indentation{
@@ -294,10 +294,6 @@ impl Evaluator{
                                 programm_counter += 1;
                                 continue;
                             }
-                            if current_indent <= indentation{
-                                break;
-                            }
-
                             if first_word == "elif" {
                                 if let Some((_first, rest)) = current_line.split_once(' ') {
                                     if self.ev_expr(rest).as_bool() {
@@ -315,6 +311,8 @@ impl Evaluator{
                             } else if first_word == "else" {
                                 programm_counter += 1;
                                 self.indentation_stack.push(("else".to_string(), indentation));
+                                break;
+                            } else if current_indent <= indentation{
                                 break;
                             } else {
                                 programm_counter += 1;
@@ -423,14 +421,14 @@ impl Evaluator{
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
 
-        //println!("tokens: {:?}", tokens);
+        // println!("tokens: {:?}", tokens);
 
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
         while i < tokens.len(){
             let token = tokens.get(i).expect("Empty token");
             let token_str = token.to_string_value();
-            //println!("token: {} , stack: {:?}", token, stack);
+            // println!("token: {:?} , stack: {:?}", token, stack);
             if token_str.trim_matches('.').parse::<f64>().is_ok(){
                 stack.push(Value::Number(token_str.parse::<f64>().unwrap()));
             }
@@ -446,8 +444,8 @@ impl Evaluator{
             else if self.functions.contains_key(&token_str)|| BUILT_IN_FUNCTIONS.contains_key(&token_str as &str) {
                 let function_name = &token_str;
                 let mut args: Vec<Value> = vec![];
-                //println!("Function call detected: {}", function_name);
-                //println!("Functions: {:?}", self.functions);
+                // println!("Function call detected: {}", function_name);
+                // println!("Functions: {:?}", self.functions);
                 let function_args = tokens.get(i + 1);
                 for arg in function_args.unwrap_or(&Value::None).iter(){
                     if let Value::Str(s) = arg {
@@ -460,7 +458,7 @@ impl Evaluator{
                 if args.len() == 1 && args[0].to_string_value() == Value::None.to_string_value(){
                     args = vec![];
                 }
-                println!("Function {} called with arguments: {:?}", function_name, args);
+                // println!("Function {} called with arguments: {:?}", function_name, args);
                 let result = if BUILT_IN_FUNCTIONS.contains_key(function_name as &str) {
                     call_built_in_function(function_name, args)
                 } else if self.functions.contains_key(function_name) {

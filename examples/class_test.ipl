@@ -1,0 +1,12 @@
+class Test
+    number = 20
+    string = "Test"
+
+t1 = Test
+
+t1.number = 34
+
+t2 = Test
+
+out(t1.number)
+out(t2.number)

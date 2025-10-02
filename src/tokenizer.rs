@@ -20,7 +20,8 @@ impl Tokenizer{
     }
 
     fn split(&self, input: &str) -> Vec<String> {
-        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|,|[+\-*/=()<>\[\]]|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+(\.\d+)?"#;
+        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|,|[+\-*/=()<>\[\]\.]|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+(\.\d+)?"#;
+
 
         let re = Regex::new(token_pattern).unwrap();
         let tokens: Vec<String> = re.find_iter(input)
@@ -33,7 +34,8 @@ impl Tokenizer{
             ("or", 1), ("and", 2),
             ("==", 3), ("!=", 3), ("<", 3), ("<=", 3), (">", 3), (">=", 3),
             ("+", 4), ("-", 4),
-            ("*", 5), ("/", 5)
+            ("*", 5), ("/", 5),
+            (".", 6),
         ]);
         let mut output: Vec<Value> = vec![];
         let mut stack: Vec<Value> = vec![];
