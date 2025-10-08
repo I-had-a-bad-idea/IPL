@@ -6,6 +6,7 @@ pub struct EvaluatioError{
 }
 
 impl EvaluatioError{
+    // Create a new EvaluatioError, with message and optional line number and line content
     pub fn new(message: String, line_number: Option<u32>, line_content: Option<String>) -> Self{
         Self {
             message,

@@ -11,6 +11,7 @@ impl Tokenizer{
         Self {
         }
     }
+    // Tokenize an input string into a vector of Values (tokens), using regex and a version of the shunting yard algorithm
     pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>, classes: HashMap<String, Class>) -> Vec<Value> {
         let tokens = self.split(input);
         // println!("tokens after splitting: {:?}", tokens);
@@ -18,7 +19,7 @@ impl Tokenizer{
         // println!("output after shunting yard: {:?}", output);
         return output;
     }
-
+    // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
         let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\]]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#;
 
@@ -28,7 +29,9 @@ impl Tokenizer{
             .collect();
         return tokens;
     }
-        fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>, classes: HashMap<String, Class>) -> Vec<Value> {
+
+    // Convert infix tokens to postfix using the shunting yard algorithm
+    fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>, classes: HashMap<String, Class>) -> Vec<Value> {
         let prec = HashMap::from([
             ("or", 1), ("and", 2),
             ("==", 3), ("!=", 3), ("<", 3), ("<=", 3), (">", 3), (">=", 3),

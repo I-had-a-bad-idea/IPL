@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use crate::debug::EvaluatioError;
 use crate::evaluator::Value;
 
+// Define built-in functions and their argument names/ amounts
 pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = std::sync::LazyLock::new(|| HashMap::from([
     ("out", vec!["output"]),
     ("value", vec!["number"]),
@@ -13,6 +14,7 @@ pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = s
     ("pow", vec!["base", "exp"]),
 ]));
 
+// Call a built-in function by name with given arguments
 pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
     //println!("Called built in function {} with arguments {:?}", name, args);
     if args.len() != BUILT_IN_FUNCTIONS[name].len(){
@@ -44,7 +46,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             if let Some(message) = args.get(0) {
                 println!("{}", message.to_string_value());
                 io::stdout().flush().unwrap();
-                let mut input = String::new();
+                let mut input: String = String::new();
                 io::stdin().read_line(&mut input).unwrap();
                 return Value::Str(input.trim().to_string());
             } else {
@@ -56,7 +58,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             use rand::Rng;
             if args.len() == 2 {
                 if let (Value::Number(start), Value::Number(end)) = (&args[0], &args[1]) {
-                    let mut rng = rand::rng();
+                    let mut rng: rand::prelude::ThreadRng = rand::rng();
                     return Value::Number(rng.random_range(*start as i32..=*end as i32) as f64);
                 } else {
                     EvaluatioError::new("Error: 'random' function requires two numeric arguments".to_string(), None, None).raise();

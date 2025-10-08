@@ -104,5 +104,7 @@ Contributions welcome! Current TODOs:
 - 
 - Add inheritance
 - 
+- Make a debug print function 
+- 
 - WRITE COMMENTS
 - Clean up and optimize code

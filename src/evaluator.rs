@@ -9,6 +9,8 @@ use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
 use crate::tokenizer::Tokenizer;
 
+
+// Define Class, Instance, and Value types for the evaluator
 #[derive(Debug, Clone)]
 pub struct Class {
     file: PathBuf,
@@ -59,6 +61,7 @@ impl Add for Value {
     }
 }
 
+// Define methods for Value type conversions and utilities
 impl Value {
     pub fn as_f64(&self) -> f64 {
         match self {
@@ -115,6 +118,7 @@ impl Value {
     }
 }
 
+// Define the Evaluator struct and its methods for evaluating IPL code
 pub struct Evaluator{
     lines: Vec<String>,
     pub variables: HashMap<String, Value>,
@@ -150,16 +154,17 @@ impl Evaluator{
         }
     }
 
+    // Evaluate a file by reading its contents and executing its lines
     pub fn ev_file(&mut self, file: &str) {
-        let path = PathBuf::from(file);
+        let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
         self.path = path.clone();
         self.folder = path
             .parent()
             .and_then(|p| p.to_str())
             .unwrap_or("")
             .to_string();
-        self.folder += "//";
-        let contents = fs::read_to_string(file).expect("Should have been able to read the file");
+        self.folder += "//"; // Get the folder path for imports
+        let contents = fs::read_to_string(file).expect("Could not read file"); // Read file contents
 
         self.lines = contents
             .lines()
@@ -167,53 +172,58 @@ impl Evaluator{
             .filter(|line| !line.trim().is_empty())
             .collect();
 
-        self.lines.push("End of file".to_string());
+        self.lines.push("End of file".to_string()); // Add end marker to lines
 
-        self.indentation_stack = vec![("normal".to_string(), 0)];
+        self.indentation_stack = vec![("normal".to_string(), 0)]; // Initialize indentation stack
         
-        self.execute_lines(0, self.lines.len(), "".to_string());
-        println!("variables {:#?}", self.variables);
+        self.execute_lines(0, self.lines.len(), "".to_string()); // Execute the file
+        
+        println!("variables {:#?}", self.variables); 
         println!("classes {:#?}", self.classes);
         println!("functions {:#?}", self.functions);
     }
 
+    // Evaluate a function by name with given arguments
     fn ev_func(&mut self, function_name: &str, args: Vec<Value>) -> Value {
-        let file = &self.functions[function_name]["file"];
+        let file: &Value = &self.functions[function_name]["file"];
         if file.to_string_value() != self.path.to_str().unwrap() {
-            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
+            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) { // Check if evaluator for the file already exists
                 return ev.ev_func(function_name, args);
-            }   else {
+            } else {
                 EvaluatioError::new("Evaluator for file not found".to_string(), None, None).raise();
-                }
+            }
         }
 
-        let function_arguments = &self.functions[function_name]["arguments"];
-        let function_lines = &self.functions[function_name]["function_body"];
+        let function_arguments: &Value = &self.functions[function_name]["arguments"]; // Get function arguments
+        let function_lines: &Value = &self.functions[function_name]["function_body"]; // Get function body lines
 
         // println!("Executing function {} with lines: {:?}", function_name, function_lines);
         // println!("Function lines content:");
         // for i in function_lines.iter() {
         //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
         //}
-        if args.len() != function_arguments.length() {
+        if args.len() != function_arguments.length() { // Check argument count
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
-        let global_variables = self.variables.clone();
+
+        let global_variables: HashMap<String, Value> = self.variables.clone(); // Save current variables
 
         for (name, value) in function_arguments.iter().zip(args.iter()) {
-            self.variables.insert(name.to_string_value(), value.clone());
+            self.variables.insert(name.to_string_value(), value.clone()); // Set function arguments in variables
         }
-        self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
+        self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()]))); // Push function context to indentation stack
 
-        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string());
+        // Execute function lines and get result
+        let result: Value = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string());
         
-        self.variables = global_variables;
-        self.indentation_stack.pop();
+        self.variables = global_variables; // Restore previous variables
+        self.indentation_stack.pop(); // Pop function context from indentation stack
 
-        return result;
+        return result; // Return function result
 
     }
 
+    // Evaluate a class method by instance string, method name, and arguments
     fn ev_class_func(&mut self, instance_str: String, function_name: &str, args: Vec<Value>) -> Value {
         let mut instance = self.variables.get(&instance_str).expect("Instance not found").get_instance().expect("Not an instance");
         let class = &instance.class;
@@ -226,8 +236,8 @@ impl Evaluator{
                 }
         }
 
-        let function_arguments = &self.classes[class].functions[function_name]["arguments"];
-        let function_lines = &self.classes[class].functions[function_name]["function_body"];
+        let function_arguments: &Value = &self.classes[class].functions[function_name]["arguments"];
+        let function_lines: &Value = &self.classes[class].functions[function_name]["function_body"];
 
         println!("Executing class function {} with lines: {:?}", function_name, function_lines);
         println!("Function lines content:");
