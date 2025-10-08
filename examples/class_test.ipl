@@ -8,3 +8,17 @@ class Test
 t = Test()
 
 t.greet()
+
+i = 0
+while i <= 5
+    out("t.number")
+    out(t.number)
+
+    t.number = t.number + 1
+    i = i + 1
+    
+    out("i")
+    out(i)
+
+out(t.number)
+

@@ -102,8 +102,6 @@ Contributions welcome! Current TODOs:
 - Add more built-in functions
 - Make syntax highlighting
 - 
-- Add classes
-- Add objects
 - Add inheritance
 - 
 - WRITE COMMENTS

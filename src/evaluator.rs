@@ -504,6 +504,23 @@ impl Evaluator{
                                 }
                                 
                             }
+                            else if variable_name.contains("."){
+                                let object = variable_name.split(".").collect::<Vec<_>>()[0];
+                                let var_name = variable_name.split(".").collect::<Vec<_>>()[1];
+                                if self.variables.contains_key(object){
+                                    let mut inst = self.variables.get_mut(object).unwrap().get_instance().expect("Not an instance");
+                                    inst.variables.insert(var_name.to_string(), result);
+
+                                    self.variables.insert(object.to_string(), Value::Instance(inst));
+                                }
+                                else if self.classes.contains_key(object){
+                                    self.classes.get_mut(object).unwrap().variables.insert(var_name.to_string(), result);
+                                }
+                                else{
+                                    EvaluatioError::new("Class not found".to_string(), None, None).raise();
+                                }
+                                
+                            }
                             else{
                                 self.variables.insert(variable_name.to_string(), result);
                             }
@@ -530,7 +547,7 @@ impl Evaluator{
         while i < tokens.len(){
             let token = tokens.get(i).expect("Empty token");
             let token_str = token.to_string_value();
-            println!("token: {} , stack: {:?}", token_str, stack);
+            // println!("token: {} , stack: {:?}", token_str, stack);
             if token_str.trim_matches('.').parse::<f64>().is_ok(){
                 stack.push(Value::Number(token_str.parse::<f64>().unwrap()));
             }

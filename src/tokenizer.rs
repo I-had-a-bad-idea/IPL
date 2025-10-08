@@ -13,9 +13,9 @@ impl Tokenizer{
     }
     pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>, classes: HashMap<String, Class>) -> Vec<Value> {
         let tokens = self.split(input);
-        println!("tokens after splitting: {:?}", tokens);
+        // println!("tokens after splitting: {:?}", tokens);
         let output = self.shunting_yard(tokens, variables, functions, classes);
-        println!("output after shunting yard: {:?}", output);
+        // println!("output after shunting yard: {:?}", output);
         return output;
     }
 
@@ -50,6 +50,10 @@ impl Tokenizer{
             }
             else if variables.contains_key(token){
                 output.push(Value::Str(token.clone()));
+                if i + 1 >= tokens.len(){
+                    i += 1;
+                    continue; // Prevent out-of-bounds access
+                }
                 if &tokens[i + 1] == "." {
                     i += 2; // Skip the '.' token
                     if let Some(attr) = tokens.get(i) {
