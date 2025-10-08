@@ -408,6 +408,8 @@ impl Evaluator{
 
                     self.execute_lines(start_line, end_line, class_name.to_string());
                     
+                    self.classes.get_mut(class_name).unwrap().functions = self.functions.clone();
+
                     self.functions = funcs;
 
                     self.indentation_stack.pop();
