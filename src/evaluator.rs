@@ -107,6 +107,12 @@ impl Value {
             _ => Box::new(std::iter::empty()),
         }
     }
+    pub fn get_instance(&self) -> Option<Instance> {
+        match self {
+            Value::Instance(inst) => Some(inst.clone()),
+            _ => None,
+        }
+    }
 }
 
 pub struct Evaluator{
@@ -206,8 +212,42 @@ impl Evaluator{
 
         return result;
 
-        // Placeholder for function evaluation logic
+    }
 
+    fn ev_class_func(&mut self, instance_str: String, function_name: &str, args: Vec<Value>) -> Value {
+        let mut instance = self.variables.get(&instance_str).expect("Instance not found").get_instance().expect("Not an instance");
+        let class = &instance.class;
+        let file = &self.classes[class].functions[function_name]["file"];
+        if file.to_string_value() != self.path.to_str().unwrap() {
+            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
+                return ev.ev_class_func(instance_str, function_name, args);
+            }   else {
+                EvaluatioError::new("Evaluator for file not found".to_string(), None, None).raise();
+                }
+        }
+
+        let function_arguments = &self.classes[class].functions[function_name]["arguments"];
+        let function_lines = &self.classes[class].functions[function_name]["function_body"];
+
+        println!("Executing class function {} with lines: {:?}", function_name, function_lines);
+        println!("Function lines content:");
+        for i in function_lines.iter() {
+            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        }
+        if args.len() != function_arguments.length() {
+            EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
+        }
+
+        for (name, value) in function_arguments.iter().zip(args.iter()) {
+            instance.variables.insert(name.to_string_value(), value.clone());
+        }
+        self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
+
+        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), instance_str);
+        
+        self.indentation_stack.pop();
+
+        return result;
     }
 
     fn execute_lines(&mut self, start: usize, end: usize, self_value: String) -> Value {
@@ -490,7 +530,7 @@ impl Evaluator{
         while i < tokens.len(){
             let token = tokens.get(i).expect("Empty token");
             let token_str = token.to_string_value();
-            // println!("token: {:?} , stack: {:?}", token, stack);
+            println!("token: {} , stack: {:?}", token_str, stack);
             if token_str.trim_matches('.').parse::<f64>().is_ok(){
                 stack.push(Value::Number(token_str.parse::<f64>().unwrap()));
             }
@@ -536,6 +576,45 @@ impl Evaluator{
                 };
                 stack.push(result);
                 i += 1; // Skip the next token which is the argument list
+            }
+            else if token.to_string_value() == "."{
+                let instance = stack.pop().expect("No instance before .");
+                let attribute = tokens.get(i+1).expect("No attribute after .");
+                match instance {
+                    Value::Instance(inst) => {
+                        if inst.variables.contains_key(&attribute.to_string_value()){
+                            stack.push(inst.variables[&attribute.to_string_value()].clone());
+                        }
+                        else if self.classes.contains_key(&inst.class){
+                            let class = &self.classes[&inst.class];
+                            if class.functions.contains_key(&attribute.to_string_value()){
+                                let function_name = &attribute.to_string_value();
+                                let mut args: Vec<Value> = vec![];
+                                let function_args = tokens.get(i + 2);
+                                for arg in function_args.unwrap_or(&Value::None).iter(){
+                                    if let Value::Str(s) = arg {
+                                        let evaluated_arg = self.ev_expr(s);
+                                        args.push(evaluated_arg);
+                                    } else {
+                                        args.push(arg.clone());
+                                    }
+                                }
+                                if args.len() == 1 && args[0].to_string_value() == Value::None.to_string_value(){
+                                    args = vec![];
+                                }
+                                let result = self.ev_class_func(tokens[i - 1].to_string_value(), function_name, args);
+                                stack.push(result);
+                                i += 1; // Skip the next token which is the argument list
+                            }
+                            
+                        }
+                        else{
+                            EvaluatioError::new(format!("Instance has no attribute {}", attribute.to_string_value()), None, None).raise();
+                        }
+                    }
+                    _ => EvaluatioError::new("Left side of '.' is not an instance".to_string(), None, None).raise(),
+                }
+                i += 1; // Skip the attribute token
             }
             else{ 
 

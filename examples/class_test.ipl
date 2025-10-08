@@ -6,3 +6,5 @@ class Test
         out("Hello World")
 
 t = Test()
+
+t.greet()
