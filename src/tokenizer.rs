@@ -12,16 +12,15 @@ impl Tokenizer{
         }
     }
     pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<Value> {
-        // Placeholder for tokenization logic
         let tokens = self.split(input);
-        // println!("tokens after splitting: {:?}", tokens);
+        println!("tokens after splitting: {:?}", tokens);
         let output = self.shunting_yard(tokens, variables, functions);
+        println!("output after shunting yard: {:?}", output);
         return output;
     }
 
     fn split(&self, input: &str) -> Vec<String> {
-        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|,|[+\-*/=()<>\[\]\.]|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+(\.\d+)?"#;
-
+        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\]]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#;
 
         let re = Regex::new(token_pattern).unwrap();
         let tokens: Vec<String> = re.find_iter(input)

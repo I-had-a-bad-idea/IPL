@@ -1,3 +1,4 @@
 class Test
     self.number = 20
     self.string = "Test"
+

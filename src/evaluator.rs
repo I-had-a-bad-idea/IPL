@@ -164,7 +164,7 @@ impl Evaluator{
 
         self.indentation_stack = vec![("normal".to_string(), 0)];
         
-        self.execute_lines(0, self.lines.len());
+        self.execute_lines(0, self.lines.len(), "".to_string());
         println!("variables {:#?}", self.variables);
         println!("classes {:#?}", self.classes);
         println!("functions {:#?}", self.functions);
@@ -198,7 +198,7 @@ impl Evaluator{
         }
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
 
-        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize());
+        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string());
         
         self.variables = global_variables;
         self.indentation_stack.pop();
@@ -209,7 +209,7 @@ impl Evaluator{
 
     }
 
-    fn execute_lines(&mut self, start: usize, end: usize) -> Value {
+    fn execute_lines(&mut self, start: usize, end: usize, self_value: String) -> Value {
         let mut programm_counter: usize = start;
 
         println!("execute_lines called with start {} and end {}", start, end);
@@ -286,7 +286,7 @@ impl Evaluator{
                     self.indentation_stack.push(("for".to_string(), indentation));
                     for value in iterable.iter(){
                         self.variables.insert(variable_name.to_string(), value.clone());
-                        self.execute_lines(start_line, end_line);
+                        self.execute_lines(start_line, end_line, "".to_string());
                     }
                     self.indentation_stack.pop();
                     programm_counter = end_line;
@@ -394,20 +394,26 @@ impl Evaluator{
                     self.indentation_stack.push(("class".to_string(), indentation + 1));
                     let vars = self.variables.clone();
                     let funcs = self.functions.clone();
-                    self.variables.clear();
-                    self.functions.clear();
-                    self.execute_lines(start_line, end_line);
+                    // self.variables.clear();
+                    // self.functions.clear();
+
                     let function_lines = (start_line..end_line)
                         .map(|n| Value::Number(n as f64))
                         .collect::<Vec<Value>>();
                     self.classes.insert(class_name.to_string(), Class {
-                        functions: self.functions.clone(),
-                        variables: self.variables.clone(),
+                        functions: HashMap::new(),
+                        variables: HashMap::new(),
                         file: self.path.clone(),
                         body: Value::List(function_lines),
                     });
-                    self.variables = vars;
-                    self.functions = funcs;
+
+                    self.execute_lines(start_line, end_line, class_name.to_string());
+
+                    // self.classes.get_mut(class_name).unwrap().functions = self.functions.clone();
+                    // self.classes.get_mut(class_name).unwrap().variables = self.variables.clone();
+
+                    // self.variables = vars;
+                    // self.functions = funcs;
 
                     self.indentation_stack.pop();
                     programm_counter = end_line;
@@ -448,10 +454,23 @@ impl Evaluator{
                     }
                     if line.contains("="){
                         if let Some((mut variable_name, expr)) = line.split_once("="){
-                            variable_name = variable_name.trim();
-                            // println!("Variable name: {}, expr: {}", variable_name, expr);
                             let result = self.ev_expr(expr);
-                            self.variables.insert(variable_name.to_string(), result);
+
+                            variable_name = variable_name.trim();
+                            if variable_name.contains("self"){
+                                if self_value == "".to_string(){
+                                    EvaluatioError::new("self used outside class".to_string(), None, None).raise();
+                                }
+                                else{
+                                    let var_name = variable_name.split(".").collect::<Vec<_>>()[1];
+                                    self.classes.get_mut(&self_value).unwrap().variables.insert(var_name.to_string(), result);
+                                }
+                                
+                            }
+                            else{
+                                self.variables.insert(variable_name.to_string(), result);
+                            }
+                            // println!("Variable name: {}, expr: {}", variable_name, expr);
                         }
                     }
                     else{
