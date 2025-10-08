@@ -19,7 +19,7 @@ pub struct Class {
 
 #[derive(Debug, Clone)]
 pub struct Instance {
-    class: Class,
+    class: String,
     variables: HashMap<String, Value>,
 }
 
@@ -30,6 +30,7 @@ pub enum Value{
     Bool(bool),
     Str(String),
     Path(PathBuf),
+    Instance(Instance),
     None,
 }
 
@@ -392,10 +393,8 @@ impl Evaluator{
                     }
                     
                     self.indentation_stack.push(("class".to_string(), indentation + 1));
-                    let vars = self.variables.clone();
                     let funcs = self.functions.clone();
-                    // self.variables.clear();
-                    // self.functions.clear();
+                    self.functions.clear();
 
                     let function_lines = (start_line..end_line)
                         .map(|n| Value::Number(n as f64))
@@ -408,12 +407,8 @@ impl Evaluator{
                     });
 
                     self.execute_lines(start_line, end_line, class_name.to_string());
-
-                    // self.classes.get_mut(class_name).unwrap().functions = self.functions.clone();
-                    // self.classes.get_mut(class_name).unwrap().variables = self.variables.clone();
-
-                    // self.variables = vars;
-                    // self.functions = funcs;
+                    
+                    self.functions = funcs;
 
                     self.indentation_stack.pop();
                     programm_counter = end_line;
@@ -484,7 +479,7 @@ impl Evaluator{
     }
 
     fn ev_expr(&mut self, expr: &str) -> Value {
-        let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone());
+        let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone(), self.classes.clone());
 
         // println!("tokens: {:?}", tokens);
 
@@ -506,7 +501,7 @@ impl Evaluator{
             else if self.variables.contains_key(&token_str) {
                 stack.push(self.variables[&token_str].clone());
             }
-            else if self.functions.contains_key(&token_str)|| BUILT_IN_FUNCTIONS.contains_key(&token_str as &str) {
+            else if self.functions.contains_key(&token_str)|| BUILT_IN_FUNCTIONS.contains_key(&token_str as &str) || self.classes.contains_key(&token_str) {
                 let function_name = &token_str;
                 let mut args: Vec<Value> = vec![];
                 // println!("Function call detected: {}", function_name);
@@ -528,8 +523,14 @@ impl Evaluator{
                     call_built_in_function(function_name, args)
                 } else if self.functions.contains_key(function_name) {
                     self.ev_func(function_name, args)
+                } else if self.classes.contains_key(function_name) {
+                    let instance = Instance {
+                        class: function_name.to_string(),
+                        variables: self.classes[function_name].variables.clone(),
+                    };
+                    return Value::Instance(instance);
                 } else {
-                    Value::None
+                    return Value::None;
                 };
                 stack.push(result);
                 i += 1; // Skip the next token which is the argument list

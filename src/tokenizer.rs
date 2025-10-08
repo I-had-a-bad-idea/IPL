@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::{collections::HashMap};
 
-use crate::{debug::EvaluatioError, evaluator::Value, built_in_functions::BUILT_IN_FUNCTIONS};
+use crate::{built_in_functions::BUILT_IN_FUNCTIONS, debug::EvaluatioError, evaluator::{Class, Value}};
 
 pub struct Tokenizer{
 }
@@ -11,10 +11,10 @@ impl Tokenizer{
         Self {
         }
     }
-    pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<Value> {
+    pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>, classes: HashMap<String, Class>) -> Vec<Value> {
         let tokens = self.split(input);
         println!("tokens after splitting: {:?}", tokens);
-        let output = self.shunting_yard(tokens, variables, functions);
+        let output = self.shunting_yard(tokens, variables, functions, classes);
         println!("output after shunting yard: {:?}", output);
         return output;
     }
@@ -28,7 +28,7 @@ impl Tokenizer{
             .collect();
         return tokens;
     }
-        fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>) -> Vec<Value> {
+        fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>, classes: HashMap<String, Class>) -> Vec<Value> {
         let prec = HashMap::from([
             ("or", 1), ("and", 2),
             ("==", 3), ("!=", 3), ("<", 3), ("<=", 3), (">", 3), (">=", 3),
@@ -48,7 +48,7 @@ impl Tokenizer{
             else if token.trim_matches('.').parse::<f64>().is_ok() || variables.contains_key(token){
                 output.push(Value::Str(token.clone()));
             }
-            else if functions.contains_key(token) || BUILT_IN_FUNCTIONS.contains_key(&token as &str){
+            else if functions.contains_key(token) || BUILT_IN_FUNCTIONS.contains_key(&token as &str) || classes.contains_key(token){
                 if tokens.get(i+1) != Some(&"(".to_string()){
                     EvaluatioError::new(format!("Function {} must be followed by (", token), None, None).raise();
                 }
@@ -79,6 +79,7 @@ impl Tokenizer{
                 function_arguments.push(Value::Str(argument.clone()));
                 output.push(Value::List(function_arguments));
             }
+
             else if prec.contains_key(token.as_str()) {
                 while let Some(last) = stack.last() {
                     if prec.contains_key(last.to_string_value().as_str()) && prec[last.to_string_value().as_str()] >= prec[token.as_str()]{
