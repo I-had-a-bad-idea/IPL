@@ -304,6 +304,7 @@ impl Evaluator{
                     }
                     self.functions.extend(self.evaluators[&file].functions.clone());
                     self.variables.extend(self.evaluators[&file].variables.clone());
+                    self.classes.extend(self.evaluators[&file].classes.clone());
 
                     programm_counter += 1;
                     }

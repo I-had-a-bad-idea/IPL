@@ -1,0 +1,9 @@
+class Base
+    self.exists = True
+    self.number = 10
+
+    def name()
+        out("This is a test")
+
+    def greet()
+        out("Hello")

@@ -1,3 +1,5 @@
+import class_test_base_class.ipl
+
 class Test
     self.number = 20
     self.string = "Test"
