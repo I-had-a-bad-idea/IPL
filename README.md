@@ -102,8 +102,6 @@ Contributions welcome! Current TODOs:
 - Add more built-in functions
 - Make syntax highlighting
 - 
-- Add inheritance
-- 
 - Make a debug print function 
 - 
 - WRITE COMMENTS

@@ -13,6 +13,7 @@ use crate::tokenizer::Tokenizer;
 // Define Class, Instance, and Value types for the evaluator
 #[derive(Debug, Clone)]
 pub struct Class {
+    superclass: String,
     file: PathBuf,
     body: Value,
     functions: HashMap<String, HashMap<String, Value>>,
@@ -432,11 +433,16 @@ impl Evaluator{
                     }
                 } 
                 "return" => {
-                    let expr = line.split("return").collect::<Vec<_>>()[1];
+                    let expr: &str = line.split("return").collect::<Vec<_>>()[1];
                     return self.ev_expr(expr);
                 }
                 "class" => {
-                    let class_name = line.split(" ").collect::<Vec<_>>()[1];
+                    let class_name: &str = line.split(" ").collect::<Vec<_>>()[1].trim();
+                    let base_class: &str = if line.contains(":"){
+                        line.split(":").collect::<Vec<_>>()[1].trim()
+                    } else{
+                        ""
+                    };
                     let start_line = programm_counter + 1;
                     let mut end_line = start_line;
                     while get_indentation(&self.lines[end_line]) > indentation{
@@ -451,15 +457,21 @@ impl Evaluator{
                         .map(|n| Value::Number(n as f64))
                         .collect::<Vec<Value>>();
                     self.classes.insert(class_name.to_string(), Class {
+                        superclass: base_class.to_string(),
                         functions: HashMap::new(),
                         variables: HashMap::new(),
                         file: self.path.clone(),
                         body: Value::List(function_lines),
                     });
 
+                    if base_class != ""{
+                        self.classes.get_mut(class_name).unwrap().variables = self.classes[base_class].variables.clone();
+                        self.classes.get_mut(class_name).unwrap().functions = self.classes[base_class].functions.clone();
+                    }
+
                     self.execute_lines(start_line, end_line, class_name.to_string());
                     
-                    self.classes.get_mut(class_name).unwrap().functions = self.functions.clone();
+                    self.classes.get_mut(class_name).unwrap().functions.extend(self.functions.clone());
 
                     self.functions = funcs;
 
