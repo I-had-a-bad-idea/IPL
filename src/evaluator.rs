@@ -254,6 +254,9 @@ impl Evaluator{
                 class = self.classes.get(&instance.class).expect("Class not found").clone();
             }
         }
+        if !class.functions.contains_key(function_name){
+            return Value::None;
+        }
         // println!("Self.classes: {:#?}", self.classes);
         let file = class.functions[function_name]["file"].clone();
         if file.to_string_value() != self.path.to_str().unwrap() {
@@ -632,9 +635,11 @@ impl Evaluator{
                         class: function_name.to_string(),
                         variables: self.classes[function_name].variables.clone(),
                     };
-                    return Value::Instance(instance);
+                    self.ev_class_func("".to_string(), &function_name, args, Some(instance.clone()), None);
+                    
+                    Value::Instance(instance)
                 } else {
-                    return Value::None;
+                    Value::None
                 };
                 stack.push(result);
                 i += 1; // Skip the next token which is the argument list

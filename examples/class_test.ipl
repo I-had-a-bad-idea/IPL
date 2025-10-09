@@ -6,8 +6,15 @@ class Test : Base
 
     def greet()
         out("Hello World")
+    
+    def add(a, b)
+        return a + b
 
 t = Test()
+
+z = t.add(3, 5)
+out("z")
+out(z)
 
 t.greet()
 
