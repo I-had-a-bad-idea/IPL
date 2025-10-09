@@ -13,9 +13,6 @@ use crate::tokenizer::Tokenizer;
 // Define Class, Instance, and Value types for the evaluator
 #[derive(Debug, Clone)]
 pub struct Class {
-    superclass: String,
-    file: PathBuf,
-    body: Value,
     functions: HashMap<String, HashMap<String, Value>>,
     variables: HashMap<String, Value>,
 }
@@ -243,9 +240,6 @@ impl Evaluator{
             }
         }
         let mut class = Class {
-            superclass: "".to_string(),
-            file: PathBuf::new(),
-            body: Value::None,
             functions: HashMap::new(),
             variables: HashMap::new(),
         };
@@ -487,15 +481,9 @@ impl Evaluator{
                     let funcs = self.functions.clone();
                     self.functions.clear();
 
-                    let function_lines = (start_line..end_line)
-                        .map(|n| Value::Number(n as f64))
-                        .collect::<Vec<Value>>();
                     self.classes.insert(class_name.to_string(), Class {
-                        superclass: base_class.to_string(),
                         functions: HashMap::new(),
                         variables: HashMap::new(),
-                        file: self.path.clone(),
-                        body: Value::List(function_lines),
                     });
 
                     if base_class != ""{

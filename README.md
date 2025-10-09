@@ -20,6 +20,11 @@ A simple interpreted programming language implemented in Rust. IPL supports basi
   - Lists
   - Booleans (`True`/`False`)
   - `None`
+- **Classes & Objects**:
+  - Class definitions
+  - Object instantiation
+  - Fields/attributes
+  - Default values
 - **File Imports**: Import code from other `.ipl` files
 - **Operators**:
   - Arithmetic: `+`, `-`, `*`, `/`
@@ -82,6 +87,36 @@ list = [1, 2, 3, 4]
 for number in list
     out(add(number, 2))
 ```
+
+## Classes
+
+Classes can be defined with fields and default values:
+
+```ipl
+class Person
+    name = "John"
+    age = 30
+
+# Create an instance
+p1 = Person()
+out(p1.name)  # Prints: John
+
+# Modify fields
+p1.name = "Alice"
+p1.age = 25
+
+# Create another instance
+p2 = Person()
+out(p2.name)  # Prints: John (default value)
+out(p2.age)   # Prints: 30 (default value)
+```
+
+### Class Features
+- Define classes with default field values
+- Create multiple instances
+- Access and modify instance fields using dot notation
+- Each instance maintains its own state
+- Fields can be numbers, strings, lists, or other values
 
 ## Project Structure
 
