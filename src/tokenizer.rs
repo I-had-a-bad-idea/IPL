@@ -14,7 +14,7 @@ impl Tokenizer{
     // Tokenize an input string into a vector of Values (tokens), using regex and a version of the shunting yard algorithm
     pub fn tokenize(&self, input: &str, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>, classes: HashMap<String, Class>) -> Vec<Value> {
         let tokens = self.split(input);
-        // println!("tokens after splitting: {:?}", tokens);
+        println!("tokens after splitting: {:?}", tokens);
         let output = self.shunting_yard(tokens, variables, functions, classes);
         // println!("output after shunting yard: {:?}", output);
         return output;
@@ -67,7 +67,7 @@ impl Tokenizer{
                     }
                 }
             }
-            else if functions.contains_key(token) || BUILT_IN_FUNCTIONS.contains_key(&token as &str) || classes.contains_key(token){
+            else if functions.contains_key(token) || BUILT_IN_FUNCTIONS.contains_key(&token as &str) || classes.contains_key(token) || classes.values().any(|c| c.functions.contains_key(token)) {
                 if tokens.get(i+1) != Some(&"(".to_string()){
                     EvaluatioError::new(format!("Function {} must be followed by (", token), None, None).raise();
                 }

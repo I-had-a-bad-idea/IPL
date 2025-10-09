@@ -13,7 +13,7 @@ use crate::tokenizer::Tokenizer;
 // Define Class, Instance, and Value types for the evaluator
 #[derive(Debug, Clone)]
 pub struct Class {
-    functions: HashMap<String, HashMap<String, Value>>,
+    pub functions: HashMap<String, HashMap<String, Value>>,
     variables: HashMap<String, Value>,
 }
 
@@ -195,11 +195,11 @@ impl Evaluator{
         let function_arguments: &Value = &self.functions[function_name]["arguments"]; // Get function arguments
         let function_lines: &Value = &self.functions[function_name]["function_body"]; // Get function body lines
 
-        // println!("Executing function {} with lines: {:?}", function_name, function_lines);
-        // println!("Function lines content:");
-        // for i in function_lines.iter() {
-        //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
-        //}
+        println!("Executing function {} with lines: {:?}", function_name, function_lines);
+        println!("Function lines content:");
+        for i in function_lines.iter() {
+            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        }
         if args.len() != function_arguments.length() { // Check argument count
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
@@ -270,18 +270,21 @@ impl Evaluator{
         let function_arguments: &Value = &class.functions[function_name]["arguments"];
         let function_lines: &Value = &class.functions[function_name]["function_body"];
 
-        // println!("Executing class function {} with lines: {:?}", function_name, function_lines);
-        // println!("Function lines content:");
-        // for i in function_lines.iter() {
-        //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
-        // }
+        println!("Executing class function {} with lines: {:?}", function_name, function_lines);
+        println!("Function lines content:");
+        for i in function_lines.iter() {
+            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        }
         if args.len() != function_arguments.length() {
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
-
+        println!("function_arguments: {:?} and args: {:?}", function_arguments, args);
         for (name, value) in function_arguments.iter().zip(args.iter()) {
-            instance.variables.insert(name.to_string_value(), value.clone());
+            println!("Setting variable {} to {:?}", name.to_string_value(), value);
+            self.variables.insert(name.to_string_value(), value.clone());
         }
+        println!("self.variables before function execution: {:#?}", self.variables);
+        println!("self.classes before function execution: {:#?}", self.classes);
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
 
         
@@ -298,7 +301,7 @@ impl Evaluator{
         println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end{
-            // println!("At line {}", programm_counter);
+            println!("At line {}", programm_counter);
 
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
@@ -495,7 +498,7 @@ impl Evaluator{
                     }
 
                     self.execute_lines(start_line, end_line, class_name.to_string());
-                    
+
                     self.classes.get_mut(class_name).unwrap().functions.extend(self.functions.clone());
 
                     self.functions = funcs;
@@ -509,14 +512,14 @@ impl Evaluator{
                     let args = function_decleration
                                         .split_once('(') // returns Option<(&str, &str)>
                                         .and_then(|(_, rest)| rest.split_once(')')) // safely get the inside of the parentheses
-                                        .map(|(args_str, _)| {
-                                            args_str
-                                                .split(',')
-                                                .map(str::trim)
-                                                .filter(|s| !s.is_empty())
-                                                .collect::<Vec<_>>()
-                                        })
-                                        .unwrap_or_else(|| Vec::new());
+                        .map(|(args_str, _)| {
+                            args_str
+                                .split(',')
+                                .map(str::trim)
+                                .filter(|s| !s.is_empty())
+                                .collect::<Vec<_>>()
+                        })
+                        .unwrap_or_else(|| Vec::new());
                     let function_arguments = args.iter().map(|n| Value::Str(n.to_string())).collect::<Vec<Value>>();
                     programm_counter += 1;
                     let start_line = programm_counter;
@@ -530,8 +533,9 @@ impl Evaluator{
                     function_hash_map.insert("file".to_string(), Value::Path(self.path.clone()));
                     function_hash_map.insert("arguments".to_string(), Value::List(function_arguments));
                     function_hash_map.insert("function_body".to_string(), Value::List(function_lines));
+                    println!("Function line {} : {:?}", function_decleration, function_hash_map);
                     self.functions.insert(function_name.to_string(), function_hash_map);
-
+                    // FIXME: function decleration inside classes gets cut off
                 }
                 _ => {
                     if line == "End of file"{
@@ -588,7 +592,7 @@ impl Evaluator{
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone(), self.classes.clone());
 
-        // println!("tokens: {:?}", tokens);
+        println!("tokens: {:?}", tokens);
 
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
