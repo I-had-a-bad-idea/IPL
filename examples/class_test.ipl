@@ -1,6 +1,6 @@
 import class_test_base_class.ipl
 
-class Test
+class Test : Base
     self.number = 20
     self.string = "Test"
 
@@ -22,5 +22,6 @@ while i <= 5
     out("i")
     out(i)
 
-out(t.number)
+out(t.exists)
 
+t.name()

@@ -225,26 +225,59 @@ impl Evaluator{
     }
 
     // Evaluate a class method by instance string, method name, and arguments
-    fn ev_class_func(&mut self, instance_str: String, function_name: &str, args: Vec<Value>) -> Value {
-        let mut instance = self.variables.get(&instance_str).expect("Instance not found").get_instance().expect("Not an instance");
-        let class = &instance.class;
-        let file = &self.classes[class].functions[function_name]["file"];
+    fn ev_class_func(&mut self, instance_str: String, function_name: &str, args: Vec<Value>, instance_opt: Option<Instance>, class_opt: Option<Class>) -> Value {
+        // println!("ev_class_func called with instance: {}, function: {}, args: {:?}, instance_opt:{:?}", instance_str, function_name, args, instance_opt);
+        let mut instance: Instance = Instance {
+            class: "".to_string(),
+            variables: HashMap::new(),
+        };
+        if instance_opt.is_some(){
+            instance = instance_opt.unwrap();
+            self.variables.insert(instance_str.clone(), Value::Instance(instance.clone()));
+        } else {
+            if !self.variables.contains_key(&instance_str){
+                EvaluatioError::new("Instance not found".to_string(), None, None).raise();
+            }
+            else {
+                instance = self.variables.get(&instance_str).expect("Instance not found").get_instance().expect("Not an instance");
+            }
+        }
+        let mut class = Class {
+            superclass: "".to_string(),
+            file: PathBuf::new(),
+            body: Value::None,
+            functions: HashMap::new(),
+            variables: HashMap::new(),
+        };
+        if class_opt.is_some(){
+            class = class_opt.unwrap();
+            self.classes.insert(instance.class.clone(), class.clone());
+        } else {
+            if !self.classes.contains_key(&instance.class){
+                EvaluatioError::new("Class not found".to_string(), None, None).raise();
+            }
+            else {
+                class = self.classes.get(&instance.class).expect("Class not found").clone();
+            }
+        }
+        // println!("Self.classes: {:#?}", self.classes);
+        let file = class.functions[function_name]["file"].clone();
         if file.to_string_value() != self.path.to_str().unwrap() {
             if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
-                return ev.ev_class_func(instance_str, function_name, args);
+                return ev.ev_class_func(instance_str, function_name, args, Some(instance), Some(class));
             }   else {
                 EvaluatioError::new("Evaluator for file not found".to_string(), None, None).raise();
                 }
         }
 
-        let function_arguments: &Value = &self.classes[class].functions[function_name]["arguments"];
-        let function_lines: &Value = &self.classes[class].functions[function_name]["function_body"];
+        let function_arguments: &Value = &class.functions[function_name]["arguments"];
+        let function_lines: &Value = &class.functions[function_name]["function_body"];
 
-        println!("Executing class function {} with lines: {:?}", function_name, function_lines);
-        println!("Function lines content:");
-        for i in function_lines.iter() {
-            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
-        }
+        // println!("Executing class function {} with lines: {:?}", function_name, function_lines);
+        // println!("Function lines content:");
+        // for i in function_lines.iter() {
+        //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        // }
         if args.len() != function_arguments.length() {
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
@@ -254,6 +287,7 @@ impl Evaluator{
         }
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
 
+        
         let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), instance_str);
         
         self.indentation_stack.pop();
@@ -642,7 +676,7 @@ impl Evaluator{
                                 if args.len() == 1 && args[0].to_string_value() == Value::None.to_string_value(){
                                     args = vec![];
                                 }
-                                let result = self.ev_class_func(tokens[i - 1].to_string_value(), function_name, args);
+                                let result = self.ev_class_func(tokens[i - 1].to_string_value(), function_name, args, None, None);
                                 stack.push(result);
                                 i += 1; // Skip the next token which is the argument list
                             }
