@@ -69,13 +69,47 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             return Value::None;
         }
         "min" => {
-            // Placeholder for min implementation
-            println!("'min' function called");
+            match args.get(0) {
+                Some(Value::List(list)) if !list.is_empty() => {
+                    let min_value = list.iter().filter_map(|v| {
+                        if let Value::Number(num) = v {
+                            Some(*num)
+                        } else {
+                            None
+                        }
+                    }).min_by(|a, b| a.partial_cmp(b).unwrap());
+                    if let Some(min) = min_value {
+                        return Value::Number(min);
+                    } else {
+                        EvaluatioError::new("Error: 'min' function requires a list of numeric values".to_string(), None, None).raise();
+                    }
+                }
+                _ => {
+                    EvaluatioError::new("Error: 'min' function requires 1 argument which is a non-empty list".to_string(), None, None).raise();
+                }
+            }
             return Value::None;
         }
-        "max" => {
-            // Placeholder for max implementation
-            println!("'max' function called");
+        "max" =>{
+            match args.get(0) {
+                Some(Value::List(list)) if !list.is_empty() => {
+                    let max_value = list.iter().filter_map(|v| {
+                        if let Value::Number(num) = v {
+                            Some(*num)
+                        } else {
+                            None
+                        }
+                    }).max_by(|a, b| a.partial_cmp(b).unwrap());
+                    if let Some(max) = max_value {
+                        return Value::Number(max);
+                    } else {
+                        EvaluatioError::new("Error: 'max' function requires a list of numeric values".to_string(), None, None).raise();
+                    }
+                }
+                _ => {
+                    EvaluatioError::new("Error: 'max' function requires 1 argument which is a non-empty list".to_string(), None, None).raise();
+                }
+            }
             return Value::None;
         }
         "round" => {
