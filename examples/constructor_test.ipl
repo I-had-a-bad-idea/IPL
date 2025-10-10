@@ -7,6 +7,6 @@ class Person
         self.age = a
 
 
-p1 = Person()
+#p1 = Person()
 
 p2 = Person("Alex", 30)

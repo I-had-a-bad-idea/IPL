@@ -288,7 +288,7 @@ impl Evaluator{
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
 
         
-        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), instance_str);
+        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), instance_str.clone());
         
         self.indentation_stack.pop();
 
@@ -538,7 +538,6 @@ impl Evaluator{
                     function_hash_map.insert("function_body".to_string(), Value::List(function_lines));
                     // println!("Function line {} : {:?}", function_decleration, function_hash_map);
                     self.functions.insert(function_name.to_string(), function_hash_map);
-                    // FIXME: function decleration inside classes gets cut off
                 }
                 _ => {
                     if line == "End of file"{
@@ -550,12 +549,22 @@ impl Evaluator{
 
                             variable_name = variable_name.trim();
                             if variable_name.contains("self"){
-                                if self_value == "".to_string(){
+                                if self_value.is_empty(){
                                     EvaluatioError::new("self used outside class".to_string(), None, None).raise();
                                 }
                                 else{
+                                    println!("Self value: {}", self_value.clone());
                                     let var_name = variable_name.split(".").collect::<Vec<_>>()[1];
-                                    self.classes.get_mut(&self_value).unwrap().variables.insert(var_name.to_string(), result);
+                                    if self.classes.contains_key(&self_value){
+                                        self.classes.get_mut(&self_value).unwrap().variables.insert(var_name.to_string(), result);
+                                    }
+                                    else if self.variables.contains_key(&self_value) {
+                                        let inst = self.variables.get_mut(&self_value).unwrap_or(&mut Value::None).get_instance().unwrap_or(Instance {class: "".to_string(), variables: HashMap::new()}).variables.insert(var_name.to_string(), result);
+                                        self.variables.insert(self_value.clone(), inst.unwrap_or(Value::None));
+                                    }
+                                    else {
+                                        EvaluatioError::new("Self reference to class or instance not found".to_string(), None, None).raise();
+                                    }
                                 }
                                 
                             }
@@ -642,9 +651,9 @@ impl Evaluator{
                         class: function_name.to_string(),
                         variables: self.classes[function_name].variables.clone(),
                     };
-                    self.ev_class_func("".to_string(), &function_name, args, Some(instance.clone()), None);
+                    self.ev_class_func("__DO_NOT_USE_THIS_VARIABLE_INTERNAL_ONLY__".trim().to_string(), &function_name, args, Some(instance.clone()), None);
                     
-                    Value::Instance(instance)
+                    Value::Instance(self.variables.get("__DO_NOT_USE_THIS_VARIABLE_INTERNAL_ONLY__").expect("Instance not found").get_instance().expect("Not an instance"))
                 } else {
                     Value::None
                 };
