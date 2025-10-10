@@ -330,7 +330,7 @@ impl Evaluator{
                 self.indentation_stack.pop();
             }
 
-            match line.split(" ").collect::<Vec<_>>()[0]{
+            match line.split(" ").collect::<Vec<_>>()[0]{ //TODO: also check here, if split_once() is the better option
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
                     self.evaluators.insert(file.clone(), Evaluator::new());
@@ -507,7 +507,7 @@ impl Evaluator{
                     programm_counter = end_line;
                 }
                 "def" => {
-                    let function_decleration = line.split(" ").collect::<Vec<_>>()[1];
+                    let function_decleration = line.split(" ").collect::<Vec<_>>()[1]; //TODO: check if turning this to slit_once() fixes it
                     let function_name = function_decleration.split("(").collect::<Vec<_>>()[0];
                     let args = function_decleration
                                         .split_once('(') // returns Option<(&str, &str)>
