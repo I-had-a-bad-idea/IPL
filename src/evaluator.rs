@@ -19,7 +19,7 @@ pub struct Class {
 
 #[derive(Debug, Clone)]
 pub struct Instance {
-    class: String,
+    pub class: String,
     variables: HashMap<String, Value>,
 }
 
@@ -195,11 +195,11 @@ impl Evaluator{
         let function_arguments: &Value = &self.functions[function_name]["arguments"]; // Get function arguments
         let function_lines: &Value = &self.functions[function_name]["function_body"]; // Get function body lines
 
-        println!("Executing function {} with lines: {:?}", function_name, function_lines);
-        println!("Function lines content:");
-        for i in function_lines.iter() {
-            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
-        }
+        // println!("Executing function {} with lines: {:?}", function_name, function_lines);
+        // println!("Function lines content:");
+        // for i in function_lines.iter() {
+        //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        // }
         if args.len() != function_arguments.length() { // Check argument count
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
@@ -270,21 +270,21 @@ impl Evaluator{
         let function_arguments: &Value = &class.functions[function_name]["arguments"];
         let function_lines: &Value = &class.functions[function_name]["function_body"];
 
-        println!("Executing class function {} with lines: {:?}", function_name, function_lines);
-        println!("Function lines content:");
-        for i in function_lines.iter() {
-            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
-        }
+        // println!("Executing class function {} with lines: {:?}", function_name, function_lines);
+        // println!("Function lines content:");
+        // for i in function_lines.iter() {
+        //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        // }
         if args.len() != function_arguments.length() {
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
-        println!("function_arguments: {:?} and args: {:?}", function_arguments, args);
+        // println!("function_arguments: {:?} and args: {:?}", function_arguments, args);
         for (name, value) in function_arguments.iter().zip(args.iter()) {
-            println!("Setting variable {} to {:?}", name.to_string_value(), value);
+            // println!("Setting variable {} to {:?}", name.to_string_value(), value);
             self.variables.insert(name.to_string_value(), value.clone());
         }
-        println!("self.variables before function execution: {:#?}", self.variables);
-        println!("self.classes before function execution: {:#?}", self.classes);
+        // println!("self.variables before function execution: {:#?}", self.variables);
+        // println!("self.classes before function execution: {:#?}", self.classes);
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
 
         
@@ -507,7 +507,10 @@ impl Evaluator{
                     programm_counter = end_line;
                 }
                 "def" => {
-                    let function_decleration = line.split(" ").collect::<Vec<_>>()[1]; //TODO: check if turning this to slit_once() fixes it
+                    let function_decleration = match line.split_once(' ') {
+                        Some((_, declaration)) => declaration.trim(),
+                        None => "", // TODO: handle error
+                    };
                     let function_name = function_decleration.split("(").collect::<Vec<_>>()[0];
                     let args = function_decleration
                                         .split_once('(') // returns Option<(&str, &str)>
@@ -533,7 +536,7 @@ impl Evaluator{
                     function_hash_map.insert("file".to_string(), Value::Path(self.path.clone()));
                     function_hash_map.insert("arguments".to_string(), Value::List(function_arguments));
                     function_hash_map.insert("function_body".to_string(), Value::List(function_lines));
-                    println!("Function line {} : {:?}", function_decleration, function_hash_map);
+                    // println!("Function line {} : {:?}", function_decleration, function_hash_map);
                     self.functions.insert(function_name.to_string(), function_hash_map);
                     // FIXME: function decleration inside classes gets cut off
                 }
@@ -592,7 +595,7 @@ impl Evaluator{
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = Tokenizer::new().tokenize(expr, self.variables.clone(), self.functions.clone(), self.classes.clone());
 
-        println!("tokens: {:?}", tokens);
+        // println!("tokens: {:?}", tokens);
 
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
@@ -673,6 +676,7 @@ impl Evaluator{
                                 if args.len() == 1 && args[0].to_string_value() == Value::None.to_string_value(){
                                     args = vec![];
                                 }
+                                // println!("Class function {} called with arguments: {:?}", function_name, args);
                                 let result = self.ev_class_func(tokens[i - 1].to_string_value(), function_name, args, None, None);
                                 stack.push(result);
                                 i += 1; // Skip the next token which is the argument list
