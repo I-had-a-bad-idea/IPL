@@ -1,0 +1,3 @@
+out("Hello World") # this should work
+
+out(Hello World) # if this works I did something wrong
