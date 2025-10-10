@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::vec;
 use crate::debug::EvaluatioError;
 use crate::evaluator::Value;
 
@@ -8,10 +9,12 @@ pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = s
     ("value", vec!["number"]),
     ("in", vec!["message"]),
     ("random", vec!["start", "end"]),
-    ("min", vec![]),
-    ("max", vec![]),
+    ("min", vec!["values"]),
+    ("max", vec!["values"]),
     ("round", vec!["number"]),
     ("pow", vec!["base", "exp"]),
+    ("len", vec!["collection"]),
+    ("quit", vec![]),
 ]));
 
 // Call a built-in function by name with given arguments
@@ -136,10 +139,26 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             }
             return Value::None;
         }
+        "len" => {
+            if let Some(collection) = args.get(0) {
+                match collection {
+                    Value::Str(s) => return Value::Number(s.chars().count() as f64),
+                    Value::List(l) => return Value::Number(l.len() as f64),
+                    _ => {
+                        EvaluatioError::new("Error: 'len' function requires a string or list argument".to_string(), None, None).raise();
+                    }
+                }
+            } else {
+                EvaluatioError::new("Error: 'len' function requires 1 argument".to_string(), None, None).raise();
+            }
+            return Value::None;
+        }
+        "quit" => {
+            std::process::exit(0);
+        }
         _ => {
             EvaluatioError::new(format!("Error: Unknown built-in function '{}'", name), None, None).raise();
             return Value::None;
         }
     }
 }
-
