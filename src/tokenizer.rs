@@ -51,12 +51,9 @@ impl Tokenizer{
             else if token.trim_matches('.').parse::<f64>().is_ok(){
                 output.push(Value::Str(token.clone()));
             }
-            else if variables.contains_key(token){
+            else if i + 1 < tokens.len() && ( ( variables.contains_key(token) || classes.contains_key(token) ) && &tokens[i + 1] == "." ){
                 output.push(Value::Str(token.clone()));
-                if i + 1 >= tokens.len(){
-                    i += 1;
-                    continue; // Prevent out-of-bounds access
-                }
+                
                 if &tokens[i + 1] == "." {
                     i += 2; // Skip the '.' token
                     if let Some(attr) = tokens.get(i) {
@@ -71,6 +68,9 @@ impl Tokenizer{
                         EvaluatioError::new("Expected attribute after '.'".to_string(), None, None).raise();
                     }
                 }
+            }
+            else if variables.contains_key(token){
+                output.push(Value::Str(token.clone()));
             }
             else if functions.contains_key(token) || BUILT_IN_FUNCTIONS.contains_key(&token as &str) || classes.contains_key(token) || classes.values().any(|class| class.functions.contains_key(token)){
                 if tokens.get(i+1) != Some(&"(".to_string()){

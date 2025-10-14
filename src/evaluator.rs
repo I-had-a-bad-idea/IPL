@@ -320,7 +320,7 @@ impl Evaluator{
         println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end{
-            println!("At line {}", programm_counter);
+            // println!("At line {}", programm_counter);
 
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
