@@ -192,7 +192,7 @@ impl Evaluator{
             }
         }
 
-        let function_arguments: &Value = &self.functions[function_name]["arguments"]; // Get function arguments
+        let function_arguments: &Value = &self.functions[function_name]["arguments"].clone(); // Get function arguments
         let function_lines: &Value = &self.functions[function_name]["function_body"]; // Get function body lines
 
         // println!("Executing function {} with lines: {:?}", function_name, function_lines);
@@ -215,14 +215,14 @@ impl Evaluator{
         let result: Value = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string()).clone();
     
 
-        // for name in function_arguments.iter(){
-        //     if global_vars.contains_key(&name.to_string_value()){
-        //         self.variables.insert(name.to_string_value(), global_vars.get(&name.to_string_value()).expect("The if for function argument ressetting failed").clone());
-        //     }
-        //     else{
-        //         self.variables.remove(&name.to_string_value());
-        //     }
-        // }
+        for name in function_arguments.iter(){
+            if global_vars.contains_key(&name.to_string_value()){
+                self.variables.insert(name.to_string_value(), global_vars.get(&name.to_string_value()).expect("The if for function argument ressetting failed").clone());
+            }
+            else{
+                self.variables.remove(&name.to_string_value());
+            }
+        }
         self.indentation_stack.pop(); // Pop function context from indentation stack
 
         return result; // Return function result
