@@ -214,7 +214,7 @@ impl Evaluator{
         // Execute function lines and get result
         let result: Value = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string());
         
-        self.variables = global_variables; // Restore previous variables //TODO: only reset the arguments
+        self.variables = global_variables; // Restore previous variables
         self.indentation_stack.pop(); // Pop function context from indentation stack
 
         return result; // Return function result
@@ -277,7 +277,7 @@ impl Evaluator{
         }
 
         for (name, value) in function_arguments.iter().zip(args.iter()) {
-            instance.variables.insert(name.to_string_value(), value.clone()); //FIXME: function arguments do not need to be on the self
+            instance.variables.insert(name.to_string_value(), value.clone());
         }
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
 
@@ -285,7 +285,7 @@ impl Evaluator{
         let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), instance_str);
         
         self.indentation_stack.pop();
-        //FIXME: maybe do the variables, arguments like in the one above
+
         return result;
     }
 
