@@ -204,7 +204,7 @@ impl Evaluator{
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
 
-        let global_variables: HashMap<String, Value> = self.variables.clone(); // Save current variables
+        let global_vars: HashMap<String, Value> = self.variables.clone(); // Save current variables
 
         for (name, value) in function_arguments.iter().zip(args.iter()) {
             self.variables.insert(name.to_string_value(), value.clone()); // Set function arguments in variables
@@ -212,9 +212,17 @@ impl Evaluator{
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()]))); // Push function context to indentation stack
 
         // Execute function lines and get result
-        let result: Value = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string());
-        
-        self.variables = global_variables; // Restore previous variables
+        let result: Value = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string()).clone();
+    
+
+        // for name in function_arguments.iter(){
+        //     if global_vars.contains_key(&name.to_string_value()){
+        //         self.variables.insert(name.to_string_value(), global_vars.get(&name.to_string_value()).expect("The if for function argument ressetting failed").clone());
+        //     }
+        //     else{
+        //         self.variables.remove(&name.to_string_value());
+        //     }
+        // }
         self.indentation_stack.pop(); // Pop function context from indentation stack
 
         return result; // Return function result
@@ -278,6 +286,8 @@ impl Evaluator{
         if args.len() != function_arguments.length() {
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
+        let global_vars = self.variables.clone();
+
         // println!("function_arguments: {:?} and args: {:?}", function_arguments, args);
         for (name, value) in function_arguments.iter().zip(args.iter()) {
             // println!("Setting variable {} to {:?}", name.to_string_value(), value);
@@ -289,8 +299,17 @@ impl Evaluator{
 
         
         let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), instance_str.clone());
-        
+        // println!("self.variables after function execution: {:#?}", self.variables);
         self.indentation_stack.pop();
+
+        for name in function_arguments.iter(){
+            if global_vars.contains_key(&name.to_string_value()){
+                self.variables.insert(name.to_string_value(), global_vars.get(&name.to_string_value()).expect("The if for function argument ressetting failed").clone());
+            }
+            else{
+                self.variables.remove(&name.to_string_value());
+            }
+        }
 
         return result;
     }
@@ -553,14 +572,27 @@ impl Evaluator{
                                     EvaluatioError::new("self used outside class".to_string(), None, None).raise();
                                 }
                                 else{
-                                    println!("Self value: {}", self_value.clone());
                                     let var_name = variable_name.split(".").collect::<Vec<_>>()[1];
                                     if self.classes.contains_key(&self_value){
                                         self.classes.get_mut(&self_value).unwrap().variables.insert(var_name.to_string(), result);
                                     }
                                     else if self.variables.contains_key(&self_value) {
-                                        let inst = self.variables.get_mut(&self_value).unwrap_or(&mut Value::None).get_instance().unwrap_or(Instance {class: "".to_string(), variables: HashMap::new()}).variables.insert(var_name.to_string(), result);
-                                        self.variables.insert(self_value.clone(), inst.unwrap_or(Value::None));
+                                        let inst_var = self.variables.get(&self_value);
+                                        if inst_var.is_none(){
+                                            EvaluatioError::new("Self used outsside of class".to_string(), None, None).raise();
+                                        }
+
+                                        let inst_opt = inst_var.unwrap().get_instance();
+                                        if inst_opt.is_none(){
+                                            EvaluatioError::new("Self unwrapping returned a null value".to_string(), None, None).raise();
+                                        }
+                                        let mut inst = inst_opt.unwrap();
+
+                                        inst.variables.insert(var_name.to_string(), result);
+                                        self.variables.insert(self_value.clone(), Value::Instance(inst));
+
+                                        //let inst = self.variables.get_mut(&self_value).unwrap_or(&mut Value::None).get_instance().unwrap_or(Instance {class: "".to_string(), variables: HashMap::new()}).variables.insert(var_name.to_string(), result);
+                                        //self.variables.insert(self_value.clone(), inst.unwrap_or(Value::None));
                                     }
                                     else {
                                         EvaluatioError::new("Self reference to class or instance not found".to_string(), None, None).raise();
