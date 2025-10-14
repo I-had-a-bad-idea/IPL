@@ -44,7 +44,7 @@ cargo build --release
 
 Run an IPL file:
 ```sh
-cargo run -- path/to/file.ipl
+cargo run path/to/file.ipl
 ```
 
 ## Built-in Functions
