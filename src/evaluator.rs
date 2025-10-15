@@ -7,8 +7,8 @@ use std::ops::Add;
 use crate::built_in_functions::call_built_in_function;
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
+use crate::state;
 use crate::tokenizer::Tokenizer;
-
 
 // Define Class, Instance, and Value types for the evaluator
 #[derive(Debug, Clone)]
@@ -188,7 +188,7 @@ impl Evaluator{
             if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) { // Check if evaluator for the file already exists
                 return ev.ev_func(function_name, args);
             } else {
-                EvaluatioError::new("Evaluator for file not found".to_string(), None, None).raise();
+                EvaluatioError::new("Evaluator for file not found".to_string()).raise();
             }
         }
 
@@ -201,7 +201,7 @@ impl Evaluator{
         //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
         // }
         if args.len() != function_arguments.length() { // Check argument count
-            EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
+            EvaluatioError::new("Wrong amount of arguments".to_string()).raise();
         }
 
         let global_vars: HashMap<String, Value> = self.variables.clone(); // Save current variables
@@ -241,7 +241,7 @@ impl Evaluator{
             self.variables.insert(instance_str.clone(), Value::Instance(instance.clone()));
         } else {
             if !self.variables.contains_key(&instance_str){
-                EvaluatioError::new("Instance not found".to_string(), None, None).raise();
+                EvaluatioError::new("Instance not found".to_string()).raise();
             }
             else {
                 instance = self.variables.get(&instance_str).expect("Instance not found").get_instance().expect("Not an instance");
@@ -256,7 +256,7 @@ impl Evaluator{
             self.classes.insert(instance.class.clone(), class.clone());
         } else {
             if !self.classes.contains_key(&instance.class){
-                EvaluatioError::new("Class not found".to_string(), None, None).raise();
+                EvaluatioError::new("Class not found".to_string()).raise();
             }
             else {
                 class = self.classes.get(&instance.class).expect("Class not found").clone();
@@ -271,7 +271,7 @@ impl Evaluator{
             if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
                 return ev.ev_class_func(instance_str, function_name, args, Some(instance), Some(class));
             }   else {
-                EvaluatioError::new("Evaluator for file not found".to_string(), None, None).raise();
+                EvaluatioError::new("Evaluator for file not found".to_string()).raise();
                 }
         }
 
@@ -284,7 +284,7 @@ impl Evaluator{
         //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
         // }
         if args.len() != function_arguments.length() {
-            EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
+            EvaluatioError::new("Wrong amount of arguments".to_string()).raise();
         }
         let global_vars = self.variables.clone();
 
@@ -326,6 +326,8 @@ impl Evaluator{
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
 
             // println!("Current line: '{}'", line);
+
+            state::set_programm_state(programm_counter, &line);
 
             let indentation = get_indentation(&line);
 
@@ -465,7 +467,7 @@ impl Evaluator{
                             break;
                        }
                         else if x.0 == "normal"{
-                            EvaluatioError::new("Error: 'break' outside loop".to_string(), None, None).raise();
+                            EvaluatioError::new("Error: 'break' outside loop".to_string()).raise();
                         }
                     }
                 } 
@@ -481,7 +483,7 @@ impl Evaluator{
                             return Value::None; // Stop execution of current iteration
                         }
                         else if x.0 == "normal"{
-                            EvaluatioError::new("Error: 'continue' outside loop".to_string(), None, None).raise();
+                            EvaluatioError::new("Error: 'continue' outside loop".to_string()).raise();
                         }
                     }
                 } 
@@ -528,8 +530,11 @@ impl Evaluator{
                 "def" => {
                     let function_decleration = match line.split_once(' ') {
                         Some((_, declaration)) => declaration.trim(),
-                        None => "", // TODO: handle error
+                        None => "",
                     };
+                    if function_decleration == ""{
+                        EvaluatioError::new("def requires a function decleration".to_string()).raise();
+                    }
                     let function_name = function_decleration.split("(").collect::<Vec<_>>()[0];
                     let args = function_decleration
                                         .split_once('(') // returns Option<(&str, &str)>
@@ -569,7 +574,7 @@ impl Evaluator{
                             variable_name = variable_name.trim();
                             if variable_name.contains("self"){
                                 if self_value.is_empty(){
-                                    EvaluatioError::new("self used outside class".to_string(), None, None).raise();
+                                    EvaluatioError::new("self used outside class".to_string()).raise();
                                 }
                                 else{
                                     let var_name = variable_name.split(".").collect::<Vec<_>>()[1];
@@ -579,12 +584,12 @@ impl Evaluator{
                                     else if self.variables.contains_key(&self_value) {
                                         let inst_var = self.variables.get(&self_value);
                                         if inst_var.is_none(){
-                                            EvaluatioError::new("Self used outsside of class".to_string(), None, None).raise();
+                                            EvaluatioError::new("Self used outsside of class".to_string()).raise();
                                         }
 
                                         let inst_opt = inst_var.unwrap().get_instance();
                                         if inst_opt.is_none(){
-                                            EvaluatioError::new("Self unwrapping returned a null value".to_string(), None, None).raise();
+                                            EvaluatioError::new("Self unwrapping returned a null value".to_string()).raise();
                                         }
                                         let mut inst = inst_opt.unwrap();
 
@@ -595,7 +600,7 @@ impl Evaluator{
                                         //self.variables.insert(self_value.clone(), inst.unwrap_or(Value::None));
                                     }
                                     else {
-                                        EvaluatioError::new("Self reference to class or instance not found".to_string(), None, None).raise();
+                                        EvaluatioError::new("Self reference to class or instance not found".to_string()).raise();
                                     }
                                 }
                                 
@@ -613,7 +618,7 @@ impl Evaluator{
                                     self.classes.get_mut(object).unwrap().variables.insert(var_name.to_string(), result);
                                 }
                                 else{
-                                    EvaluatioError::new("Class not found".to_string(), None, None).raise();
+                                    EvaluatioError::new("Class not found".to_string()).raise();
                                 }
                                 
                             }
@@ -725,10 +730,10 @@ impl Evaluator{
                             
                         }
                         else{
-                            EvaluatioError::new(format!("Instance has no attribute {}", attribute.to_string_value()), None, None).raise();
+                            EvaluatioError::new(format!("Instance has no attribute {}", attribute.to_string_value())).raise();
                         }
                     }
-                    _ => EvaluatioError::new("Left side of '.' is not an instance".to_string(), None, None).raise(),
+                    _ => EvaluatioError::new("Left side of '.' is not an instance".to_string()).raise(),
                 }
                 i += 1; // Skip the attribute token
             }

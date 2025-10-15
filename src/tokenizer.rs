@@ -65,7 +65,7 @@ impl Tokenizer{
                             i -= 1; // Step back to reprocess this token as a function
                         }
                     } else {
-                        EvaluatioError::new("Expected attribute after '.'".to_string(), None, None).raise();
+                        EvaluatioError::new("Expected attribute after '.'".to_string()).raise();
                     }
                 }
             }
@@ -74,7 +74,7 @@ impl Tokenizer{
             }
             else if functions.contains_key(token) || BUILT_IN_FUNCTIONS.contains_key(&token as &str) || classes.contains_key(token) || classes.values().any(|class| class.functions.contains_key(token)){
                 if tokens.get(i+1) != Some(&"(".to_string()){
-                    EvaluatioError::new(format!("Function {} must be followed by (", token), None, None).raise();
+                    EvaluatioError::new(format!("Function {} must be followed by (", token)).raise();
                 }
                 output.push(Value::Str(token.clone()));
                 i += 1; // Skip the next token which is '('
@@ -166,12 +166,12 @@ impl Tokenizer{
                     }
                 } 
                 if stack.is_empty(){
-                    EvaluatioError::new("Mismatched parentheses".to_string(), None, None).raise();
+                    EvaluatioError::new("Mismatched parentheses".to_string()).raise();
                 }
                 stack.pop(); // remove "("
             }
             else{
-                EvaluatioError::new(format!("Unknown token {}", token), None, None).raise();
+                EvaluatioError::new(format!("Unknown token {}", token)).raise();
             }
             i += 1;
         }
@@ -180,7 +180,7 @@ impl Tokenizer{
         //println!("Output after processing tokens: {:?}", output);
         while let Some(last) = stack.last(){
             if last.to_string_value() == "(" || last.to_string_value() == ")"{
-                EvaluatioError::new("Mismatched parentheses".to_string(), None, None).raise();
+                EvaluatioError::new("Mismatched parentheses".to_string()).raise();
             }
             output.push(stack.pop().unwrap());
         }

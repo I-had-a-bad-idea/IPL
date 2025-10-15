@@ -21,14 +21,14 @@ pub static BUILT_IN_FUNCTIONS: std::sync::LazyLock<HashMap<&str, Vec<&str>>> = s
 pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
     //println!("Called built in function {} with arguments {:?}", name, args);
     if args.len() != BUILT_IN_FUNCTIONS[name].len(){
-        EvaluatioError::new(format!("Error: Function '{}' expects {} arguments, but got {}", name, BUILT_IN_FUNCTIONS[name].len(), args.len()), None, None).raise();
+        EvaluatioError::new(format!("Error: Function '{}' expects {} arguments, but got {}", name, BUILT_IN_FUNCTIONS[name].len(), args.len())).raise();
     }
     match name {
         "out" => {
             if let Some(output) = args.get(0) {
                 println!("{}", output.to_string_value());
             } else {
-                EvaluatioError::new("Error: 'out' function requires 1 argument".to_string(), None, None).raise();
+                EvaluatioError::new("Error: 'out' function requires 1 argument".to_string()).raise();
             }
             return Value::None;
         }
@@ -37,10 +37,10 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 if let Value::Number(num) = number {
                     return Value::Number(*num);
                 } else {
-                    EvaluatioError::new("Error: 'value' function requires a numeric argument".to_string(), None, None).raise();
+                    EvaluatioError::new("Error: 'value' function requires a numeric argument".to_string()).raise();
                 }
             } else {
-                EvaluatioError::new("Error: 'value' function requires 1 argument".to_string(), None, None).raise();
+                EvaluatioError::new("Error: 'value' function requires 1 argument".to_string()).raise();
             }
             return Value::None;
         }
@@ -53,7 +53,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 io::stdin().read_line(&mut input).unwrap();
                 return Value::Str(input.trim().to_string());
             } else {
-                EvaluatioError::new("Error: 'in' function requires 1 argument".to_string(), None, None).raise();
+                EvaluatioError::new("Error: 'in' function requires 1 argument".to_string()).raise();
             }
             return Value::None;
         }
@@ -64,10 +64,10 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                     let mut rng: rand::prelude::ThreadRng = rand::rng();
                     return Value::Number(rng.random_range(*start as i32..=*end as i32) as f64);
                 } else {
-                    EvaluatioError::new("Error: 'random' function requires two numeric arguments".to_string(), None, None).raise();
+                    EvaluatioError::new("Error: 'random' function requires two numeric arguments".to_string()).raise();
                 }
             } else {
-                EvaluatioError::new("Error: 'random' function requires 2 arguments".to_string(), None, None).raise();
+                EvaluatioError::new("Error: 'random' function requires 2 arguments".to_string()).raise();
             }
             return Value::None;
         }
@@ -84,11 +84,11 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                     if let Some(min) = min_value {
                         return Value::Number(min);
                     } else {
-                        EvaluatioError::new("Error: 'min' function requires a list of numeric values".to_string(), None, None).raise();
+                        EvaluatioError::new("Error: 'min' function requires a list of numeric values".to_string()).raise();
                     }
                 }
                 _ => {
-                    EvaluatioError::new("Error: 'min' function requires 1 argument which is a non-empty list".to_string(), None, None).raise();
+                    EvaluatioError::new("Error: 'min' function requires 1 argument which is a non-empty list".to_string()).raise();
                 }
             }
             return Value::None;
@@ -106,11 +106,11 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                     if let Some(max) = max_value {
                         return Value::Number(max);
                     } else {
-                        EvaluatioError::new("Error: 'max' function requires a list of numeric values".to_string(), None, None).raise();
+                        EvaluatioError::new("Error: 'max' function requires a list of numeric values".to_string()).raise();
                     }
                 }
                 _ => {
-                    EvaluatioError::new("Error: 'max' function requires 1 argument which is a non-empty list".to_string(), None, None).raise();
+                    EvaluatioError::new("Error: 'max' function requires 1 argument which is a non-empty list".to_string()).raise();
                 }
             }
             return Value::None;
@@ -120,10 +120,10 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 if let Value::Number(num) = number {
                     return Value::Number(num.round());
                 } else {
-                    EvaluatioError::new("Error: 'round' function requires a numeric argument".to_string(), None, None).raise();
+                    EvaluatioError::new("Error: 'round' function requires a numeric argument".to_string()).raise();
                 }
             } else {
-                EvaluatioError::new("Error: 'round' function requires 1 argument".to_string(), None, None).raise();
+                EvaluatioError::new("Error: 'round' function requires 1 argument".to_string()).raise();
             }
             return Value::None;
         }
@@ -132,10 +132,10 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 if let (Value::Number(base), Value::Number(exp)) = (&args[0], &args[1]) {
                     return Value::Number(base.powf(*exp));
                 } else {
-                    EvaluatioError::new("Error: 'pow' function requires two numeric arguments".to_string(), None, None).raise();
+                    EvaluatioError::new("Error: 'pow' function requires two numeric arguments".to_string()).raise();
                 }
             } else {
-                EvaluatioError::new("Error: 'pow' function requires 2 arguments".to_string(), None, None).raise();
+                EvaluatioError::new("Error: 'pow' function requires 2 arguments".to_string()).raise();
             }
             return Value::None;
         }
@@ -145,11 +145,11 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                     Value::Str(s) => return Value::Number(s.chars().count() as f64),
                     Value::List(l) => return Value::Number(l.len() as f64),
                     _ => {
-                        EvaluatioError::new("Error: 'len' function requires a string or list argument".to_string(), None, None).raise();
+                        EvaluatioError::new("Error: 'len' function requires a string or list argument".to_string()).raise();
                     }
                 }
             } else {
-                EvaluatioError::new("Error: 'len' function requires 1 argument".to_string(), None, None).raise();
+                EvaluatioError::new("Error: 'len' function requires 1 argument".to_string()).raise();
             }
             return Value::None;
         }
@@ -157,7 +157,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             std::process::exit(0);
         }
         _ => {
-            EvaluatioError::new(format!("Error: Unknown built-in function '{}'", name), None, None).raise();
+            EvaluatioError::new(format!("Error: Unknown built-in function '{}'", name)).raise();
             return Value::None;
         }
     }
