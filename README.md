@@ -137,7 +137,6 @@ Contributions welcome! Current TODOs:
 - Add more built-in functions
 - Make syntax highlighting
 - 
-- Constructors
 - Access control (public/protected/private)
 - Static and class methods
 - 

@@ -1,0 +1,13 @@
+
+class Test
+    self.number = 20
+    self.string = "Test"
+
+    def add(a,b)
+        return a + b
+    
+    def greet()
+        out("Hello World")
+
+
+z = Test.add(a, b)

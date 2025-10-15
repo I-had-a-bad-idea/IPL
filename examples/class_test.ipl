@@ -4,10 +4,19 @@ class Test : Base
     self.number = 20
     self.string = "Test"
 
+    def add(a,b)
+        return a + b
+    
     def greet()
         out("Hello World")
+    
+    
 
 t = Test()
+
+z = t.add(3, 5)
+out("z")
+out(z)
 
 t.greet()
 

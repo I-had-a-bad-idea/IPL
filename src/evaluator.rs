@@ -13,13 +13,13 @@ use crate::tokenizer::Tokenizer;
 // Define Class, Instance, and Value types for the evaluator
 #[derive(Debug, Clone)]
 pub struct Class {
-    functions: HashMap<String, HashMap<String, Value>>,
+    pub functions: HashMap<String, HashMap<String, Value>>,
     variables: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Instance {
-    class: String,
+    pub class: String,
     variables: HashMap<String, Value>,
 }
 
@@ -192,19 +192,19 @@ impl Evaluator{
             }
         }
 
-        let function_arguments: &Value = &self.functions[function_name]["arguments"]; // Get function arguments
+        let function_arguments: &Value = &self.functions[function_name]["arguments"].clone(); // Get function arguments
         let function_lines: &Value = &self.functions[function_name]["function_body"]; // Get function body lines
 
         // println!("Executing function {} with lines: {:?}", function_name, function_lines);
         // println!("Function lines content:");
         // for i in function_lines.iter() {
         //     println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
-        //}
+        // }
         if args.len() != function_arguments.length() { // Check argument count
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
 
-        let global_variables: HashMap<String, Value> = self.variables.clone(); // Save current variables
+        let global_vars: HashMap<String, Value> = self.variables.clone(); // Save current variables
 
         for (name, value) in function_arguments.iter().zip(args.iter()) {
             self.variables.insert(name.to_string_value(), value.clone()); // Set function arguments in variables
@@ -212,9 +212,17 @@ impl Evaluator{
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()]))); // Push function context to indentation stack
 
         // Execute function lines and get result
-        let result: Value = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string());
-        
-        self.variables = global_variables; // Restore previous variables
+        let result: Value = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), "".to_string()).clone();
+    
+
+        for name in function_arguments.iter(){
+            if global_vars.contains_key(&name.to_string_value()){
+                self.variables.insert(name.to_string_value(), global_vars.get(&name.to_string_value()).expect("The if for function argument ressetting failed").clone());
+            }
+            else{
+                self.variables.remove(&name.to_string_value());
+            }
+        }
         self.indentation_stack.pop(); // Pop function context from indentation stack
 
         return result; // Return function result
@@ -254,6 +262,9 @@ impl Evaluator{
                 class = self.classes.get(&instance.class).expect("Class not found").clone();
             }
         }
+        if !class.functions.contains_key(function_name){
+            return Value::None;
+        }
         // println!("Self.classes: {:#?}", self.classes);
         let file = class.functions[function_name]["file"].clone();
         if file.to_string_value() != self.path.to_str().unwrap() {
@@ -275,16 +286,30 @@ impl Evaluator{
         if args.len() != function_arguments.length() {
             EvaluatioError::new("Wrong amount of arguments".to_string(), None, None).raise();
         }
+        let global_vars = self.variables.clone();
 
+        // println!("function_arguments: {:?} and args: {:?}", function_arguments, args);
         for (name, value) in function_arguments.iter().zip(args.iter()) {
-            instance.variables.insert(name.to_string_value(), value.clone());
+            // println!("Setting variable {} to {:?}", name.to_string_value(), value);
+            self.variables.insert(name.to_string_value(), value.clone());
         }
+        // println!("self.variables before function execution: {:#?}", self.variables);
+        // println!("self.classes before function execution: {:#?}", self.classes);
         self.indentation_stack.push(("function".to_string(), get_indentation(&self.lines[function_lines[0].as_usize()])));
 
         
-        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), instance_str);
-        
+        let result = self.execute_lines(function_lines[0].as_usize(), (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(), instance_str.clone());
+        // println!("self.variables after function execution: {:#?}", self.variables);
         self.indentation_stack.pop();
+
+        for name in function_arguments.iter(){
+            if global_vars.contains_key(&name.to_string_value()){
+                self.variables.insert(name.to_string_value(), global_vars.get(&name.to_string_value()).expect("The if for function argument ressetting failed").clone());
+            }
+            else{
+                self.variables.remove(&name.to_string_value());
+            }
+        }
 
         return result;
     }
@@ -324,7 +349,7 @@ impl Evaluator{
                 self.indentation_stack.pop();
             }
 
-            match line.split(" ").collect::<Vec<_>>()[0]{
+            match line.split(" ").collect::<Vec<_>>()[0]{ //TODO: also check here, if split_once() is the better option
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
                     self.evaluators.insert(file.clone(), Evaluator::new());
@@ -492,7 +517,7 @@ impl Evaluator{
                     }
 
                     self.execute_lines(start_line, end_line, class_name.to_string());
-                    
+
                     self.classes.get_mut(class_name).unwrap().functions.extend(self.functions.clone());
 
                     self.functions = funcs;
@@ -501,19 +526,22 @@ impl Evaluator{
                     programm_counter = end_line;
                 }
                 "def" => {
-                    let function_decleration = line.split(" ").collect::<Vec<_>>()[1];
+                    let function_decleration = match line.split_once(' ') {
+                        Some((_, declaration)) => declaration.trim(),
+                        None => "", // TODO: handle error
+                    };
                     let function_name = function_decleration.split("(").collect::<Vec<_>>()[0];
                     let args = function_decleration
                                         .split_once('(') // returns Option<(&str, &str)>
                                         .and_then(|(_, rest)| rest.split_once(')')) // safely get the inside of the parentheses
-                                        .map(|(args_str, _)| {
-                                            args_str
-                                                .split(',')
-                                                .map(str::trim)
-                                                .filter(|s| !s.is_empty())
-                                                .collect::<Vec<_>>()
-                                        })
-                                        .unwrap_or_else(|| Vec::new());
+                        .map(|(args_str, _)| {
+                            args_str
+                                .split(',')
+                                .map(str::trim)
+                                .filter(|s| !s.is_empty())
+                                .collect::<Vec<_>>()
+                        })
+                        .unwrap_or_else(|| Vec::new());
                     let function_arguments = args.iter().map(|n| Value::Str(n.to_string())).collect::<Vec<Value>>();
                     programm_counter += 1;
                     let start_line = programm_counter;
@@ -527,8 +555,8 @@ impl Evaluator{
                     function_hash_map.insert("file".to_string(), Value::Path(self.path.clone()));
                     function_hash_map.insert("arguments".to_string(), Value::List(function_arguments));
                     function_hash_map.insert("function_body".to_string(), Value::List(function_lines));
+                    // println!("Function line {} : {:?}", function_decleration, function_hash_map);
                     self.functions.insert(function_name.to_string(), function_hash_map);
-
                 }
                 _ => {
                     if line == "End of file"{
@@ -540,12 +568,35 @@ impl Evaluator{
 
                             variable_name = variable_name.trim();
                             if variable_name.contains("self"){
-                                if self_value == "".to_string(){
+                                if self_value.is_empty(){
                                     EvaluatioError::new("self used outside class".to_string(), None, None).raise();
                                 }
                                 else{
                                     let var_name = variable_name.split(".").collect::<Vec<_>>()[1];
-                                    self.classes.get_mut(&self_value).unwrap().variables.insert(var_name.to_string(), result);
+                                    if self.classes.contains_key(&self_value){
+                                        self.classes.get_mut(&self_value).unwrap().variables.insert(var_name.to_string(), result);
+                                    }
+                                    else if self.variables.contains_key(&self_value) {
+                                        let inst_var = self.variables.get(&self_value);
+                                        if inst_var.is_none(){
+                                            EvaluatioError::new("Self used outsside of class".to_string(), None, None).raise();
+                                        }
+
+                                        let inst_opt = inst_var.unwrap().get_instance();
+                                        if inst_opt.is_none(){
+                                            EvaluatioError::new("Self unwrapping returned a null value".to_string(), None, None).raise();
+                                        }
+                                        let mut inst = inst_opt.unwrap();
+
+                                        inst.variables.insert(var_name.to_string(), result);
+                                        self.variables.insert(self_value.clone(), Value::Instance(inst));
+
+                                        //let inst = self.variables.get_mut(&self_value).unwrap_or(&mut Value::None).get_instance().unwrap_or(Instance {class: "".to_string(), variables: HashMap::new()}).variables.insert(var_name.to_string(), result);
+                                        //self.variables.insert(self_value.clone(), inst.unwrap_or(Value::None));
+                                    }
+                                    else {
+                                        EvaluatioError::new("Self reference to class or instance not found".to_string(), None, None).raise();
+                                    }
                                 }
                                 
                             }
@@ -632,9 +683,11 @@ impl Evaluator{
                         class: function_name.to_string(),
                         variables: self.classes[function_name].variables.clone(),
                     };
-                    return Value::Instance(instance);
+                    self.ev_class_func("__DO_NOT_USE_THIS_VARIABLE_INTERNAL_ONLY__".trim().to_string(), &function_name, args, Some(instance.clone()), None);
+                    
+                    Value::Instance(self.variables.get("__DO_NOT_USE_THIS_VARIABLE_INTERNAL_ONLY__").expect("Instance not found").get_instance().expect("Not an instance"))
                 } else {
-                    return Value::None;
+                    Value::None
                 };
                 stack.push(result);
                 i += 1; // Skip the next token which is the argument list
@@ -664,6 +717,7 @@ impl Evaluator{
                                 if args.len() == 1 && args[0].to_string_value() == Value::None.to_string_value(){
                                     args = vec![];
                                 }
+                                // println!("Class function {} called with arguments: {:?}", function_name, args);
                                 let result = self.ev_class_func(tokens[i - 1].to_string_value(), function_name, args, None, None);
                                 stack.push(result);
                                 i += 1; // Skip the next token which is the argument list
