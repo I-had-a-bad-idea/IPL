@@ -1,19 +1,19 @@
 # IPL (Interpreted Programming Language)
 
-A simple interpreted programming language implemented in Rust. IPL supports basic programming constructs like variables, functions, control flow, and built-in functions.
+A simple interpreted programming language implemented in Rust that supports object-oriented programming concepts, control flow, and built-in functions.
 
 ## Features
 
-- **Variables**: Dynamic variable assignment
+- **Variables**: Dynamic variable assignment 
 - **Control Flow**: 
   - `if`/`elif`/`else` conditionals
-  - `while` loops 
-  - `for` loops
+  - `while` loops with `break`/`continue`
+  - `for` loops with iteration over lists
   - `break` and `continue` statements
 - **Functions**:
   - Function definitions with parameters
   - Return values
-  - Built-in functions
+  - Built-in functions for I/O and math
 - **Data Types**:
   - Numbers (floating point)
   - Strings
@@ -21,15 +21,17 @@ A simple interpreted programming language implemented in Rust. IPL supports basi
   - Booleans (`True`/`False`)
   - `None`
 - **Classes & Objects**:
-  - Class definitions
-  - Object instantiation
-  - Fields/attributes
-  - Default values
+  - Class definitions with inheritance
+  - Constructor methods
+  - Instance methods
+  - Class variables and instance variables
+  - Method overriding
 - **File Imports**: Import code from other `.ipl` files
 - **Operators**:
-  - Arithmetic: `+`, `-`, `*`, `/`
+  - Arithmetic: `+`, `-`, `*`, `/` 
   - Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
   - Logical: `and`, `or`
+  - Member access: `.`
 
 ## Installation
 
@@ -50,97 +52,97 @@ cargo run path/to/file.ipl
 ## Built-in Functions
 
 - `out(value)`: Print a value to stdout
-- `in(prompt)`: Get user input with a prompt
-- `random(start, end)`: Generate random number between start and end
+- `in(prompt)`: Get user input with an prompt
+- `random(start, end)`: Generate random integer between start and end (inclusive)
 - `round(number)`: Round a number to nearest integer
 - `pow(base, exp)`: Calculate base raised to exp power
-- `min()`: Get minimum value (placeholder)
-- `max()`: Get maximum value (placeholder)
-- `value(number)`: Convert to number
+- `min(list)`: Get minimum value from a list of numbers
+- `max(list)`: Get maximum value from a list of numbers
+- `len(collection)`: Get length of string or list
+- `value(number)`: Convert to number type
 
 ## Example Programs
+
+More example programms can be found under `examples/`.
 
 ### Hello World
 ```ipl
 out("Hello, World!")
 ```
 
-### Guess the Number Game
+### Class Inheritance
 ```ipl
-random_number = random(0,10)
-input = in("Guess a number between 0-10: ")
+class Animal
+    self.name = "Unknown"
+    
+    def make_sound()
+        out("Some sound")
 
-if input == random_number
-    out("You guessed it!")
-else
-    out("Wrong guess!")
-out("The number was: ")
-out(random_number)
+class Dog : Animal
+    def Dog(name)
+        self.name = name
+    
+    def make_sound()
+        out("Woof!")
+
+dog = Dog("Rex")
+dog.make_sound()  # Prints: Woof!
+out(dog.name)     # Prints: Rex
 ```
 
-### Function Definition and Loops
+### List Operations
 ```ipl
-def add(a,b)
-    return a + b
+numbers = [1, 2, 3, 4, 5]
+sum = 0
 
-list = [1, 2, 3, 4]
-for number in list
-    out(add(number, 2))
+for n in numbers
+    sum = sum + n
+
+out("Sum is:")
+out(sum)
+
+min_val = min(numbers)
+max_val = max(numbers)
 ```
 
-## Classes
+## Contributing
 
-Classes can be defined with fields and default values:
+Contributions are welcome! Here are some areas that need work:
 
-```ipl
-class Person
-    name = "John"
-    age = 30
+### High Priority
+- Add more built-in functions for string/list manipulation
+- Implement proper error handling and reporting
+- Add documentation comments throughout the codebase
+- Write unit tests and integration tests
 
-# Create an instance
-p1 = Person()
-out(p1.name)  # Prints: John
+### Future Features
+- Add static methods and class methods
+- Implement public/private/protected access modifiers  
+- Add support for modules/namespaces
+- Create syntax highlighting for common editors
+- Add type annotations and type checking
+- Implement a standard library
 
-# Modify fields
-p1.name = "Alice"
-p1.age = 25
-
-# Create another instance
-p2 = Person()
-out(p2.name)  # Prints: John (default value)
-out(p2.age)   # Prints: 30 (default value)
-```
-
-### Class Features
-- Define classes with default field values
-- Create multiple instances
-- Access and modify instance fields using dot notation
-- Each instance maintains its own state
-- Fields can be numbers, strings, lists, or other values
-
-## Project Structure
+### Project Structure
 
 - `src`
   - `src/main.rs`: Entry point
   - `src/evaluator.rs`: Core interpreter logic
-  - `src/tokenizer.rs`: Lexical analysis
+  - `src/tokenizer.rs`: Prepares lines for the evaluator
   - `src/built_in_functions.rs`: Built-in function implementations
   - `src/debug.rs`: Error handling
+  - `src/state.rs`: Global programm state
+
+### Getting Started
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+Please make sure to update tests and documentation as appropriate.
 
 ## License
 
-MIT License - See `LICENSE` for details
-
-## Contributing
-
-Contributions welcome! Current TODOs:
-- Add more built-in functions
-- Make syntax highlighting
-- 
-- Access control (public/protected/private)
-- Static and class methods
-- 
-- Make a debug print function 
-- 
-- WRITE COMMENTS
-- Clean up and optimize code
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
