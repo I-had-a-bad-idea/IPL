@@ -114,6 +114,12 @@ impl Value {
             _ => None,
         }
     }
+    pub fn is_none_value(&self) -> bool {
+        match self {
+            Value::None => true,
+            _ => false,
+        }
+    }
 }
 
 // Define the Evaluator struct and its methods for evaluating IPL code

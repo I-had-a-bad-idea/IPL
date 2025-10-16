@@ -30,6 +30,18 @@ impl Tokenizer{
         return tokens;
     }
 
+    fn str_to_datatype(&self, token: &String) -> Value{
+        if token.starts_with('"') && token.ends_with('"') || token.starts_with("'") && token.ends_with("'"){
+            return Value::Str(token.clone());
+        }
+        else if token.trim_matches('.').parse::<f64>().is_ok(){
+            return Value::Number(Value::Str(token.clone()).as_f64());
+        }
+        else{
+            return  Value::None;
+        }
+    }
+
     // Convert infix tokens to postfix using the shunting yard algorithm
     fn shunting_yard(&self, tokens: Vec<String>, variables: HashMap<String, Value>, functions: HashMap<String, HashMap<String, Value>>, classes: HashMap<String, Class>) -> Vec<Value> {
         let prec = HashMap::from([
@@ -44,12 +56,10 @@ impl Tokenizer{
 
         let mut i = 0;
         while i < tokens.len(){
-            let token = &tokens[i];
-            if token.starts_with('"') && token.ends_with('"') || token.starts_with("'") && token.ends_with("'"){
-                output.push(Value::Str(token.clone()));
-            }
-            else if token.trim_matches('.').parse::<f64>().is_ok(){
-                output.push(Value::Str(token.clone()));
+            let token: &String = &tokens[i];
+            let token_as_datatype = self.str_to_datatype(token);
+            if !token_as_datatype.is_none_value(){
+                output.push(token_as_datatype);
             }
             else if i + 1 < tokens.len() && ( ( variables.contains_key(token) || classes.contains_key(token) ) && &tokens[i + 1] == "." ){
                 output.push(Value::Str(token.clone()));
@@ -117,7 +127,7 @@ impl Tokenizer{
             }
             else if token == "["{
                 let mut list_elements = vec![];
-                let mut element: String = String::new();
+                let mut element: String = "".to_string();
                 while let Some(next_token) = tokens.get(i+1) {
                     if next_token == "]" {
                         i += 1;
@@ -129,7 +139,7 @@ impl Tokenizer{
                             continue;
                         }
                         // println!("Pushing element: {}", element);
-                        list_elements.push(Value::Str(element.clone()));
+                        list_elements.push(self.str_to_datatype(&element));
                         element.clear();
                         i += 1;
                     }
