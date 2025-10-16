@@ -110,17 +110,15 @@ max_val = max(numbers)
 Contributions are welcome! Here are some areas that need work:
 
 ### High Priority
-- Add more built-in functions for string/list manipulation
-- Implement proper error handling and reporting
+- Add more built-in function
 - Add documentation comments throughout the codebase
-- Write unit tests and integration tests
+- Write tests
 
 ### Future Features
 - Add static methods and class methods
 - Implement public/private/protected access modifiers  
-- Add support for modules/namespaces
-- Create syntax highlighting for common editors
-- Add type annotations and type checking
+- Add support for namespaces?
+- **Create syntax highlighting for common editors**
 - Implement a standard library
 
 ### Project Structure
