@@ -357,7 +357,7 @@ impl Evaluator{
                 self.indentation_stack.pop();
             }
 
-            match line.split(" ").collect::<Vec<_>>()[0]{ //TODO: also check here, if split_once() is the better option
+            match line.split(" ").collect::<Vec<_>>()[0]{
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
                     self.evaluators.insert(file.clone(), Evaluator::new());

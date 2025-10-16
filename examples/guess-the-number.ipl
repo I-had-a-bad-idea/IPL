@@ -1,21 +1,13 @@
-
-greet = "Welcome to Guess-the-number"
-
-out(greet)
+out("Welcome to Guess-the-number")
 
 random_number = random(0,10)
 
-prompt = "Please enter a number between 0 and 10:   "
-
-input = in(prompt)
+input = in("Please enter a number between 0 and 10:   ")
 
 
 if input == random_number
-    message = "You guessed the number."
+    out("You guessed the number.")
 else
-    message = "You didnt guess the number."    
-out(message)
-
-number_was = "The number was:"
-out(number_was)
-out(random_number)
+    out("You didnt guess the number.")
+    out("number_was:")
+    out(random_number)
