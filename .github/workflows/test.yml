@@ -15,9 +15,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up Rust
-      uses: actions/setup-rust@v1
-      with:
-        rust-version: stable
+      uses: moonrepo/setup-rust@v1
 
     - name: Cache dependencies
       uses: actions/cache@v3
