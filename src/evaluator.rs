@@ -558,14 +558,16 @@ impl Evaluator {
                     }
                 }
                 "continue" => {
+                    println!("Indentation stack at while: {:?}", self.indentation_stack);
                     while let Some(x) = self.indentation_stack.pop() {
                         if x.0 == "while" {
+                            println!("Detected while for continue");
                             while self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0]
                                 != "while"
                             {
                                 programm_counter -= 1;
-                                continue;
                             }
+                            break;
                         } else if x.0 == "for" {
                             return Value::None; // Stop execution of current iteration
                         } else if x.0 == "normal" {

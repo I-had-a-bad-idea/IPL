@@ -58,6 +58,12 @@ src/
 ├── built_in_functions.rs # Built-in function implementations
 ├── debug.rs             # Error handling
 └── state.rs             # Global program state (line, line_content)
+
+test/
+├── common/
+|      ├── mod.rs         # Contains a funtion to run IPL files
+├── ipl_files/            # IPL files for the tests
+├── *.rs                  # Tests
 ```
 
 ---
