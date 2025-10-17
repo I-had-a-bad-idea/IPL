@@ -25,7 +25,7 @@ impl Tokenizer {
         // println!("tokens after splitting: {:?}", tokens);
         let output = self.shunting_yard(tokens, variables, functions, classes);
         // println!("output after shunting yard: {:?}", output);
-        return output;
+        output
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
@@ -36,18 +36,18 @@ impl Tokenizer {
             .find_iter(input)
             .map(|mat| mat.as_str().to_string())
             .collect();
-        return tokens;
+        tokens
     }
 
-    fn str_to_datatype(&self, token: &String) -> Value {
+    fn str_to_datatype(&self, token: &str) -> Value {
         if token.starts_with('"') && token.ends_with('"')
             || token.starts_with("'") && token.ends_with("'")
         {
-            return Value::Str(token.clone());
+            Value::Str(token.to_string().clone())
         } else if token.trim_matches('.').parse::<f64>().is_ok() {
-            return Value::Number(Value::Str(token.clone()).as_f64());
+            Value::Number(Value::Str(token.to_string().clone()).as_f64())
         } else {
-            return Value::None;
+            Value::None
         }
     }
 
@@ -108,7 +108,7 @@ impl Tokenizer {
             } else if variables.contains_key(token) {
                 output.push(Value::Str(token.clone()));
             } else if functions.contains_key(token)
-                || BUILT_IN_FUNCTIONS.contains_key(&token as &str)
+                || BUILT_IN_FUNCTIONS.contains_key(token as &str)
                 || classes.contains_key(token)
                 || classes
                     .values()
@@ -216,6 +216,6 @@ impl Tokenizer {
             output.push(stack.pop().unwrap());
         }
 
-        return output;
+        output
     }
 }

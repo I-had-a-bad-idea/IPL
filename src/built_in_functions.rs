@@ -40,7 +40,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 EvaluatioError::new("Error: 'out' function requires 1 argument".to_string())
                     .raise();
             }
-            return Value::None;
+            Value::None
         }
         "value" => {
             if let Some(number) = args.get(0) {
@@ -56,7 +56,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 EvaluatioError::new("Error: 'value' function requires 1 argument".to_string())
                     .raise();
             }
-            return Value::None;
+            Value::None
         }
         "in" => {
             use std::io::{self, Write};
@@ -69,7 +69,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             } else {
                 EvaluatioError::new("Error: 'in' function requires 1 argument".to_string()).raise();
             }
-            return Value::None;
+            Value::None
         }
         "random" => {
             use rand::Rng;
@@ -87,7 +87,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 EvaluatioError::new("Error: 'random' function requires 2 arguments".to_string())
                     .raise();
             }
-            return Value::None;
+            Value::None
         }
         "min" => {
             match args.get(0) {
@@ -119,7 +119,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                     .raise();
                 }
             }
-            return Value::None;
+            Value::None
         }
         "max" => {
             match args.get(0) {
@@ -151,7 +151,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                     .raise();
                 }
             }
-            return Value::None;
+            Value::None
         }
         "round" => {
             if let Some(number) = args.get(0) {
@@ -167,7 +167,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 EvaluatioError::new("Error: 'round' function requires 1 argument".to_string())
                     .raise();
             }
-            return Value::None;
+            Value::None
         }
         "pow" => {
             if args.len() == 2 {
@@ -183,7 +183,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 EvaluatioError::new("Error: 'pow' function requires 2 arguments".to_string())
                     .raise();
             }
-            return Value::None;
+            Value::None
         }
         "len" => {
             if let Some(collection) = args.get(0) {
@@ -201,14 +201,14 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
                 EvaluatioError::new("Error: 'len' function requires 1 argument".to_string())
                     .raise();
             }
-            return Value::None;
+            Value::None
         }
         "quit" => {
             std::process::exit(0);
         }
         _ => {
             EvaluatioError::new(format!("Error: Unknown built-in function '{}'", name)).raise();
-            return Value::None;
+            Value::None
         }
     }
 }

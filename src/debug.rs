@@ -10,7 +10,7 @@ impl EvaluatioError {
     // Create a new EvaluatioError, with message and optional line number and line content
     pub fn new(message: String) -> Self {
         Self {
-            message: message,
+            message,
             line_number: state::get_line_number(),
             line_content: state::get_line_content(),
         }

@@ -820,7 +820,7 @@ impl Evaluator {
                         "__DO_NOT_USE_THIS_VARIABLE_INTERNAL_ONLY__"
                             .trim()
                             .to_string(),
-                        &function_name,
+                        function_name,
                         args,
                         Some(instance.clone()),
                         None,
@@ -919,6 +919,6 @@ impl Evaluator {
             }
             i += 1;
         }
-        return stack.pop().unwrap_or(Value::None);
+        stack.pop().unwrap_or(Value::None)
     }
 }
