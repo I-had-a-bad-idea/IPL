@@ -1,0 +1,11 @@
+sum = 0
+i = 0
+
+while i < 5
+    if i == 3
+        i = i + 1
+        continue
+    sum = sum + i
+    i = i + 1
+
+out(sum)  # 0+1+2+4 = 7

@@ -1,0 +1,10 @@
+class Animal
+    def make_sound()
+        out("Some sound")
+
+class Dog : Animal
+    def make_sound()
+        out("Woof!")
+
+d = Dog()
+d.make_sound()  # Woof!

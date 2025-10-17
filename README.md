@@ -107,39 +107,7 @@ max_val = max(numbers)
 
 ## Contributing
 
-Contributions are welcome! Here are some areas that need work:
-
-### High Priority
-- Add more built-in function
-- Add documentation comments throughout the codebase
-- Write tests
-
-### Future Features
-- Add static methods and class methods
-- Implement public/private/protected access modifiers  
-- Add support for namespaces?
-- **Create syntax highlighting for common editors**
-- Implement a standard library
-
-### Project Structure
-
-- `src`
-  - `src/main.rs`: Entry point
-  - `src/evaluator.rs`: Core interpreter logic
-  - `src/tokenizer.rs`: Prepares lines for the evaluator
-  - `src/built_in_functions.rs`: Built-in function implementations
-  - `src/debug.rs`: Error handling
-  - `src/state.rs`: Global programm state
-
-### Getting Started
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-Please make sure to update tests and documentation as appropriate.
+Contributions are welcome! Please refer to [Contributing](CONTRIBUTING.md)
 
 ## License
 
