@@ -194,9 +194,9 @@ impl Evaluator {
 
         self.execute_lines(0, self.lines.len(), "".to_string()); // Execute the file
 
-        println!("variables {:#?}", self.variables);
-        println!("classes {:#?}", self.classes);
-        println!("functions {:#?}", self.functions);
+        // println!("variables {:#?}", self.variables);
+        // println!("classes {:#?}", self.classes);
+        // println!("functions {:#?}", self.functions);
     }
 
     // Evaluate a function by name with given arguments
@@ -382,7 +382,7 @@ impl Evaluator {
     fn execute_lines(&mut self, start: usize, end: usize, self_value: String) -> Value {
         let mut programm_counter: usize = start;
 
-        println!("execute_lines called with start {} and end {}", start, end);
+        // println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end {
             // println!("At line {}", programm_counter);
