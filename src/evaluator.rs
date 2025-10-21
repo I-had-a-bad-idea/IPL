@@ -1,8 +1,8 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs;
-use std::ops::{Add, Sub, Mul, Div};
-use std::cmp::Ordering;
 use std::ops::Index;
+use std::ops::{Add, Div, Mul, Sub};
 use std::path::PathBuf;
 
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
@@ -956,21 +956,21 @@ impl Evaluator {
                 } else if token_str == "/" {
                     stack.push(lhs / rhs);
                 } else if token_str == "==" {
-                    stack.push(lhs == rhs);
+                    stack.push(Value::Bool(lhs == rhs));
                 } else if token_str == "!=" {
-                    stack.push(lhs != rhs);
+                    stack.push(Value::Bool(lhs != rhs));
                 } else if token_str == "<" {
-                    stack.push(lhs < rhs);
+                    stack.push(Value::Bool(lhs < rhs));
                 } else if token_str == "<=" {
-                    stack.push(lhs <= rhs);
+                    stack.push(Value::Bool(lhs <= rhs));
                 } else if token_str == ">" {
-                    stack.push(lhs > rhs);
+                    stack.push(Value::Bool(lhs > rhs));
                 } else if token_str == ">=" {
-                    stack.push(lhs >= rhs);
+                    stack.push(Value::Bool(lhs >= rhs));
                 } else if token_str == "and" {
-                    stack.push(lhs.as_bool() && rhs.as_bool());
+                    stack.push(Value::Bool(lhs.as_bool() && rhs.as_bool()));
                 } else if token_str == "or" {
-                    stack.push(lhs.as_bool() || rhs.as_bool());
+                    stack.push(Value::Bool(lhs.as_bool() || rhs.as_bool()));
                 }
             }
             i += 1;
