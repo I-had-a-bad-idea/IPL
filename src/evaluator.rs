@@ -45,6 +45,7 @@ impl Index<usize> for Value {
     }
 }
 
+// TODO: make all operations for Value
 impl Add for Value {
     type Output = Value;
 

@@ -6,5 +6,6 @@ pub fn run_ipl_file(file: &str) -> String {
         .output()
         .expect("failed to run IPL file");
 
+    println!("Output: {:#?}", output);
     String::from_utf8_lossy(&output.stdout).to_string()
 }
