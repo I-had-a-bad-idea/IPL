@@ -43,9 +43,9 @@ fn test_if_elif_else() {
     assert!(output.contains("10"));
 }
 
-// FIXME: this one already runs into a problem (importing of classes, maybe constructor)
-// #[test]
-// fn test_import() {
-//     let output = run_ipl_file("tests/ipl_files/import.ipl");
-//     assert!(output.contains("Woof"));
-// }
+#[test]
+fn test_import() {
+    let output = run_ipl_file("tests/ipl_files/import.ipl");
+    assert!(output.contains("Woof"));
+    assert!(output.contains("Some sound"));
+}

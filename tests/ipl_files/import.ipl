@@ -1,3 +1,4 @@
 import classes.ipl
 
-d.make_sound() # Woof
+a = Animal()
+a.make_sound() # Some sound

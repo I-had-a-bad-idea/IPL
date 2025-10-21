@@ -329,7 +329,9 @@ impl Evaluator {
             class: "".to_string(),
             variables: HashMap::new(),
         };
-        if let Some(instance) = instance_opt{
+        // DO NOT CHANGE THIS LINE TO SOMETHING LIKE "let Some(instance) = instance_opt" IT WILL BREAK
+        if instance_opt.is_some(){
+            instance = instance_opt.unwrap();
             self.variables
                 .insert(instance_str.clone(), Value::Instance(instance.clone()));
         } else if !self.variables.contains_key(&instance_str) {
@@ -346,10 +348,13 @@ impl Evaluator {
             functions: HashMap::new(),
             variables: HashMap::new(),
         };
-        if let Some(class) = class_opt {
+        // DO NOT CHANGE THIS LINE TO SOMETHING LIKE "let Some(class) = class_opt" IT WILL BREAK
+        if class_opt.is_some(){
+            class = class_opt.unwrap();
             self.classes.insert(instance.class.clone(), class.clone());
         } else if !self.classes.contains_key(&instance.class) {
-                EvaluatioError::new("Class not found".to_string()).raise();
+                println!("instance.class : {}", instance.class);
+                EvaluatioError::new("Class not in classes".to_string()).raise();
         } else {
             class = self
                 .classes
