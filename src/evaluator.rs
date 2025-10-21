@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
-use std::ops::Add;
+use std::ops::{Add, Sub, Mul, Div};
+use std::cmp::Ordering;
 use std::ops::Index;
 use std::path::PathBuf;
 
@@ -45,17 +46,71 @@ impl Index<usize> for Value {
     }
 }
 
-// TODO: make all operations for Value
 impl Add for Value {
     type Output = Value;
 
-    fn add(self, other: Value) -> Value {
-        match (self, other) {
+    fn add(self, rhs: Value) -> Value {
+        match (self, rhs) {
             (Value::Number(a), Value::Number(b)) => Value::Number(a + b),
             (Value::Str(a), Value::Str(b)) => Value::Str(a + &b),
-            (Value::Str(a), Value::Number(b)) => Value::Str(a + &b.to_string()),
-            (Value::Number(a), Value::Str(b)) => Value::Str(a.to_string() + &b),
             _ => Value::None,
+        }
+    }
+}
+
+impl Sub for Value {
+    type Output = Value;
+
+    fn sub(self, rhs: Value) -> Value {
+        match (self, rhs) {
+            (Value::Number(a), Value::Number(b)) => Value::Number(a - b),
+            _ => Value::None,
+        }
+    }
+}
+
+impl Mul for Value {
+    type Output = Value;
+
+    fn mul(self, rhs: Value) -> Value {
+        match (self, rhs) {
+            (Value::Number(a), Value::Number(b)) => Value::Number(a * b),
+            _ => Value::None,
+        }
+    }
+}
+
+impl Div for Value {
+    type Output = Value;
+
+    fn div(self, rhs: Value) -> Value {
+        match (self, rhs) {
+            (Value::Number(_), Value::Number(b)) if b == 0.0 => Value::None,
+            (Value::Number(a), Value::Number(b)) => Value::Number(a / b),
+            _ => Value::None,
+        }
+    }
+}
+
+impl PartialEq for Value {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Value::Number(a), Value::Number(b)) => a == b,
+            (Value::Str(a), Value::Str(b)) => a == b,
+            (Value::Bool(a), Value::Bool(b)) => a == b,
+            (Value::None, Value::None) => true,
+            _ => false,
+        }
+    }
+}
+
+impl PartialOrd for Value {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self, other) {
+            (Value::Number(a), Value::Number(b)) => a.partial_cmp(b),
+            (Value::Str(a), Value::Str(b)) => a.partial_cmp(b),
+            (Value::Bool(a), Value::Bool(b)) => a.partial_cmp(b),
+            _ => None,
         }
     }
 }
@@ -893,29 +948,29 @@ impl Evaluator {
                 let lhs = stack.pop().expect("Not enough values on stack");
 
                 if token_str == "+" {
-                    stack.push(Value::Number(lhs.as_f64() + rhs.as_f64()));
+                    stack.push(lhs + rhs);
                 } else if token_str == "-" {
-                    stack.push(Value::Number(lhs.as_f64() - rhs.as_f64()));
+                    stack.push(lhs - rhs);
                 } else if token_str == "*" {
-                    stack.push(Value::Number(lhs.as_f64() * rhs.as_f64()));
+                    stack.push(lhs * rhs);
                 } else if token_str == "/" {
-                    stack.push(Value::Number(lhs.as_f64() / rhs.as_f64()));
+                    stack.push(lhs / rhs);
                 } else if token_str == "==" {
-                    stack.push(Value::Bool(lhs.as_f64() == rhs.as_f64()));
+                    stack.push(lhs == rhs);
                 } else if token_str == "!=" {
-                    stack.push(Value::Bool(lhs.as_f64() != rhs.as_f64()));
+                    stack.push(lhs != rhs);
                 } else if token_str == "<" {
-                    stack.push(Value::Bool(lhs.as_f64() < rhs.as_f64()));
+                    stack.push(lhs < rhs);
                 } else if token_str == "<=" {
-                    stack.push(Value::Bool(lhs.as_f64() <= rhs.as_f64()));
+                    stack.push(lhs <= rhs);
                 } else if token_str == ">" {
-                    stack.push(Value::Bool(lhs.as_f64() > rhs.as_f64()));
+                    stack.push(lhs > rhs);
                 } else if token_str == ">=" {
-                    stack.push(Value::Bool(lhs.as_f64() >= rhs.as_f64()));
+                    stack.push(lhs >= rhs);
                 } else if token_str == "and" {
-                    stack.push(Value::Bool(lhs.as_bool() && rhs.as_bool()));
+                    stack.push(lhs.as_bool() && rhs.as_bool());
                 } else if token_str == "or" {
-                    stack.push(Value::Bool(lhs.as_bool() || rhs.as_bool()));
+                    stack.push(lhs.as_bool() || rhs.as_bool());
                 }
             }
             i += 1;
