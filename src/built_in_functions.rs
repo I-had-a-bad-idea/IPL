@@ -34,7 +34,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
     }
     match name {
         "out" => {
-            if let Some(output) = args.get(0) {
+            if let Some(output) = args.first() {
                 println!("{}", output.to_string_value());
             } else {
                 EvaluatioError::new("Error: 'out' function requires 1 argument".to_string())
@@ -43,7 +43,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             Value::None
         }
         "value" => {
-            if let Some(number) = args.get(0) {
+            if let Some(number) = args.first() {
                 if let Value::Number(num) = number {
                     return Value::Number(*num);
                 } else {
@@ -60,7 +60,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         }
         "in" => {
             use std::io::{self, Write};
-            if let Some(message) = args.get(0) {
+            if let Some(message) = args.first() {
                 println!("{}", message.to_string_value());
                 io::stdout().flush().unwrap();
                 let mut input: String = String::new();
@@ -90,7 +90,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             Value::None
         }
         "min" => {
-            match args.get(0) {
+            match args.first() {
                 Some(Value::List(list)) if !list.is_empty() => {
                     let min_value = list
                         .iter()
@@ -122,7 +122,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             Value::None
         }
         "max" => {
-            match args.get(0) {
+            match args.first() {
                 Some(Value::List(list)) if !list.is_empty() => {
                     let max_value = list
                         .iter()
@@ -154,7 +154,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             Value::None
         }
         "round" => {
-            if let Some(number) = args.get(0) {
+            if let Some(number) = args.first() {
                 if let Value::Number(num) = number {
                     return Value::Number(num.round());
                 } else {
@@ -186,7 +186,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
             Value::None
         }
         "len" => {
-            if let Some(collection) = args.get(0) {
+            if let Some(collection) = args.first() {
                 match collection {
                     Value::Str(s) => return Value::Number(s.chars().count() as f64),
                     Value::List(l) => return Value::Number(l.len() as f64),

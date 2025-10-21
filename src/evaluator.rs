@@ -85,7 +85,7 @@ impl Div for Value {
 
     fn div(self, rhs: Value) -> Value {
         match (self, rhs) {
-            (Value::Number(_), Value::Number(b)) if b == 0.0 => Value::None,
+            (Value::Number(_), Value::Number(0.0)) => Value::None,
             (Value::Number(a), Value::Number(b)) => Value::Number(a / b),
             _ => Value::None,
         }
@@ -119,7 +119,7 @@ impl PartialOrd for Value {
 impl Value {
     pub fn as_f64(&self) -> f64 {
         match self {
-            Value::Number(n) => n.clone(),
+            Value::Number(n) => *n,
             Value::Bool(b) => {
                 if *b {
                     1.0
@@ -183,10 +183,7 @@ impl Value {
         }
     }
     pub fn is_none_value(&self) -> bool {
-        match self {
-            Value::None => true,
-            _ => false,
-        }
+        matches!(self, Value::None)
     }
 }
 
@@ -315,7 +312,7 @@ impl Evaluator {
         }
         self.indentation_stack.pop(); // Pop function context from indentation stack
 
-        return result; // Return function result
+        result // Return function result
     }
 
     // Evaluate a class method by instance string, method name, and arguments
@@ -332,39 +329,33 @@ impl Evaluator {
             class: "".to_string(),
             variables: HashMap::new(),
         };
-        if instance_opt.is_some() {
-            instance = instance_opt.unwrap();
+        if let Some(instance) = instance_opt{
             self.variables
                 .insert(instance_str.clone(), Value::Instance(instance.clone()));
-        } else {
-            if !self.variables.contains_key(&instance_str) {
+        } else if !self.variables.contains_key(&instance_str) {
                 EvaluatioError::new("Instance not found".to_string()).raise();
-            } else {
-                instance = self
-                    .variables
-                    .get(&instance_str)
-                    .expect("Instance not found")
-                    .get_instance()
-                    .expect("Not an instance");
-            }
+        } else {
+            instance = self
+                .variables
+                .get(&instance_str)
+                .expect("Instance not found")
+                .get_instance()
+                .expect("Not an instance");
         }
         let mut class = Class {
             functions: HashMap::new(),
             variables: HashMap::new(),
         };
-        if class_opt.is_some() {
-            class = class_opt.unwrap();
+        if let Some(class) = class_opt {
             self.classes.insert(instance.class.clone(), class.clone());
-        } else {
-            if !self.classes.contains_key(&instance.class) {
+        } else if !self.classes.contains_key(&instance.class) {
                 EvaluatioError::new("Class not found".to_string()).raise();
-            } else {
-                class = self
-                    .classes
-                    .get(&instance.class)
-                    .expect("Class not found")
-                    .clone();
-            }
+        } else {
+            class = self
+                .classes
+                .get(&instance.class)
+                .expect("Class not found")
+                .clone();
         }
         if !class.functions.contains_key(function_name) {
             return Value::None;
@@ -432,7 +423,7 @@ impl Evaluator {
             }
         }
 
-        return result;
+        result
     }
 
     fn execute_lines(&mut self, start: usize, end: usize, self_value: String) -> Value {
@@ -473,9 +464,7 @@ impl Evaluator {
                     self.indentation_stack.pop();
                     continue;
                 }
-            } else if self.indentation_stack[self.indentation_stack.len() - 1].0 == "if" {
-                self.indentation_stack.pop();
-            } else if self.indentation_stack[self.indentation_stack.len() - 1].0 == "else" {
+            } else if self.indentation_stack[self.indentation_stack.len() - 1].0 == "if" || self.indentation_stack[self.indentation_stack.len() - 1].0 == "else"{
                 self.indentation_stack.pop();
             }
 
@@ -499,7 +488,7 @@ impl Evaluator {
                     if let Some((_first, rest)) = line.split_once(' ') {
                         result = self.ev_expr(rest).as_bool();
                     }
-                    if result == true {
+                    if result {
                         programm_counter += 1;
                         self.indentation_stack
                             .push(("while".to_string(), indentation));
@@ -539,7 +528,7 @@ impl Evaluator {
                     if let Some((_first, rest)) = line.split_once(' ') {
                         result = self.ev_expr(rest).as_bool();
                     }
-                    if result == true {
+                    if result {
                         programm_counter += 1;
                         self.indentation_stack.push(("if".to_string(), indentation));
                     } else {
@@ -662,7 +651,7 @@ impl Evaluator {
                         },
                     );
 
-                    if base_class != "" {
+                    if !base_class.is_empty() {
                         self.classes.get_mut(class_name).unwrap().variables =
                             self.classes[base_class].variables.clone();
                         self.classes.get_mut(class_name).unwrap().functions =
@@ -687,7 +676,7 @@ impl Evaluator {
                         Some((_, declaration)) => declaration.trim(),
                         None => "",
                     };
-                    if function_decleration == "" {
+                    if function_decleration.is_empty(){
                         EvaluatioError::new("def requires a function decleration".to_string())
                             .raise();
                     }
@@ -702,7 +691,7 @@ impl Evaluator {
                                 .filter(|s| !s.is_empty())
                                 .collect::<Vec<_>>()
                         })
-                        .unwrap_or_else(|| Vec::new());
+                        .unwrap_or(Vec::new());
                     let function_arguments = args
                         .iter()
                         .map(|n| Value::Str(n.to_string()))
@@ -813,7 +802,7 @@ impl Evaluator {
                 }
             }
         }
-        return Value::None;
+        Value::None
     }
 
     fn ev_expr(&mut self, expr: &str) -> Value {
