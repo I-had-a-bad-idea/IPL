@@ -1,8 +1,10 @@
 use std::sync::RwLock;
 
+//TODO: state isnt updated in things like elif, else, etc.
+
 /// Holds the current line number and content
 pub struct LineData {
-    pub line_number: usize,
+    pub line_number: usize, 
     pub line_content: String,
 }
 
