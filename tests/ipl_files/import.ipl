@@ -1,0 +1,3 @@
+import classes.ipl
+
+d.make_sound() # Woof

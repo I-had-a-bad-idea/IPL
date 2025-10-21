@@ -1,0 +1,20 @@
+a = 5
+b = 10
+c = 20
+
+if a == 5
+    out(a)
+else
+    out("if broke")
+
+if b == 9
+    out("if broke")
+elif c = 20
+    out(c)
+
+if b == 9
+    out("if broke")
+elif c = 19
+    out("elif broke")
+else
+    out(b)

@@ -92,7 +92,7 @@ test/
 
 * Refactor code for clarity and maintainability
 * Add more built-in functions
-* Write unit/integration tests
+* Write more unit/integration tests
 * Add documentation to existing modules
 
 ### Future Features

@@ -34,3 +34,18 @@ fn test_variable_assignment() {
     let output = run_ipl_file("tests/ipl_files/variables.ipl");
     assert!(output.contains("15"));
 }
+
+#[test]
+fn test_if_elif_else() {
+    let output = run_ipl_file("tests/ipl_files/if_elif_else.ipl");
+    assert!(output.contains("5"));
+    assert!(output.contains("20"));
+    assert!(output.contains("10"));
+}
+
+// FIXME: this one already runs into a problem (importing of classes, maybe constructor)
+// #[test]
+// fn test_import() {
+//     let output = run_ipl_file("tests/ipl_files/import.ipl");
+//     assert!(output.contains("Woof"));
+// }
