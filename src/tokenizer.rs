@@ -23,7 +23,7 @@ impl Tokenizer {
     ) -> Vec<Value> {
         let tokens = self.split(input);
         // println!("tokens after splitting: {:?}", tokens);
-        
+
         self.shunting_yard(tokens, variables, functions, classes)
     }
     // Split the input string into tokens using regex
