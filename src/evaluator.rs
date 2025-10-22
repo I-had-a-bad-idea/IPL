@@ -829,12 +829,10 @@ impl Evaluator {
             let token_str = token.to_string_value();
             // println!("token: {} , stack: {:?}", token_str, stack);
             if token_str.trim_matches('.').parse::<f64>().is_ok() {
-                println!("We do need it");
                 stack.push(Value::Number(token_str.parse::<f64>().unwrap()));
             } else if (token_str.starts_with('"') && token_str.ends_with('"'))
                 || (token_str.starts_with("'") && token_str.ends_with("'"))
             {
-                println!("We do need it");
                 stack.push(Value::Str(token_str[1..token_str.len() - 1].to_string()));
             } else if matches!(token, Value::List(_)) {
                 stack.push(token.clone());
