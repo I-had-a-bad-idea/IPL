@@ -543,6 +543,8 @@ impl Evaluator {
                             let current_indent = get_indentation(&current_line);
                             let first_word = current_line.split_whitespace().next().unwrap_or("");
 
+                            state::set_programm_state(programm_counter, &current_line);
+
                             if current_indent > indentation {
                                 programm_counter += 1;
                                 continue;
@@ -608,10 +610,8 @@ impl Evaluator {
                     }
                 }
                 "continue" => {
-                    println!("Indentation stack at while: {:?}", self.indentation_stack);
                     while let Some(x) = self.indentation_stack.pop() {
                         if x.0 == "while" {
-                            println!("Detected while for continue");
                             while self.lines[programm_counter].split(" ").collect::<Vec<_>>()[0]
                                 != "while"
                             {
