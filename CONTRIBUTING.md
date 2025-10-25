@@ -75,13 +75,13 @@ test/
 * Follow Rust coding conventions and formatting (`cargo fmt`)
 * Write clear, descriptive commit messages
 * Add comments and documentation when appropriate
-* Write unit tests for new features or bug fixes
+* Write tests for new features or bug fixes
 * Keep pull requests focused and minimal
 
 ### Don't:
 
 * Include unrelated changes in a PR
-* Leave commented-out or dead code
+* Leave commented-out or dead code, except debug prints, that could be used later
 * Push directly to `main` (open a PR instead)
 
 ---
@@ -92,8 +92,8 @@ test/
 
 * Refactor code for clarity and maintainability
 * Add more built-in functions
-* Write more unit/integration tests
-* Add documentation to existing modules
+* Write more tests
+* Add documentation
 
 ### Future Features
 
@@ -103,7 +103,7 @@ test/
 * Standard library development
 * Syntax highlighting support for:
 
-  * VSCode
+  * VSCode (already in development)
   * Sublime Text
   * Vim
 
@@ -126,7 +126,6 @@ These aren't essential right now, but contributions here are still welcome:
 * Lint with `cargo clippy`
 * Use meaningful function and variable names
 * Prefer readability over cleverness
-* Keep functions small and focused
 
 ---
 
