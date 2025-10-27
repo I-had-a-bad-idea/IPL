@@ -89,7 +89,7 @@ test/
 ## Areas to Contribute
 
 ### High Priority
-
+* Make a file in the repo explaining the syntax
 * Refactor code for clarity and maintainability
 * Add more built-in functions
 * Write more tests
