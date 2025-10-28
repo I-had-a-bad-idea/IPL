@@ -49,17 +49,9 @@ Run an IPL file:
 cargo run path/to/file.ipl
 ```
 
-## Built-in Functions
+## Syntax
 
-- `out(value)`: Print a value to stdout
-- `in(prompt)`: Get user input with an prompt
-- `random(start, end)`: Generate random integer between start and end (inclusive)
-- `round(number)`: Round a number to nearest integer
-- `pow(base, exp)`: Calculate base raised to exp power
-- `min(list)`: Get minimum value from a list of numbers
-- `max(list)`: Get maximum value from a list of numbers
-- `len(collection)`: Get length of string or list
-- `value(number)`: Convert to number type
+An explanation for syntax of IPL can be found [here](SYNTAX.md).
 
 ## Example Programs
 

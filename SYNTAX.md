@@ -157,9 +157,15 @@ The imported filename is looked up relative to the current file.
 
 Built-ins include:
 
-- `out(value)` — print to stdout.
-- `in(prompt)` — read user input (examples assign its result to `input`).
-- `random(start, end)` — returns a random integer between `start` and `end`.
+- `out(value)`: Print a value to stdout
+- `in(prompt)`: Get user input with an prompt
+- `random(start, end)`: Generate random integer between start and end (inclusive)
+- `round(number)`: Round a number to nearest integer
+- `pow(base, exp)`: Calculate base raised to exp power
+- `min(list)`: Get minimum value from a list of numbers
+- `max(list)`: Get maximum value from a list of numbers
+- `len(collection)`: Get length of string or list
+- `value(number)`: Convert to number type
   
 These are called like normal functions (e.g. `out("Hello World")`)
 
