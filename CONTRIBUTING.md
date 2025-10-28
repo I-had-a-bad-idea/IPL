@@ -89,7 +89,7 @@ test/
 ## Areas to Contribute
 
 ### High Priority
-* Make a file in the repo explaining the syntax
+* Make indexing
 * Refactor code for clarity and maintainability
 * Add more built-in functions
 * Write more tests
@@ -110,7 +110,7 @@ test/
 ### Low Priority
 
 These aren't essential right now, but contributions here are still welcome:
-
+* Add more built-ins to the SYNTAX.md
 * Improve performance of the interpreter (e.g. optimize evaluation logic)
 * Add more examples to the examples/ directory
 * Write benchmark tests for interpreter performance
