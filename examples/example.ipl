@@ -1,4 +1,4 @@
-import test_import.ipl
+import example_import.ipl
 
 x = 5
 y = 10

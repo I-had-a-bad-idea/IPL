@@ -1,0 +1,6 @@
+class Test
+    self.number = 20
+
+
+out("Test.number: ")
+out(Test.number)

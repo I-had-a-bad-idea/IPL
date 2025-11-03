@@ -10,4 +10,10 @@ class Test
         out("Hello World")
 
 
+a = 3
+b = 5
+
 z = Test.add(a, b)
+
+out("z")
+out(z)
