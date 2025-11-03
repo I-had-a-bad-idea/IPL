@@ -326,32 +326,33 @@ impl Evaluator {
         args: Vec<Value>,
         instance_opt: Option<Instance>,
         class_opt: Option<Class>,
+        static_func: bool,
     ) -> Value {
         // println!("ev_class_func called with instance: {}, function: {}, args: {:?}, instance_opt:{:?}", instance_str, function_name, args, instance_opt);
         let mut instance: Instance = Instance {
             class: "".to_string(),
             variables: HashMap::new(),
         };
-        // DO NOT CHANGE THIS LINE TO SOMETHING LIKE "let Some(instance) = instance_opt" IT WILL BREAK
-        if instance_opt.is_some() {
-            instance = instance_opt.unwrap();
-            self.variables
-                .insert(instance_str.clone(), Value::Instance(instance.clone()));
-        } else if !self.variables.contains_key(&instance_str) {
-            EvaluatioError::new("Instance not found".to_string()).raise();
-        } else {
-            instance = self
-                .variables
-                .get(&instance_str)
-                .expect("Instance not found")
-                .get_instance()
-                .expect("Not an instance");
+        if !static_func{
+            if instance_opt.is_some() {
+                instance = instance_opt.unwrap();
+                self.variables
+                    .insert(instance_str.clone(), Value::Instance(instance.clone()));
+            } else if !self.variables.contains_key(&instance_str) {
+                EvaluatioError::new("Instance not found".to_string()).raise();
+            } else {
+                instance = self
+                    .variables
+                    .get(&instance_str)
+                    .expect("Instance not found")
+                    .get_instance()
+                    .expect("Not an instance");
+            }
         }
         let mut class = Class {
-            functions: HashMap::new(),
-            variables: HashMap::new(),
-        };
-        // DO NOT CHANGE THIS LINE TO SOMETHING LIKE "let Some(class) = class_opt" IT WILL BREAK
+                functions: HashMap::new(),
+                variables: HashMap::new(),
+            };
         if class_opt.is_some() {
             class = class_opt.unwrap();
             self.classes.insert(instance.class.clone(), class.clone());
@@ -378,6 +379,7 @@ impl Evaluator {
                     args,
                     Some(instance),
                     Some(class),
+                    false,
                 );
             } else {
                 EvaluatioError::new("Evaluator for file not found".to_string()).raise();
@@ -841,6 +843,8 @@ impl Evaluator {
                 stack.push(token.clone());
             } else if self.variables.contains_key(&token_str) {
                 stack.push(self.variables[&token_str].clone());
+            } else if self.classes.contains_key(&token_str) {
+                stack.push(Value::Str(token_str));
             } else if self.functions.contains_key(&token_str)
                 || BUILT_IN_FUNCTIONS.contains_key(&token_str as &str)
                 || self.classes.contains_key(&token_str)
@@ -879,6 +883,7 @@ impl Evaluator {
                         args,
                         Some(instance.clone()),
                         None,
+                        false,
                     );
 
                     Value::Instance(
@@ -926,6 +931,7 @@ impl Evaluator {
                                     args,
                                     None,
                                     None,
+                                    false,
                                 );
                                 stack.push(result);
                                 i += 1; // Skip the next token which is the argument list
@@ -938,6 +944,44 @@ impl Evaluator {
                             .raise();
                         }
                     }
+                    Value::Str(class_str) =>{
+                        if !self.classes.contains_key(&class_str){
+                            EvaluatioError::new("Left side of '.' is not a class".to_string()).raise();
+                        }
+                        if self.classes[&class_str].variables.contains_key(&attribute.to_string_value()){
+                            stack.push(self.classes[&class_str].variables[&attribute.to_string_value()].clone());
+                        }
+                        else if self.classes[&class_str].functions.contains_key(&attribute.to_string_value()){
+                            let function_name = &attribute.to_string_value();
+                                let mut args: Vec<Value> = vec![];
+                                let function_args = tokens.get(i + 2);
+                                for arg in function_args.unwrap_or(&Value::None).iter() {
+                                    if let Value::Str(s) = arg {
+                                        let evaluated_arg = self.ev_expr(s);
+                                        args.push(evaluated_arg);
+                                    } else {
+                                        args.push(arg.clone());
+                                    }
+                                }
+                                if args.len() == 1
+                                    && args[0].to_string_value() == Value::None.to_string_value()
+                                {
+                                    args = vec![];
+                                }
+                                // println!("Class function {} called with arguments: {:?}", function_name, args);
+                                let result = self.ev_class_func(
+                                    tokens[i - 1].to_string_value(),
+                                    function_name,
+                                    args,
+                                    None,
+                                    Some(self.classes[&class_str].clone()),
+                                    true
+                                );
+                                stack.push(result);
+                                i += 1; // Skip the next token which is the argument list
+                        }
+                    
+                    }       
                     _ => EvaluatioError::new("Left side of '.' is not an instance".to_string())
                         .raise(),
                 }
