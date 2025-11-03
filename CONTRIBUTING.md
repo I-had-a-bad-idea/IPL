@@ -66,6 +66,10 @@ test/
 ├── *.rs                  # Tests
 ```
 
+examples/                 # Contains examples
+
+dev_tests/                # Contains ipl-files, you can use when developing
+
 ---
 
 ## Contribution Guidelines
@@ -97,12 +101,10 @@ test/
 
 ### Future Features
 
-* Support static/class methods
 * Access modifiers (public/private/protected)
 * Namespaces or module system
 * Standard library development
 * Syntax highlighting support for:
-
   * VSCode (already in development)
   * Sublime Text
   * Vim

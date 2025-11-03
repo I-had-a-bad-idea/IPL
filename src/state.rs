@@ -2,7 +2,7 @@ use std::sync::RwLock;
 
 /// Holds the current line number and content
 pub struct LineData {
-    pub line_number: usize, 
+    pub line_number: usize,
     pub line_content: String,
 }
 

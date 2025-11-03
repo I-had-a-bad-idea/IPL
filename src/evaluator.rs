@@ -333,7 +333,7 @@ impl Evaluator {
             class: "".to_string(),
             variables: HashMap::new(),
         };
-        if !static_func{
+        if !static_func {
             if instance_opt.is_some() {
                 instance = instance_opt.unwrap();
                 self.variables
@@ -350,9 +350,9 @@ impl Evaluator {
             }
         }
         let mut class = Class {
-                functions: HashMap::new(),
-                variables: HashMap::new(),
-            };
+            functions: HashMap::new(),
+            variables: HashMap::new(),
+        };
         if class_opt.is_some() {
             class = class_opt.unwrap();
             self.classes.insert(instance.class.clone(), class.clone());
@@ -859,7 +859,7 @@ impl Evaluator {
                         args.push(arg.clone());
                     }
                 }
-                if !matches!(function_args.unwrap(), Value::List(_)){
+                if !matches!(function_args.unwrap(), Value::List(_)) {
                     stack.push(Value::Str(token_str));
                     i += 1;
                     continue;
@@ -946,44 +946,52 @@ impl Evaluator {
                             .raise();
                         }
                     }
-                    Value::Str(class_str) =>{
-                        if !self.classes.contains_key(&class_str){
-                            EvaluatioError::new("Left side of '.' is not a class".to_string()).raise();
+                    Value::Str(class_str) => {
+                        if !self.classes.contains_key(&class_str) {
+                            EvaluatioError::new("Left side of '.' is not a class".to_string())
+                                .raise();
                         }
-                        if self.classes[&class_str].variables.contains_key(&attribute.to_string_value()){
-                            stack.push(self.classes[&class_str].variables[&attribute.to_string_value()].clone());
-                        }
-                        else if self.classes[&class_str].functions.contains_key(&attribute.to_string_value()){
+                        if self.classes[&class_str]
+                            .variables
+                            .contains_key(&attribute.to_string_value())
+                        {
+                            stack.push(
+                                self.classes[&class_str].variables[&attribute.to_string_value()]
+                                    .clone(),
+                            );
+                        } else if self.classes[&class_str]
+                            .functions
+                            .contains_key(&attribute.to_string_value())
+                        {
                             let function_name = &attribute.to_string_value();
-                                let mut args: Vec<Value> = vec![];
-                                let function_args = tokens.get(i + 2);
-                                for arg in function_args.unwrap_or(&Value::None).iter() {
-                                    if let Value::Str(s) = arg {
-                                        let evaluated_arg = self.ev_expr(s);
-                                        args.push(evaluated_arg);
-                                    } else {
-                                        args.push(arg.clone());
-                                    }
+                            let mut args: Vec<Value> = vec![];
+                            let function_args = tokens.get(i + 2);
+                            for arg in function_args.unwrap_or(&Value::None).iter() {
+                                if let Value::Str(s) = arg {
+                                    let evaluated_arg = self.ev_expr(s);
+                                    args.push(evaluated_arg);
+                                } else {
+                                    args.push(arg.clone());
                                 }
-                                if args.len() == 1
-                                    && args[0].to_string_value() == Value::None.to_string_value()
-                                {
-                                    args = vec![];
-                                }
-                                // println!("Class function {} called with arguments: {:?}", function_name, args);
-                                let result = self.ev_class_func(
-                                    tokens[i - 1].to_string_value(),
-                                    function_name,
-                                    args,
-                                    None,
-                                    Some(self.classes[&class_str].clone()),
-                                    true
-                                );
-                                stack.push(result);
-                                i += 1; // Skip the next token which is the argument list
+                            }
+                            if args.len() == 1
+                                && args[0].to_string_value() == Value::None.to_string_value()
+                            {
+                                args = vec![];
+                            }
+                            // println!("Class function {} called with arguments: {:?}", function_name, args);
+                            let result = self.ev_class_func(
+                                tokens[i - 1].to_string_value(),
+                                function_name,
+                                args,
+                                None,
+                                Some(self.classes[&class_str].clone()),
+                                true,
+                            );
+                            stack.push(result);
+                            i += 1; // Skip the next token which is the argument list
                         }
-                    
-                    }       
+                    }
                     _ => EvaluatioError::new("Left side of '.' is not an instance".to_string())
                         .raise(),
                 }
