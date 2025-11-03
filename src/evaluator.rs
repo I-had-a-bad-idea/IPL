@@ -357,7 +357,6 @@ impl Evaluator {
             class = class_opt.unwrap();
             self.classes.insert(instance.class.clone(), class.clone());
         } else if !self.classes.contains_key(&instance.class) {
-            println!("instance.class : {}", instance.class);
             EvaluatioError::new("Class not in classes".to_string()).raise();
         } else {
             class = self
@@ -843,8 +842,6 @@ impl Evaluator {
                 stack.push(token.clone());
             } else if self.variables.contains_key(&token_str) {
                 stack.push(self.variables[&token_str].clone());
-            } else if self.classes.contains_key(&token_str) {
-                stack.push(Value::Str(token_str));
             } else if self.functions.contains_key(&token_str)
                 || BUILT_IN_FUNCTIONS.contains_key(&token_str as &str)
                 || self.classes.contains_key(&token_str)
@@ -861,6 +858,11 @@ impl Evaluator {
                     } else {
                         args.push(arg.clone());
                     }
+                }
+                if !matches!(function_args.unwrap(), Value::List(_)){
+                    stack.push(Value::Str(token_str));
+                    i += 1;
+                    continue;
                 }
                 if args.len() == 1 && args[0].to_string_value() == Value::None.to_string_value() {
                     args = vec![];
