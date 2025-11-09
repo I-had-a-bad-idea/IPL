@@ -3,7 +3,7 @@
 
 This document is a concise, example-driven reference for the IPL syntax used by the interpreter in this repository. It summarizes the lexical rules, statement and expression forms, function and class syntax, modules/imports, built-ins, and commonly-seen idioms from the `examples/` directory.
 
-If anything below looks different from what you expect, tell me which feature to verify and I will run the interpreter against small test snippets.
+If anything below looks different from what you expect, tell me.
 
 ## Quick overview
 
@@ -125,7 +125,7 @@ Class definition syntax:
 class Class : Base
     self.field = 0
 
-    def method(self, arg)
+    def method(arg)
         ...
 
     def Class(arg1, arg2)
@@ -142,7 +142,26 @@ obj.method()
 - Constructors are implemented as a method named the same as the class (e.g. `def Person(n, a)` inside `class Person`), and are invoked via `p = Person("Alex", 30)`.
 - Create an instance with `t = Test()` and call a method with `t.greet()`.
 
-## 9. Modules / Import
+9. Static functions
+
+Static functions are defined just like regular functions inside a class, but they do not access instance fields.
+They are called using the class name, e.g. Class.function().
+No special keyword (like static) is needed — any method called on a class is treated as static (this may produce errors, if you use self in the function):
+
+Example:
+
+```
+class Class
+    self.field = 0
+
+    def method(arg)
+        ...
+
+
+Class.method()
+```
+
+## 10. Modules / Import
 
 Import uses a simple filename form in the examples:
 
@@ -153,7 +172,7 @@ import class_test_base_class.ipl
 
 The imported filename is looked up relative to the current file.
 
-## 10. Built-ins and common functions
+## 11. Built-ins and common functions
 
 Built-ins include:
 
@@ -170,7 +189,7 @@ Built-ins include:
 These are called like normal functions (e.g. `out("Hello World")`)
 
 
-## 11. Example snippets
+## 12. Example snippets
 
 Hello world:
 
