@@ -53,6 +53,8 @@ cargo run path/to/file.ipl
 
 An explanation for syntax of IPL can be found [here](SYNTAX.md).
 
+Syntax highlighting can be found [here](https://github.com/I-had-a-bad-idea/IPL-Highlighting)
+
 ## Example Programs
 
 More example programms can be found under `examples/`.
