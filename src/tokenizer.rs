@@ -1,11 +1,10 @@
 use regex::Regex;
 use std::collections::HashMap;
+use crate::value::Value;
+use crate::evaluator::Class;
+use crate::built_in_functions::BUILT_IN_FUNCTIONS;
+use crate::debug::EvaluatioError;
 
-use crate::{
-    built_in_functions::BUILT_IN_FUNCTIONS,
-    debug::EvaluatioError,
-    evaluator::{Class, Value},
-};
 
 pub struct Tokenizer {}
 
