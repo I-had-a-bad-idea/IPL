@@ -1,6 +1,16 @@
 # IPL (Interpreted Programming Language)
 
-A simple interpreted programming language implemented in Rust that supports object-oriented programming concepts, control flow, and built-in functions.
+A simple interpreted programming language implemented in Rust.
+
+## Table of Contents
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Syntax](#syntax)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+---
 
 ## Features
 
@@ -33,6 +43,8 @@ A simple interpreted programming language implemented in Rust that supports obje
   - Logical: `and`, `or`
   - Member access: `.`
 
+---
+
 ## Installation
 
 1. Ensure you have Rust installed
@@ -41,6 +53,11 @@ A simple interpreted programming language implemented in Rust that supports obje
 ```sh
 cargo build --release
 ```
+or
+
+Download the [latest release](https://github.com/I-had-a-bad-idea/IPL/releases)
+
+---
 
 ## Usage
 
@@ -48,6 +65,13 @@ Run an IPL file:
 ```sh
 cargo run path/to/file.ipl
 ```
+or´(if you have the executable)
+
+```sh
+IPL.exe path/to/file.ipl
+```
+
+---
 
 ## Syntax
 
@@ -55,53 +79,13 @@ An explanation for syntax of IPL can be found [here](SYNTAX.md).
 
 Syntax highlighting can be found [here](https://github.com/I-had-a-bad-idea/IPL-Highlighting)
 
-## Example Programs
-
-More example programms can be found under `examples/`.
-
-### Hello World
-```ipl
-out("Hello, World!")
-```
-
-### Class Inheritance
-```ipl
-class Animal
-    self.name = "Unknown"
-    
-    def make_sound()
-        out("Some sound")
-
-class Dog : Animal
-    def Dog(name)
-        self.name = name
-    
-    def make_sound()
-        out("Woof!")
-
-dog = Dog("Rex")
-dog.make_sound()  # Prints: Woof!
-out(dog.name)     # Prints: Rex
-```
-
-### List Operations
-```ipl
-numbers = [1, 2, 3, 4, 5]
-sum = 0
-
-for n in numbers
-    sum = sum + n
-
-out("Sum is:")
-out(sum)
-
-min_val = min(numbers)
-max_val = max(numbers)
-```
+---
 
 ## Contributing
 
 Contributions are welcome! Please refer to [Contributing](CONTRIBUTING.md)
+
+---
 
 ## License
 
