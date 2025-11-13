@@ -55,50 +55,6 @@ An explanation for syntax of IPL can be found [here](SYNTAX.md).
 
 Syntax highlighting can be found [here](https://github.com/I-had-a-bad-idea/IPL-Highlighting)
 
-## Example Programs
-
-More example programms can be found under `examples/`.
-
-### Hello World
-```ipl
-out("Hello, World!")
-```
-
-### Class Inheritance
-```ipl
-class Animal
-    self.name = "Unknown"
-    
-    def make_sound()
-        out("Some sound")
-
-class Dog : Animal
-    def Dog(name)
-        self.name = name
-    
-    def make_sound()
-        out("Woof!")
-
-dog = Dog("Rex")
-dog.make_sound()  # Prints: Woof!
-out(dog.name)     # Prints: Rex
-```
-
-### List Operations
-```ipl
-numbers = [1, 2, 3, 4, 5]
-sum = 0
-
-for n in numbers
-    sum = sum + n
-
-out("Sum is:")
-out(sum)
-
-min_val = min(numbers)
-max_val = max(numbers)
-```
-
 ## Contributing
 
 Contributions are welcome! Please refer to [Contributing](CONTRIBUTING.md)
