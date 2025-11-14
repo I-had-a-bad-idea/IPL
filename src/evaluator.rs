@@ -31,6 +31,7 @@ pub struct Evaluator {
     evaluators: HashMap<String, Evaluator>,
     indentation_stack: Vec<(String, usize)>,
 
+    tokenizer: Tokenizer,
     folder: String,
     path: PathBuf,
 }
@@ -55,7 +56,8 @@ impl Evaluator {
             evaluators: HashMap::new(),
             classes: HashMap::new(),
             indentation_stack: vec![],
-
+            
+            tokenizer: Tokenizer::new(),
             folder: String::new(),
             path: PathBuf::new(),
         }
@@ -647,11 +649,11 @@ impl Evaluator {
     }
 
     fn ev_expr(&mut self, expr: &str) -> Value {
-        let tokens = Tokenizer::new().tokenize(
+        let tokens = self.tokenizer.tokenize(
             expr,
-            self.variables.clone(),
-            self.functions.clone(),
-            self.classes.clone(),
+            &self.variables,
+            &self.functions,
+            &self.classes,
         );
 
         // println!("tokens: {:?}", tokens);
