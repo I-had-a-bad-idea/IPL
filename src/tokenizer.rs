@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::collections::HashMap;
 use crate::value::Value;
-use crate::evaluator::Class;
+use crate::evaluator::{Class, IPL_Library};
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
 
@@ -19,11 +19,12 @@ impl Tokenizer {
         variables: &HashMap<String, Value>,
         functions: &HashMap<String, HashMap<String, Value>>,
         classes: &HashMap<String, Class>,
+        ipl_libraries: &HashMap<String, IPL_Library>
     ) -> Vec<Value> {
         let tokens = self.split(input);
         // println!("tokens after splitting: {:?}", tokens);
 
-        self.shunting_yard(tokens, &variables, &functions, &classes)
+        self.shunting_yard(tokens, &variables, &functions, &classes, &ipl_libraries)
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
@@ -56,6 +57,7 @@ impl Tokenizer {
         variables: &HashMap<String, Value>,
         functions: &HashMap<String, HashMap<String, Value>>,
         classes: &HashMap<String, Class>,
+        ipl_libraries: &HashMap<String, IPL_Library>
     ) -> Vec<Value> {
         let prec = HashMap::from([
             ("or", 1),
@@ -103,7 +105,7 @@ impl Tokenizer {
                         EvaluatioError::new("Expected attribute after '.'".to_string()).raise();
                     }
                 }
-            } else if variables.contains_key(token) {
+            } else if variables.contains_key(token) || ipl_libraries.contains_key(token) {
                 output.push(Value::Str(token.clone()));
             } else if functions.contains_key(token)
                 || BUILT_IN_FUNCTIONS.contains_key(token as &str)
@@ -111,6 +113,9 @@ impl Tokenizer {
                 || classes
                     .values()
                     .any(|class| class.functions.contains_key(token))
+                || ipl_libraries
+                    .values()
+                    .any(|library | library.functions.contains_key(token))
             {
                 if tokens.get(i + 1) != Some(&"(".to_string()) {
                     EvaluatioError::new(format!("Function {} must be followed by (", token))

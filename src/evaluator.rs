@@ -24,11 +24,11 @@ pub struct Instance {
     variables: HashMap<String, Value>,
 }
 
-#[allow(non_camel_case_types)]
+#[allow(non_camel_case_types)] // For readability
 #[derive(Debug, Clone)]
 pub struct IPL_Library { 
     variables: HashMap<String, Value>,
-    functions: HashMap<String, HashMap<String, Value>>,
+    pub functions: HashMap<String, HashMap<String, Value>>,
     classes: HashMap<String, Class>,
 }
 
@@ -683,6 +683,7 @@ impl Evaluator {
             &self.variables,
             &self.functions,
             &self.classes,
+            &self.ipl_libraries
         );
 
         // println!("tokens: {:?}", tokens);
@@ -703,6 +704,8 @@ impl Evaluator {
                 stack.push(token.clone());
             } else if self.variables.contains_key(&token_str) {
                 stack.push(self.variables[&token_str].clone());
+            } else if self.ipl_libraries.contains_key(&token_str){
+                stack.push(Value::IPL_Library(self.ipl_libraries[&token_str].clone()));
             } else if self.functions.contains_key(&token_str)
                 || BUILT_IN_FUNCTIONS.contains_key(&token_str as &str)
                 || self.classes.contains_key(&token_str)
