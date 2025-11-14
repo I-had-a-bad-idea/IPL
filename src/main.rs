@@ -4,7 +4,10 @@ mod debug;
 mod evaluator;
 mod state;
 mod tokenizer;
+mod library;
+
 pub mod value;
+
 
 use debug::EvaluatioError;
 use evaluator::Evaluator;
