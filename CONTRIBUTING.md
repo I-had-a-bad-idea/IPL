@@ -5,7 +5,7 @@ Thank you for your interest in contributing to **IPL**, a simple interpreted pro
 ## Table of Contents
 
 - [Contributing to IPL](#contributing-to-ipl)
-  - [Table of Contents](#table-of-contents)
+  - [Making libraries](#making-libraries)
   - [Getting Started](#getting-started)
   - [Project Structure](#project-structure)
   - [Contribution Guidelines](#contribution-guidelines)
@@ -18,6 +18,12 @@ Thank you for your interest in contributing to **IPL**, a simple interpreted pro
   - [Code Style \& Best Practices](#code-style--best-practices)
   - [Pull Request Process](#pull-request-process)
   - [License](#license)
+
+---
+
+## Making-libraries
+
+If you want to make a library for IPL, please follow [this](https://github.com/I-had-a-bad-idea/ILI?tab=readme-ov-file#contributing-a-library).
 
 ---
 
@@ -103,11 +109,7 @@ dev_tests/                # Contains ipl-files, you can use when developing
 
 * Access modifiers (public/private/protected)
 * Namespaces or module system
-* Standard library development
-* Syntax highlighting support for:
-  * VSCode (already in development)
-  * Sublime Text
-  * Vim
+* Standard library development (already in [development](https://github.com/I-had-a-bad-idea/IPL/tree/library))
 
 ### Low Priority
 
