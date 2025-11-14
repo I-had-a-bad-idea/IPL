@@ -8,6 +8,7 @@ use crate::debug::EvaluatioError;
 use crate::state;
 use crate::tokenizer::Tokenizer;
 use crate::value::Value;
+use crate::library::get_library_entry_path;
 
 // Define Class, Instance, and Value types for the evaluator
 
@@ -23,10 +24,12 @@ pub struct Instance {
     variables: HashMap<String, Value>,
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone)]
-pub struct IPL_Library {
+pub struct IPL_Library { 
     variables: HashMap<String, Value>,
     functions: HashMap<String, HashMap<String, Value>>,
+    classes: HashMap<String, Class>,
 }
 
 // Define the Evaluator struct and its methods for evaluating IPL code
@@ -324,6 +327,23 @@ impl Evaluator {
             }
             // TODO: execute libraries when meeting use (get entry point via function in main.rs)
             match line.split(" ").collect::<Vec<_>>()[0] {
+                "use" => {
+                    let lib_name = line.split(" ").collect::<Vec<_>>()[1];
+                    let lib_path = get_library_entry_path(lib_name).to_str().unwrap().to_string();
+                    self.evaluators.insert(lib_path.clone(), Evaluator::new());
+                    if let Some(evaluator) = self.evaluators.get_mut(&lib_path) {
+                        evaluator.ev_file(&lib_path);
+                    }
+                    let ipl_lib = IPL_Library {
+                        functions: self.evaluators[&lib_path].functions.clone(),
+                        variables: self.evaluators[&lib_path].variables.clone(),
+                        classes: self.evaluators[&lib_path].classes.clone(),
+                    };
+
+                    self.ipl_libraries.insert(lib_name.to_string(), ipl_lib);
+
+                    programm_counter += 1;
+                }
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
                     self.evaluators.insert(file.clone(), Evaluator::new());
