@@ -42,6 +42,7 @@ pub struct Evaluator {
     evaluators: HashMap<String, Evaluator>,
     indentation_stack: Vec<(String, usize)>,
 
+    tokenizer: Tokenizer,
     folder: String,
     path: PathBuf,
 }
@@ -67,7 +68,8 @@ impl Evaluator {
             ipl_libraries: HashMap::new(),
             classes: HashMap::new(),
             indentation_stack: vec![],
-
+            
+            tokenizer: Tokenizer::new(),
             folder: String::new(),
             path: PathBuf::new(),
         }
@@ -76,12 +78,12 @@ impl Evaluator {
     // Evaluate a file by reading its contents and executing its lines
     pub fn ev_file(&mut self, file: &str) {
         let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
-        self.path = path.clone();
         self.folder = path
             .parent()
             .and_then(|p| p.to_str())
             .unwrap_or("")
             .to_string();
+        self.path = path;
         self.folder += "//"; // Get the folder path for imports
         let contents = fs::read_to_string(file).expect("Could not read file"); // Read file contents
 
@@ -127,10 +129,10 @@ impl Evaluator {
             EvaluatioError::new("Wrong amount of arguments".to_string()).raise();
         }
 
-        let global_vars: HashMap<String, Value> = self.variables.clone(); // Save current variables
+        let mut global_vars: HashMap<String, Value> = self.variables.clone(); // Save current variables
 
-        for (name, value) in function_arguments.iter().zip(args.iter()) {
-            self.variables.insert(name.to_string_value(), value.clone()); // Set function arguments in variables
+        for (name, value) in function_arguments.iter().zip(args.into_iter()) {
+            self.variables.insert(name.to_string_value(), value); // Set function arguments in variables
         }
         self.indentation_stack.push((
             "function".to_string(),
@@ -148,14 +150,9 @@ impl Evaluator {
             .clone();
 
         for name in function_arguments.iter() {
-            if global_vars.contains_key(&name.to_string_value()) {
-                self.variables.insert(
-                    name.to_string_value(),
-                    global_vars
-                        .get(&name.to_string_value())
-                        .expect("The if for function argument ressetting failed")
-                        .clone(),
-                );
+            if let Some(value) = global_vars.remove(&name.to_string_value()){
+                self.variables.insert(name.to_string_value(), value);
+            
             } else {
                 self.variables.remove(&name.to_string_value());
             }
@@ -681,11 +678,11 @@ impl Evaluator {
     }
 
     fn ev_expr(&mut self, expr: &str) -> Value {
-        let tokens = Tokenizer::new().tokenize(
+        let tokens = self.tokenizer.tokenize(
             expr,
-            self.variables.clone(),
-            self.functions.clone(),
-            self.classes.clone(),
+            &self.variables,
+            &self.functions,
+            &self.classes,
         );
 
         // println!("tokens: {:?}", tokens);

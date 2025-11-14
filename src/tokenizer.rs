@@ -16,14 +16,14 @@ impl Tokenizer {
     pub fn tokenize(
         &self,
         input: &str,
-        variables: HashMap<String, Value>,
-        functions: HashMap<String, HashMap<String, Value>>,
-        classes: HashMap<String, Class>,
+        variables: &HashMap<String, Value>,
+        functions: &HashMap<String, HashMap<String, Value>>,
+        classes: &HashMap<String, Class>,
     ) -> Vec<Value> {
         let tokens = self.split(input);
         // println!("tokens after splitting: {:?}", tokens);
 
-        self.shunting_yard(tokens, variables, functions, classes)
+        self.shunting_yard(tokens, &variables, &functions, &classes)
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
@@ -53,9 +53,9 @@ impl Tokenizer {
     fn shunting_yard(
         &self,
         tokens: Vec<String>,
-        variables: HashMap<String, Value>,
-        functions: HashMap<String, HashMap<String, Value>>,
-        classes: HashMap<String, Class>,
+        variables: &HashMap<String, Value>,
+        functions: &HashMap<String, HashMap<String, Value>>,
+        classes: &HashMap<String, Class>,
     ) -> Vec<Value> {
         let prec = HashMap::from([
             ("or", 1),
