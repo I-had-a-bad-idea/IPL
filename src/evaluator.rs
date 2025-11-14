@@ -10,6 +10,7 @@ use crate::tokenizer::Tokenizer;
 use crate::value::Value;
 
 // Define Class, Instance, and Value types for the evaluator
+
 #[derive(Debug, Clone)]
 pub struct Class {
     pub functions: HashMap<String, HashMap<String, Value>>,
@@ -22,12 +23,19 @@ pub struct Instance {
     variables: HashMap<String, Value>,
 }
 
+#[derive(Debug, Clone)]
+pub struct IPL_Library {
+    variables: HashMap<String, Value>,
+    functions: HashMap<String, HashMap<String, Value>>,
+}
+
 // Define the Evaluator struct and its methods for evaluating IPL code
 pub struct Evaluator {
     lines: Vec<String>,
     pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, HashMap<String, Value>>,
     pub classes: HashMap<String, Class>,
+    pub ipl_libraries: HashMap< String, IPL_Library>,
     evaluators: HashMap<String, Evaluator>,
     indentation_stack: Vec<(String, usize)>,
 
@@ -53,6 +61,7 @@ impl Evaluator {
             ]),
             functions: HashMap::new(),
             evaluators: HashMap::new(),
+            ipl_libraries: HashMap::new(),
             classes: HashMap::new(),
             indentation_stack: vec![],
 
@@ -313,7 +322,7 @@ impl Evaluator {
             {
                 self.indentation_stack.pop();
             }
-
+            // TODO: execute libraries when meeting use (get entry point via function in main.rs)
             match line.split(" ").collect::<Vec<_>>()[0] {
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
