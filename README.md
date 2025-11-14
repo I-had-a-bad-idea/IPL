@@ -17,6 +17,7 @@ A simple interpreted programming language implemented in Rust.
   - [Installation](#installation)
   - [Usage](#usage)
   - [Syntax](#syntax)
+  - [Libraries](#libraries)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -90,6 +91,10 @@ An explanation for syntax of IPL can be found [here](SYNTAX.md).
 Syntax highlighting can be found [here](https://github.com/I-had-a-bad-idea/IPL-Highlighting)
 
 ---
+
+## Libraries
+
+IPL has it´s own library installer: [ILI](https://github.com/I-had-a-bad-idea/ILI) (IPL-Library-Installer).
 
 ## Contributing
 
