@@ -1,0 +1,14 @@
+# This requires ILI with the example library
+
+use examplelib
+
+
+example_a = examplelib.a# Should be 3
+
+out("a")
+out(example_a)
+
+example_c = examplelib.c # Should be 13
+
+out("c")
+out(example_c)

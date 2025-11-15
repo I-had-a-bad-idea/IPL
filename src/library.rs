@@ -7,8 +7,8 @@ use crate::debug::EvaluatioError;
 const ILI_PATH : &str = "C:\\ProgramData\\ILI";
 
 fn load_library_json(path: &Path) -> String {
-    let file = path.join("Library.json");
-    let raw = fs::read_to_string(&file).ok();
+    println!("File path: {:?}", path);
+    let raw = fs::read_to_string(&path).ok();
 
     if raw.is_none(){
         EvaluatioError::new("Failed to read Library.json file".to_string()).raise();

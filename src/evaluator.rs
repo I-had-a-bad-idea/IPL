@@ -27,9 +27,9 @@ pub struct Instance {
 #[allow(non_camel_case_types)] // For readability
 #[derive(Debug, Clone)]
 pub struct IPL_Library { 
-    variables: HashMap<String, Value>,
+    pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, HashMap<String, Value>>,
-    classes: HashMap<String, Class>,
+    pub classes: HashMap<String, Class>,
 }
 
 // Define the Evaluator struct and its methods for evaluating IPL code
@@ -765,9 +765,9 @@ impl Evaluator {
                 stack.push(result);
                 i += 1; // Skip the next token which is the argument list
             } else if token.to_string_value() == "." {
-                let instance = stack.pop().expect("No instance before .");
+                let base = stack.pop().expect("No instance before .");
                 let attribute = tokens.get(i + 1).expect("No attribute after .");
-                match instance {
+                match base {
                     Value::Instance(inst) => {
                         if inst.variables.contains_key(&attribute.to_string_value()) {
                             stack.push(inst.variables[&attribute.to_string_value()].clone());
@@ -808,6 +808,15 @@ impl Evaluator {
                                 attribute.to_string_value()
                             ))
                             .raise();
+                        }
+                    }
+                    Value::IPL_Library(lib) => {
+                        let attribute_str = attribute.to_string_value();
+                        if lib.variables.contains_key(&attribute_str){
+                            stack.push(lib.variables[&attribute_str].clone());
+                        }
+                        else if lib.classes.contains_key(&attribute_str){
+                            stack.push(Value::Str(attribute_str));
                         }
                     }
                     Value::Str(class_str) => {

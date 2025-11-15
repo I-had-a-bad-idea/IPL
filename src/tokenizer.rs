@@ -84,8 +84,22 @@ impl Tokenizer {
             if !token_as_datatype.is_none_value() {
                 output.push(token_as_datatype);
             } else if i + 1 < tokens.len()
-                && ((variables.contains_key(token) || classes.contains_key(token))
-                    && &tokens[i + 1] == ".")
+                && (
+                    // variable or class in current scope
+                    (variables.contains_key(token)
+                        || classes.contains_key(token))
+                        && tokens[i + 1] == "."
+                    
+                    // or any library
+                    || ipl_libraries.contains_key(token)
+                    
+                    // OR variable in any library
+                    || ipl_libraries.values().any(|lib| lib.variables.contains_key(token))
+                    
+                    // OR class in any library followed by "."
+                    || (ipl_libraries.values().any(|lib| lib.classes.contains_key(token))
+                        && tokens[i + 1] == ".")
+                )
             {
                 output.push(Value::Str(token.clone()));
 
