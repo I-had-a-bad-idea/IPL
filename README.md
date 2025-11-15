@@ -1,3 +1,4 @@
+![Tests](https://github.com/I-had-a-bad-idea/IPL/actions/workflows/test.yml/badge.svg)
 ![MIT License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/Rust-1.89.0%2B-red)
 ![Commit Activity](https://img.shields.io/github/commit-activity/m/I-had-a-bad-idea/IPL)
