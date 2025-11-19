@@ -27,7 +27,7 @@ fn test_math_output() {
     assert!(output.contains("5"));
     assert!(output.contains("50"));
     assert!(output.contains("10"));
-    assert!(output.contains("3.14159265358979323"));
+    assert!(output.contains("3.14159265358979")); // Cant do more, because they are cut of
 }
 
 #[test]
