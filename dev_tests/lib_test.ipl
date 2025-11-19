@@ -3,7 +3,7 @@
 use examplelib
 
 
-example_a = examplelib.a# Should be 3
+example_a = examplelib.a # Should be 3
 
 out("a")
 out(example_a)
@@ -12,3 +12,9 @@ example_c = examplelib.c # Should be 13
 
 out("c")
 out(example_c)
+
+out("Adding a and c")
+a_c = examplelib.add(example_a, example_c) # Should be 16
+
+out("a_c")
+out(a_c)

@@ -12,7 +12,8 @@ pub enum Value {
     Str(String),
     Path(PathBuf),
     Instance(Instance),
-    IPL_Library(IPL_Library), #[allow(non_camel_case_types)] // For readability
+    #[allow(non_camel_case_types)] // For readability
+    IPL_Library(IPL_Library),
     None,
 }
 

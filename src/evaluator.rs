@@ -279,6 +279,80 @@ impl Evaluator {
         result
     }
 
+    fn ev_lib_func(
+        &mut self,
+        lib_name: String,
+        function_name: &str,
+        args: Vec<Value>,
+    ) -> Value {
+        let lib_functions = self.ipl_libraries[&lib_name].functions.clone();
+        if !lib_functions.contains_key(function_name) {
+            return Value::None;
+        }
+        // println!("Self.classes: {:#?}", self.classes);
+        let file = lib_functions[function_name]["file"].clone();
+        if file.to_string_value() != self.path.to_str().unwrap() {
+            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
+                return ev.ev_lib_func(
+                    lib_name,
+                    function_name,
+                    args,
+                );
+            } else {
+                EvaluatioError::new("Evaluator for file not found".to_string()).raise();
+            }
+        }
+
+        let function_arguments: &Value = &lib_functions[function_name]["arguments"];
+        let function_lines: &Value = &lib_functions[function_name]["function_body"];
+
+        println!("Executing library function {} with lines: {:?}", function_name, function_lines);
+        println!("Function lines content:");
+        for i in function_lines.iter() {
+            println!("  {:?}: '{}'", i, self.lines[i.as_usize()]);
+        }
+        if args.len() != function_arguments.length() {
+            EvaluatioError::new("Wrong amount of arguments".to_string()).raise();
+        }
+        let global_vars = self.variables.clone();
+
+        // println!("function_arguments: {:?} and args: {:?}", function_arguments, args);
+        for (name, value) in function_arguments.iter().zip(args.iter()) {
+            // println!("Setting variable {} to {:?}", name.to_string_value(), value);
+            self.variables.insert(name.to_string_value(), value.clone());
+        }
+        // println!("self.variables before function execution: {:#?}", self.variables);
+        // println!("self.classes before function execution: {:#?}", self.classes);
+        self.indentation_stack.push((
+            "function".to_string(),
+            get_indentation(&self.lines[function_lines[0].as_usize()]),
+        ));
+
+        let result = self.execute_lines(
+            function_lines[0].as_usize(),
+            (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(),
+            "".to_string(),
+        );
+        // println!("self.variables after function execution: {:#?}", self.variables);
+        self.indentation_stack.pop();
+
+        for name in function_arguments.iter() {
+            if global_vars.contains_key(&name.to_string_value()) {
+                self.variables.insert(
+                    name.to_string_value(),
+                    global_vars
+                        .get(&name.to_string_value())
+                        .expect("The if for function argument ressetting failed")
+                        .clone(),
+                );
+            } else {
+                self.variables.remove(&name.to_string_value());
+            }
+        }
+
+        result
+    }
+
     fn execute_lines(&mut self, start: usize, end: usize, self_value: String) -> Value {
         let mut programm_counter: usize = start;
 
@@ -686,7 +760,7 @@ impl Evaluator {
             &self.ipl_libraries
         );
 
-        // println!("tokens: {:?}", tokens);
+        println!("tokens: {:?}", tokens);
 
         let mut stack: Vec<Value> = vec![];
         let mut i = 0;
@@ -814,9 +888,38 @@ impl Evaluator {
                         let attribute_str = attribute.to_string_value();
                         if lib.variables.contains_key(&attribute_str){
                             stack.push(lib.variables[&attribute_str].clone());
+                        } 
+                        else if lib.functions.contains_key(&attribute_str){
+                            let function_name = &attribute.to_string_value();
+                            let mut args: Vec<Value> = vec![];
+                            let function_args = tokens.get(i + 2);
+                            for arg in function_args.unwrap_or(&Value::None).iter() {
+                                if let Value::Str(s) = arg {
+                                    let evaluated_arg = self.ev_expr(s);
+                                    args.push(evaluated_arg);
+                                } else {
+                                    args.push(arg.clone());
+                                }
+                            }
+                            if args.len() == 1
+                                && args[0].to_string_value() == Value::None.to_string_value()
+                            {
+                                args = vec![];
+                            }
+                            println!("Library function {} called with arguments: {:?}", function_name, args);
+                            let result = self.ev_lib_func(
+                                tokens[i - 1].to_string_value(), // Lib name
+                                function_name, 
+                                args,
+                            );
+                            stack.push(result);
+                            i += 1; // Skip the next token which is the argument list
                         }
                         else if lib.classes.contains_key(&attribute_str){
                             stack.push(Value::Str(attribute_str));
+                        }
+                        else{
+                            EvaluatioError::new("No valid attribute on library".to_string()).raise();
                         }
                     }
                     Value::Str(class_str) => {
