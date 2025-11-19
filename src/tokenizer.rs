@@ -80,6 +80,7 @@ impl Tokenizer {
         let mut i = 0;
         while i < tokens.len() {
             let token: &String = &tokens[i];
+            // println!("Shunting yard at {}", token);
             let token_as_datatype = self.str_to_datatype(token);
             if !token_as_datatype.is_none_value() {
                 output.push(token_as_datatype);
@@ -110,6 +111,9 @@ impl Tokenizer {
                         if !classes
                             .values()
                             .any(|class| class.functions.contains_key(attr))
+                            && !ipl_libraries
+                                .values()
+                                .any(|lib |lib.functions.contains_key(attr))
                         {
                             output.push(Value::Str(attr.clone()));
                         } else {
