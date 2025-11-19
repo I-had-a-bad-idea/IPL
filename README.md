@@ -1,6 +1,28 @@
+![Tests](https://github.com/I-had-a-bad-idea/IPL/actions/workflows/test.yml/badge.svg)
+![MIT License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/Rust-1.89.0%2B-red)
+![Commit Activity](https://img.shields.io/github/commit-activity/m/I-had-a-bad-idea/IPL)
+![Last Commit](https://img.shields.io/github/last-commit/I-had-a-bad-idea/IPL)
+![Open Issues](https://img.shields.io/github/issues/I-had-a-bad-idea/IPL)
+![Closed Issues](https://img.shields.io/github/issues-closed/I-had-a-bad-idea/IPL)
+![Repo Size](https://img.shields.io/github/repo-size/I-had-a-bad-idea/IPL)
+![Contributors](https://img.shields.io/github/contributors/I-had-a-bad-idea/IPL)
+
+
 # IPL (Interpreted Programming Language)
 
-A simple interpreted programming language implemented in Rust that supports object-oriented programming concepts, control flow, and built-in functions.
+A simple interpreted programming language implemented in Rust.
+
+## Table of Contents
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Syntax](#syntax)
+  - [Libraries](#libraries)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+---
 
 ## Features
 
@@ -33,6 +55,8 @@ A simple interpreted programming language implemented in Rust that supports obje
   - Logical: `and`, `or`
   - Member access: `.`
 
+---
+
 ## Installation
 
 1. Ensure you have Rust installed
@@ -41,6 +65,11 @@ A simple interpreted programming language implemented in Rust that supports obje
 ```sh
 cargo build --release
 ```
+or
+
+Download the [latest release](https://github.com/I-had-a-bad-idea/IPL/releases)
+
+---
 
 ## Usage
 
@@ -48,58 +77,31 @@ Run an IPL file:
 ```sh
 cargo run path/to/file.ipl
 ```
+or´(if you have the executable)
+
+```sh
+IPL.exe path/to/file.ipl
+```
+
+---
 
 ## Syntax
 
 An explanation for syntax of IPL can be found [here](SYNTAX.md).
 
-## Example Programs
+Syntax highlighting can be found [here](https://github.com/I-had-a-bad-idea/IPL-Highlighting)
 
-More example programms can be found under `examples/`.
+---
 
-### Hello World
-```ipl
-out("Hello, World!")
-```
+## Libraries
 
-### Class Inheritance
-```ipl
-class Animal
-    self.name = "Unknown"
-    
-    def make_sound()
-        out("Some sound")
-
-class Dog : Animal
-    def Dog(name)
-        self.name = name
-    
-    def make_sound()
-        out("Woof!")
-
-dog = Dog("Rex")
-dog.make_sound()  # Prints: Woof!
-out(dog.name)     # Prints: Rex
-```
-
-### List Operations
-```ipl
-numbers = [1, 2, 3, 4, 5]
-sum = 0
-
-for n in numbers
-    sum = sum + n
-
-out("Sum is:")
-out(sum)
-
-min_val = min(numbers)
-max_val = max(numbers)
-```
+IPL has it´s own library installer: [ILI](https://github.com/I-had-a-bad-idea/ILI) (IPL-Library-Installer).
 
 ## Contributing
 
 Contributions are welcome! Please refer to [Contributing](CONTRIBUTING.md)
+
+---
 
 ## License
 
