@@ -49,6 +49,8 @@ A simple interpreted programming language implemented in Rust.
   - Class variables and instance variables
   - Method overriding
 - **File Imports**: Import code from other `.ipl` files
+- **Libraries**:
+  - Install and use external libraries via [ILI (IPL Library Installer)](https://github.com/I-had-a-bad-idea/ILI)
 - **Operators**:
   - Arithmetic: `+`, `-`, `*`, `/` 
   - Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`

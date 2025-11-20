@@ -163,7 +163,7 @@ Class.method()
 
 ## 10. Modules / Import
 
-Import uses a simple filename form in the examples:
+Import uses a simple filename:
 
 ```
 import utils.ipl
@@ -171,8 +171,25 @@ import class_test_base_class.ipl
 ```
 
 The imported filename is looked up relative to the current file.
+## 11. Libraries
 
-## 11. Built-ins and common functions
+IPL supports external libraries to extend functionality. Libraries must first be installed via [ILI (IPL Library Installer)](https://github.com/I-had-a-bad-idea/ILI).
+
+To imprt libraries use the `use` keyword followed by the library name:
+
+```
+use examplelib
+use mylibrary
+```
+
+Once imported, the library’s variables and functions can be used directly in your IPL code.
+
+Notes:
+- Library names are case-sensitive.
+- Installed libraries are available globally to all IPL scripts on your system.
+- Using a library that has not been installed will result in a runtime error.
+
+## 12. Built-ins and common functions
 
 Built-ins include:
 
@@ -189,7 +206,7 @@ Built-ins include:
 These are called like normal functions (e.g. `out("Hello World")`)
 
 
-## 12. Example snippets
+## 13. Example snippets
 
 Hello world:
 
