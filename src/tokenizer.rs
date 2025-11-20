@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::collections::HashMap;
 use crate::value::Value;
-use crate::evaluator::Class;
+use crate::evaluator::{Class, IPL_Library};
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
 
@@ -19,11 +19,12 @@ impl Tokenizer {
         variables: &HashMap<String, Value>,
         functions: &HashMap<String, HashMap<String, Value>>,
         classes: &HashMap<String, Class>,
+        ipl_libraries: &HashMap<String, IPL_Library>
     ) -> Vec<Value> {
         let tokens = self.split(input);
         // println!("tokens after splitting: {:?}", tokens);
 
-        self.shunting_yard(tokens, &variables, &functions, &classes)
+        self.shunting_yard(tokens, &variables, &functions, &classes, &ipl_libraries)
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
@@ -56,6 +57,7 @@ impl Tokenizer {
         variables: &HashMap<String, Value>,
         functions: &HashMap<String, HashMap<String, Value>>,
         classes: &HashMap<String, Class>,
+        ipl_libraries: &HashMap<String, IPL_Library>
     ) -> Vec<Value> {
         let prec = HashMap::from([
             ("or", 1),
@@ -78,12 +80,27 @@ impl Tokenizer {
         let mut i = 0;
         while i < tokens.len() {
             let token: &String = &tokens[i];
+            // println!("Shunting yard at {}", token);
             let token_as_datatype = self.str_to_datatype(token);
             if !token_as_datatype.is_none_value() {
                 output.push(token_as_datatype);
             } else if i + 1 < tokens.len()
-                && ((variables.contains_key(token) || classes.contains_key(token))
-                    && &tokens[i + 1] == ".")
+                && (
+                    // variable or class in current scope
+                    (variables.contains_key(token)
+                        || classes.contains_key(token))
+                        && tokens[i + 1] == "."
+                    
+                    // or any library
+                    || ipl_libraries.contains_key(token)
+                    
+                    // OR variable in any library
+                    || ipl_libraries.values().any(|lib| lib.variables.contains_key(token))
+                    
+                    // OR class in any library followed by "."
+                    || (ipl_libraries.values().any(|lib| lib.classes.contains_key(token))
+                        && tokens[i + 1] == ".")
+                )
             {
                 output.push(Value::Str(token.clone()));
 
@@ -94,6 +111,9 @@ impl Tokenizer {
                         if !classes
                             .values()
                             .any(|class| class.functions.contains_key(attr))
+                            && !ipl_libraries
+                                .values()
+                                .any(|lib |lib.functions.contains_key(attr))
                         {
                             output.push(Value::Str(attr.clone()));
                         } else {
@@ -103,7 +123,7 @@ impl Tokenizer {
                         EvaluatioError::new("Expected attribute after '.'".to_string()).raise();
                     }
                 }
-            } else if variables.contains_key(token) {
+            } else if variables.contains_key(token) || ipl_libraries.contains_key(token) {
                 output.push(Value::Str(token.clone()));
             } else if functions.contains_key(token)
                 || BUILT_IN_FUNCTIONS.contains_key(token as &str)
@@ -111,6 +131,9 @@ impl Tokenizer {
                 || classes
                     .values()
                     .any(|class| class.functions.contains_key(token))
+                || ipl_libraries
+                    .values()
+                    .any(|library | library.functions.contains_key(token))
             {
                 if tokens.get(i + 1) != Some(&"(".to_string()) {
                     EvaluatioError::new(format!("Function {} must be followed by (", token))

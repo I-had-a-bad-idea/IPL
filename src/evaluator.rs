@@ -8,8 +8,10 @@ use crate::debug::EvaluatioError;
 use crate::state;
 use crate::tokenizer::Tokenizer;
 use crate::value::Value;
+use crate::library::get_library_entry_path;
 
 // Define Class, Instance, and Value types for the evaluator
+
 #[derive(Debug, Clone)]
 pub struct Class {
     pub functions: HashMap<String, HashMap<String, Value>>,
@@ -22,12 +24,21 @@ pub struct Instance {
     variables: HashMap<String, Value>,
 }
 
+#[allow(non_camel_case_types)] // For readability
+#[derive(Debug, Clone)]
+pub struct IPL_Library { 
+    pub variables: HashMap<String, Value>,
+    pub functions: HashMap<String, HashMap<String, Value>>,
+    pub classes: HashMap<String, Class>,
+}
+
 // Define the Evaluator struct and its methods for evaluating IPL code
 pub struct Evaluator {
     lines: Vec<String>,
     pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, HashMap<String, Value>>,
     pub classes: HashMap<String, Class>,
+    pub ipl_libraries: HashMap< String, IPL_Library>,
     evaluators: HashMap<String, Evaluator>,
     indentation_stack: Vec<(String, usize)>,
 
@@ -54,6 +65,7 @@ impl Evaluator {
             ]),
             functions: HashMap::new(),
             evaluators: HashMap::new(),
+            ipl_libraries: HashMap::new(),
             classes: HashMap::new(),
             indentation_stack: vec![],
             
@@ -267,6 +279,48 @@ impl Evaluator {
         result
     }
 
+    fn ev_lib_func(
+        &mut self,
+        lib_name: String,
+        function_name: &str,
+        args: Vec<Value>,
+    ) -> Value {
+        // println!("Self.ipl_libraries: {:#?}", self.ipl_libraries);
+        // println!("Ev_lib_func called for library: {}, and function name: {}", lib_name, function_name);
+        // let lib_path = get_library_entry_path(&lib_name).to_str().unwrap().to_string();
+        // println!("Lib path: {}", lib_path);
+        if self.ipl_libraries.contains_key(&lib_name){
+            let lib_functions = self.ipl_libraries[&lib_name].functions.clone();
+            if !lib_functions.contains_key(function_name) {
+                EvaluatioError::new("Function was not found in library".to_string()).raise();
+                return Value::None;
+            }
+            let file = lib_functions[function_name]["file"].clone();
+            if file.to_string_value() != self.path.to_str().unwrap() {
+                if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
+                    // println!("Calling ev_lib_func on: {:?}", file);
+                    return ev.ev_lib_func(
+                        lib_name,
+                        function_name,
+                        args,
+                    );
+                } else {
+                    EvaluatioError::new("Evaluator for file not found".to_string()).raise();
+                    Value::None
+                }
+            }
+        else {
+            EvaluatioError::new("This shouldnt happen, tell the dev(s) that the ev_lib_func found the lib in self.ipl_libraries, although its already in the lib file".to_string()).raise();
+            Value::None
+        }
+        }
+        else{
+            let result = self.ev_func(function_name, args);
+            // println!("Result for ev_lib_func: {:?}", result);
+            result
+        }
+    }
+
     fn execute_lines(&mut self, start: usize, end: usize, self_value: String) -> Value {
         let mut programm_counter: usize = start;
 
@@ -310,8 +364,25 @@ impl Evaluator {
             {
                 self.indentation_stack.pop();
             }
-
+            // TODO: execute libraries when meeting use (get entry point via function in main.rs)
             match line.split(" ").collect::<Vec<_>>()[0] {
+                "use" => {
+                    let lib_name = line.split(" ").collect::<Vec<_>>()[1];
+                    let lib_path = get_library_entry_path(lib_name).to_str().unwrap().to_string();
+                    self.evaluators.insert(lib_path.clone(), Evaluator::new());
+                    if let Some(evaluator) = self.evaluators.get_mut(&lib_path) {
+                        evaluator.ev_file(&lib_path);
+                    }
+                    let ipl_lib = IPL_Library {
+                        functions: self.evaluators[&lib_path].functions.clone(),
+                        variables: self.evaluators[&lib_path].variables.clone(),
+                        classes: self.evaluators[&lib_path].classes.clone(),
+                    };
+
+                    self.ipl_libraries.insert(lib_name.to_string(), ipl_lib);
+
+                    programm_counter += 1;
+                }
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
                     self.evaluators.insert(file.clone(), Evaluator::new());
@@ -654,6 +725,7 @@ impl Evaluator {
             &self.variables,
             &self.functions,
             &self.classes,
+            &self.ipl_libraries
         );
 
         // println!("tokens: {:?}", tokens);
@@ -674,6 +746,8 @@ impl Evaluator {
                 stack.push(token.clone());
             } else if self.variables.contains_key(&token_str) {
                 stack.push(self.variables[&token_str].clone());
+            } else if self.ipl_libraries.contains_key(&token_str){
+                stack.push(Value::IPL_Library(self.ipl_libraries[&token_str].clone()));
             } else if self.functions.contains_key(&token_str)
                 || BUILT_IN_FUNCTIONS.contains_key(&token_str as &str)
                 || self.classes.contains_key(&token_str)
@@ -733,9 +807,9 @@ impl Evaluator {
                 stack.push(result);
                 i += 1; // Skip the next token which is the argument list
             } else if token.to_string_value() == "." {
-                let instance = stack.pop().expect("No instance before .");
+                let base = stack.pop().expect("No instance before .");
                 let attribute = tokens.get(i + 1).expect("No attribute after .");
-                match instance {
+                match base {
                     Value::Instance(inst) => {
                         if inst.variables.contains_key(&attribute.to_string_value()) {
                             stack.push(inst.variables[&attribute.to_string_value()].clone());
@@ -776,6 +850,44 @@ impl Evaluator {
                                 attribute.to_string_value()
                             ))
                             .raise();
+                        }
+                    }
+                    Value::IPL_Library(lib) => {
+                        let attribute_str = attribute.to_string_value();
+                        if lib.variables.contains_key(&attribute_str){
+                            stack.push(lib.variables[&attribute_str].clone());
+                        } 
+                        else if lib.functions.contains_key(&attribute_str){
+                            let function_name = &attribute.to_string_value();
+                            let mut args: Vec<Value> = vec![];
+                            let function_args = tokens.get(i + 2);
+                            for arg in function_args.unwrap_or(&Value::None).iter() {
+                                if let Value::Str(s) = arg {
+                                    let evaluated_arg = self.ev_expr(s);
+                                    args.push(evaluated_arg);
+                                } else {
+                                    args.push(arg.clone());
+                                }
+                            }
+                            if args.len() == 1
+                                && args[0].to_string_value() == Value::None.to_string_value()
+                            {
+                                args = vec![];
+                            }
+                            // println!("Library function {} called with arguments: {:?}", function_name, args);
+                            let result = self.ev_lib_func(
+                                tokens[i - 1].to_string_value(), // Lib name
+                                function_name, 
+                                args,
+                            );
+                            stack.push(result);
+                            i += 1; // Skip the next token which is the argument list
+                        }
+                        else if lib.classes.contains_key(&attribute_str){
+                            stack.push(Value::Str(attribute_str));
+                        }
+                        else{
+                            EvaluatioError::new("No valid attribute on library".to_string()).raise();
                         }
                     }
                     Value::Str(class_str) => {

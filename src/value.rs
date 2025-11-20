@@ -1,4 +1,4 @@
-use crate::evaluator::Instance;
+use crate::evaluator::{IPL_Library, Instance};
 use std::ops::Index;
 use std::ops::{Add, Div, Mul, Sub};
 use std::cmp::Ordering;
@@ -12,6 +12,8 @@ pub enum Value {
     Str(String),
     Path(PathBuf),
     Instance(Instance),
+    #[allow(non_camel_case_types)] // For readability
+    IPL_Library(IPL_Library),
     None,
 }
 
