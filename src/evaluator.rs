@@ -34,6 +34,7 @@ pub struct IPL_Library {
 
 // Define the Evaluator struct and its methods for evaluating IPL code
 pub struct Evaluator {
+    files: HashMap<String, Vec<String>>,
     lines: Vec<String>,
     pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, HashMap<String, Value>>,
@@ -54,6 +55,7 @@ fn get_indentation(line: &str) -> usize {
 impl Evaluator {
     pub fn new() -> Self {
         Self {
+            files: HashMap::new(),
             lines: vec![],
             variables: HashMap::from([
                 ("True".to_string(), Value::Bool(true)),
@@ -78,12 +80,13 @@ impl Evaluator {
     // Evaluate a file by reading its contents and executing its lines
     pub fn ev_file(&mut self, file: &str) {
         let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
-        self.folder = path
-            .parent()
-            .and_then(|p| p.to_str())
-            .unwrap_or("")
-            .to_string();
-        self.path = path;
+        if self.folder.is_empty(){
+            self.folder = path
+                .parent()
+                .and_then(|p| p.to_str())
+                .unwrap_or("")
+                .to_string();
+        }
         self.folder += "//"; // Get the folder path for imports
         let contents = fs::read_to_string(file).expect("Could not read file"); // Read file contents
 
@@ -94,6 +97,9 @@ impl Evaluator {
             .collect();
 
         self.lines.push("End of file".to_string()); // Add end marker to lines
+
+        self.files.insert(file.to_string(), self.lines.clone()); 
+        self.path = path;
 
         self.indentation_stack = vec![("normal".to_string(), 0)]; // Initialize indentation stack
 
@@ -364,7 +370,6 @@ impl Evaluator {
             {
                 self.indentation_stack.pop();
             }
-            // TODO: execute libraries when meeting use (get entry point via function in main.rs)
             match line.split(" ").collect::<Vec<_>>()[0] {
                 "use" => {
                     let lib_name = line.split(" ").collect::<Vec<_>>()[1];
@@ -394,6 +399,10 @@ impl Evaluator {
                     self.variables
                         .extend(self.evaluators[&file].variables.clone());
                     self.classes.extend(self.evaluators[&file].classes.clone());
+                    
+                    let lines = self.evaluators[&file].lines.clone();
+
+                    self.files.insert(file, lines);
 
                     programm_counter += 1;
                 }
