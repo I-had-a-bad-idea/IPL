@@ -2,12 +2,11 @@ use std::env;
 mod built_in_functions;
 mod debug;
 mod evaluator;
+mod library;
 mod state;
 mod tokenizer;
-mod library;
 
 pub mod value;
-
 
 use debug::EvaluatioError;
 use evaluator::Evaluator;

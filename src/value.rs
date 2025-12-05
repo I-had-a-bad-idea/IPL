@@ -1,7 +1,7 @@
 use crate::evaluator::{IPL_Library, Instance};
+use std::cmp::Ordering;
 use std::ops::Index;
 use std::ops::{Add, Div, Mul, Sub};
-use std::cmp::Ordering;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
