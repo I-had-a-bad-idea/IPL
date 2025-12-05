@@ -1,10 +1,9 @@
-use regex::Regex;
-use std::collections::HashMap;
-use crate::value::Value;
-use crate::evaluator::{Class, IPL_Library};
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
-
+use crate::evaluator::{Class, IPL_Library};
+use crate::value::Value;
+use regex::Regex;
+use std::collections::HashMap;
 
 pub struct Tokenizer {}
 
@@ -19,7 +18,7 @@ impl Tokenizer {
         variables: &HashMap<String, Value>,
         functions: &HashMap<String, HashMap<String, Value>>,
         classes: &HashMap<String, Class>,
-        ipl_libraries: &HashMap<String, IPL_Library>
+        ipl_libraries: &HashMap<String, IPL_Library>,
     ) -> Vec<Value> {
         let tokens = self.split(input);
         // println!("tokens after splitting: {:?}", tokens);
@@ -57,7 +56,7 @@ impl Tokenizer {
         variables: &HashMap<String, Value>,
         functions: &HashMap<String, HashMap<String, Value>>,
         classes: &HashMap<String, Class>,
-        ipl_libraries: &HashMap<String, IPL_Library>
+        ipl_libraries: &HashMap<String, IPL_Library>,
     ) -> Vec<Value> {
         let prec = HashMap::from([
             ("or", 1),
@@ -113,7 +112,7 @@ impl Tokenizer {
                             .any(|class| class.functions.contains_key(attr))
                             && !ipl_libraries
                                 .values()
-                                .any(|lib |lib.functions.contains_key(attr))
+                                .any(|lib| lib.functions.contains_key(attr))
                         {
                             output.push(Value::Str(attr.clone()));
                         } else {
@@ -133,7 +132,7 @@ impl Tokenizer {
                     .any(|class| class.functions.contains_key(token))
                 || ipl_libraries
                     .values()
-                    .any(|library | library.functions.contains_key(token))
+                    .any(|library| library.functions.contains_key(token))
             {
                 if tokens.get(i + 1) != Some(&"(".to_string()) {
                     EvaluatioError::new(format!("Function {} must be followed by (", token))
