@@ -20,6 +20,7 @@ impl Tokenizer {
         classes: &HashMap<String, Class>,
         ipl_libraries: &HashMap<String, IPL_Library>,
     ) -> Vec<Value> {
+        // println!("Tokenizing input: {}, variables: {:#?}", input, variables);
         let tokens = self.split(input);
         // println!("tokens after splitting: {:?}", tokens);
 

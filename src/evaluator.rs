@@ -80,13 +80,11 @@ impl Evaluator {
     // Evaluate a file by reading its contents and executing its lines
     pub fn ev_file(&mut self, file: &str) {
         let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
-        if self.folder.is_empty() {
-            self.folder = path
-                .parent()
-                .and_then(|p| p.to_str())
-                .unwrap_or("")
-                .to_string();
-        }
+        self.folder = path
+            .parent()
+            .and_then(|p| p.to_str())
+            .unwrap_or("")
+            .to_string();
         self.folder += "//"; // Get the folder path for imports
         let contents = fs::read_to_string(file).expect("Could not read file"); // Read file contents
 
@@ -98,22 +96,26 @@ impl Evaluator {
 
         self.lines.push("End of file".to_string()); // Add end marker to lines
 
-        self.files.insert(file.to_string(), self.lines.clone());
+        let file_path = path.to_str().unwrap_or("").to_string();
+        self.files.insert(file_path.clone(), self.lines.clone());
         self.path = path;
 
         self.indentation_stack = vec![("normal".to_string(), 0)]; // Initialize indentation stack
 
-        self.execute_lines(0, self.lines.len(), "".to_string()); // Execute the file
+        self.execute_lines(0, self.lines.len(), "".to_string(), &file_path); // Execute the file
 
         // println!("variables {:#?}", self.variables);
         // println!("classes {:#?}", self.classes);
         // println!("functions {:#?}", self.functions);
     }
 
-    fn execute_lines(&mut self, start: usize, end: usize, self_value: String) -> Value {
+    fn execute_lines(&mut self, start: usize, end: usize, self_value: String, file_path: &String) -> Value {
         let mut programm_counter: usize = start;
-
         // println!("execute_lines called with start {} and end {}", start, end);
+        
+        self.lines = self.files[file_path].clone();
+
+        // println!("Execute lines from {} to {} in file {} with lines {:#?}", start, end, file_path, self.lines);
 
         while programm_counter < end {
             // println!("At line {}", programm_counter);
@@ -176,19 +178,22 @@ impl Evaluator {
                 }
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
-                    self.evaluators.insert(file.clone(), Evaluator::new());
-                    if let Some(evaluator) = self.evaluators.get_mut(&file) {
-                        evaluator.ev_file(&file);
-                    }
-                    self.functions
-                        .extend(self.evaluators[&file].functions.clone());
-                    self.variables
-                        .extend(self.evaluators[&file].variables.clone());
-                    self.classes.extend(self.evaluators[&file].classes.clone());
 
-                    let lines = self.evaluators[&file].lines.clone();
+                    let folder = self.folder.clone();
+                    let path = self.path.clone();
+                    let indentation_stack = self.indentation_stack.clone();
+                    let lines = self.lines.clone();
 
-                    self.files.insert(file, lines);
+                    self.ev_file(&file);
+                    
+                    self.folder = folder;
+                    self.path = path;
+                    self.indentation_stack = indentation_stack;
+                    self.lines = lines;
+
+                    // println!("self.files after import: {:#?}", self.files);
+                    // println!("self.functions after import: {:#?}", self.functions);
+                    // println!("self.variables after import: {:#?}", self.variables);
 
                     programm_counter += 1;
                 }
@@ -227,7 +232,7 @@ impl Evaluator {
                     for value in iterable.iter() {
                         self.variables
                             .insert(variable_name.to_string(), value.clone());
-                        self.execute_lines(start_line, end_line, "".to_string());
+                        self.execute_lines(start_line, end_line, "".to_string(), file_path);
                     }
                     self.indentation_stack.pop();
                     programm_counter = end_line;
@@ -367,7 +372,7 @@ impl Evaluator {
                             self.classes[base_class].functions.clone();
                     }
 
-                    self.execute_lines(start_line, end_line, class_name.to_string());
+                    self.execute_lines(start_line, end_line, class_name.to_string(), file_path);
 
                     self.classes
                         .get_mut(class_name)
@@ -516,16 +521,7 @@ impl Evaluator {
 
     // Evaluate a function by name with given arguments
     fn ev_func(&mut self, function_name: &str, args: Vec<Value>) -> Value {
-        let file: &Value = &self.functions[function_name]["file"];
-        if file.to_string_value() != self.path.to_str().unwrap() {
-            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
-                // Check if evaluator for the file already exists
-                return ev.ev_func(function_name, args);
-            } else {
-                EvaluatioError::new("Evaluator for file not found".to_string()).raise();
-            }
-        }
-
+        let function_file: &Value = &self.functions[function_name]["file"].clone();
         let function_arguments: &Value = &self.functions[function_name]["arguments"].clone(); // Get function arguments
         let function_lines: &Value = &self.functions[function_name]["function_body"]; // Get function body lines
 
@@ -549,6 +545,8 @@ impl Evaluator {
             get_indentation(&self.lines[function_lines[0].as_usize()]),
         )); // Push function context to indentation stack
 
+
+        let lines = self.lines.clone();
         // Execute function lines and get result
         let result: Value = self
             .execute_lines(
@@ -556,8 +554,10 @@ impl Evaluator {
                 (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0))
                     .as_usize(),
                 "".to_string(),
+                &function_file.to_string_value(),
             )
             .clone();
+        self.lines = lines;
 
         for name in function_arguments.iter() {
             if let Some(value) = global_vars.remove(&name.to_string_value()) {
@@ -621,23 +621,8 @@ impl Evaluator {
         if !class.functions.contains_key(function_name) {
             return Value::None;
         }
-        // println!("Self.classes: {:#?}", self.classes);
-        let file = class.functions[function_name]["file"].clone();
-        if file.to_string_value() != self.path.to_str().unwrap() {
-            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
-                return ev.ev_class_func(
-                    instance_str,
-                    function_name,
-                    args,
-                    Some(instance),
-                    Some(class),
-                    false,
-                );
-            } else {
-                EvaluatioError::new("Evaluator for file not found".to_string()).raise();
-            }
-        }
 
+        let function_file: &Value = &class.functions[function_name]["file"];
         let function_arguments: &Value = &class.functions[function_name]["arguments"];
         let function_lines: &Value = &class.functions[function_name]["function_body"];
 
@@ -663,13 +648,18 @@ impl Evaluator {
             get_indentation(&self.lines[function_lines[0].as_usize()]),
         ));
 
+        let lines = self.lines.clone();
+
         let result = self.execute_lines(
             function_lines[0].as_usize(),
             (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(),
             instance_str.clone(),
+            &function_file.to_string_value(),
         );
         // println!("self.variables after function execution: {:#?}", self.variables);
         self.indentation_stack.pop();
+
+        self.lines = lines;
 
         for name in function_arguments.iter() {
             if global_vars.contains_key(&name.to_string_value()) {
