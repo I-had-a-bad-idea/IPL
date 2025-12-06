@@ -6,10 +6,20 @@ use directories::BaseDirs;
 use crate::debug::EvaluatioError;
 
 fn get_ili_path() -> PathBuf {
-    BaseDirs::new()
-        .expect("Could not locate system directory")
-        .data_dir()
-        .join("ILI")
+    #[cfg(target_os = "windows")]
+    {
+        PathBuf::from(std::env::var("PROGRAMDATA").unwrap()).join("ILI")
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        PathBuf::from("/usr/local/share/ILI")
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        PathBuf::from("/Library/Application Support/ILI")
+    }
 }
 
 fn load_library_json(path: &Path) -> String {
@@ -46,6 +56,7 @@ fn extract_string(line: &str) -> Option<String> {
 pub fn get_library_entry_path(libary_name: &str) -> PathBuf {
     let libs_dir: PathBuf = PathBuf::from(get_ili_path()).join("libs");
     let path: PathBuf = libs_dir.join(libary_name);
+    println!("Loading library from path: {:?}", path);
     if !path.exists() {
         EvaluatioError::new("Library doesnt exist".to_string()).raise();
     }
