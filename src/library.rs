@@ -1,10 +1,16 @@
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
+use directories::BaseDirs;
 
 use crate::debug::EvaluatioError;
 
-const ILI_PATH: &str = "C:\\ProgramData\\ILI";
+fn get_ili_path() -> PathBuf {
+    BaseDirs::new()
+        .expect("Could not locate system directory")
+        .data_dir()
+        .join("ILI")
+}
 
 fn load_library_json(path: &Path) -> String {
     let raw = fs::read_to_string(&path).ok();
@@ -38,7 +44,7 @@ fn extract_string(line: &str) -> Option<String> {
 }
 
 pub fn get_library_entry_path(libary_name: &str) -> PathBuf {
-    let libs_dir: PathBuf = PathBuf::from(ILI_PATH).join("libs");
+    let libs_dir: PathBuf = PathBuf::from(get_ili_path()).join("libs");
     let path: PathBuf = libs_dir.join(libary_name);
     if !path.exists() {
         EvaluatioError::new("Library doesnt exist".to_string()).raise();
