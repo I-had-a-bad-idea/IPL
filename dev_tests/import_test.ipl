@@ -1,0 +1,10 @@
+import import_test_import_file.ipl
+
+
+a = 100
+b = 200
+
+c = add(a, b)
+
+out("c: ")
+out(c)
