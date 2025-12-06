@@ -158,6 +158,10 @@ impl Evaluator {
             match line.split(" ").collect::<Vec<_>>()[0] {
                 "use" => {
                     let lib_name = line.split(" ").collect::<Vec<_>>()[1];
+                    if self.ipl_libraries.contains_key(lib_name) {
+                        programm_counter += 1;
+                        continue;
+                    }
                     let lib_path = get_library_entry_path(lib_name)
                         .to_str()
                         .unwrap()
