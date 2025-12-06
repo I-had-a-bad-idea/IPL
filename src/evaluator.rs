@@ -114,6 +114,10 @@ impl Evaluator {
     fn execute_lines(&mut self, start: usize, end: usize, self_value: String, file_path: &String) -> Value {
         let mut programm_counter: usize = start;
         // println!("execute_lines called with start {} and end {}", start, end);
+        
+        self.lines = self.files[file_path].clone();
+
+        // println!("Execute lines from {} to {} in file {} with lines {:#?}", start, end, file_path, self.lines);
 
         while programm_counter < end {
             // println!("At line {}", programm_counter);
@@ -516,15 +520,6 @@ impl Evaluator {
 
     // Evaluate a function by name with given arguments
     fn ev_func(&mut self, function_name: &str, args: Vec<Value>) -> Value {
-        let file: &Value = &self.functions[function_name]["file"];
-        if file.to_string_value() != self.path.to_str().unwrap() {
-            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
-                // Check if evaluator for the file already exists
-                return ev.ev_func(function_name, args);
-            } else {
-                EvaluatioError::new("Evaluator for file not found".to_string()).raise();
-            }
-        }
         let function_file: &Value = &self.functions[function_name]["file"].clone();
         let function_arguments: &Value = &self.functions[function_name]["arguments"].clone(); // Get function arguments
         let function_lines: &Value = &self.functions[function_name]["function_body"]; // Get function body lines
@@ -549,6 +544,8 @@ impl Evaluator {
             get_indentation(&self.lines[function_lines[0].as_usize()]),
         )); // Push function context to indentation stack
 
+
+        let lines = self.lines.clone();
         // Execute function lines and get result
         let result: Value = self
             .execute_lines(
@@ -559,6 +556,7 @@ impl Evaluator {
                 &function_file.to_string_value(),
             )
             .clone();
+        self.lines = lines;
 
         for name in function_arguments.iter() {
             if let Some(value) = global_vars.remove(&name.to_string_value()) {
@@ -622,23 +620,8 @@ impl Evaluator {
         if !class.functions.contains_key(function_name) {
             return Value::None;
         }
-        // println!("Self.classes: {:#?}", self.classes);
-        let file = class.functions[function_name]["file"].clone();
-        if file.to_string_value() != self.path.to_str().unwrap() {
-            if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
-                return ev.ev_class_func(
-                    instance_str,
-                    function_name,
-                    args,
-                    Some(instance),
-                    Some(class),
-                    false,
-                );
-            } else {
-                EvaluatioError::new("Evaluator for file not found".to_string()).raise();
-            }
-        }
 
+        let function_file: &Value = &class.functions[function_name]["file"];
         let function_arguments: &Value = &class.functions[function_name]["arguments"];
         let function_lines: &Value = &class.functions[function_name]["function_body"];
 
@@ -664,14 +647,18 @@ impl Evaluator {
             get_indentation(&self.lines[function_lines[0].as_usize()]),
         ));
 
+        let lines = self.lines.clone();
+
         let result = self.execute_lines(
             function_lines[0].as_usize(),
             (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(),
             instance_str.clone(),
-            &file.to_string_value(),
+            &function_file.to_string_value(),
         );
         // println!("self.variables after function execution: {:#?}", self.variables);
         self.indentation_stack.pop();
+
+        self.lines = lines;
 
         for name in function_arguments.iter() {
             if global_vars.contains_key(&name.to_string_value()) {
