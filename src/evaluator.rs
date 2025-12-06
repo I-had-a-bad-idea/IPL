@@ -98,21 +98,21 @@ impl Evaluator {
 
         self.lines.push("End of file".to_string()); // Add end marker to lines
 
-        self.files.insert(file.to_string(), self.lines.clone());
+        let file_path = path.to_str().unwrap_or("").to_string();
+        self.files.insert(file_path.clone(), self.lines.clone());
         self.path = path;
 
         self.indentation_stack = vec![("normal".to_string(), 0)]; // Initialize indentation stack
 
-        self.execute_lines(0, self.lines.len(), "".to_string()); // Execute the file
+        self.execute_lines(0, self.lines.len(), "".to_string(), &file_path); // Execute the file
 
         // println!("variables {:#?}", self.variables);
         // println!("classes {:#?}", self.classes);
         // println!("functions {:#?}", self.functions);
     }
 
-    fn execute_lines(&mut self, start: usize, end: usize, self_value: String) -> Value {
+    fn execute_lines(&mut self, start: usize, end: usize, self_value: String, file_path: &String) -> Value {
         let mut programm_counter: usize = start;
-
         // println!("execute_lines called with start {} and end {}", start, end);
 
         while programm_counter < end {
@@ -227,7 +227,7 @@ impl Evaluator {
                     for value in iterable.iter() {
                         self.variables
                             .insert(variable_name.to_string(), value.clone());
-                        self.execute_lines(start_line, end_line, "".to_string());
+                        self.execute_lines(start_line, end_line, "".to_string(), file_path);
                     }
                     self.indentation_stack.pop();
                     programm_counter = end_line;
@@ -367,7 +367,7 @@ impl Evaluator {
                             self.classes[base_class].functions.clone();
                     }
 
-                    self.execute_lines(start_line, end_line, class_name.to_string());
+                    self.execute_lines(start_line, end_line, class_name.to_string(), file_path);
 
                     self.classes
                         .get_mut(class_name)
@@ -525,7 +525,7 @@ impl Evaluator {
                 EvaluatioError::new("Evaluator for file not found".to_string()).raise();
             }
         }
-
+        let function_file: &Value = &self.functions[function_name]["file"].clone();
         let function_arguments: &Value = &self.functions[function_name]["arguments"].clone(); // Get function arguments
         let function_lines: &Value = &self.functions[function_name]["function_body"]; // Get function body lines
 
@@ -556,6 +556,7 @@ impl Evaluator {
                 (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0))
                     .as_usize(),
                 "".to_string(),
+                &function_file.to_string_value(),
             )
             .clone();
 
@@ -667,6 +668,7 @@ impl Evaluator {
             function_lines[0].as_usize(),
             (function_lines[function_lines.length() - 1].clone() + Value::Number(1.0)).as_usize(),
             instance_str.clone(),
+            &file.to_string_value(),
         );
         // println!("self.variables after function execution: {:#?}", self.variables);
         self.indentation_stack.pop();
