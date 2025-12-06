@@ -80,13 +80,11 @@ impl Evaluator {
     // Evaluate a file by reading its contents and executing its lines
     pub fn ev_file(&mut self, file: &str) {
         let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
-        if self.folder.is_empty() {
-            self.folder = path
-                .parent()
-                .and_then(|p| p.to_str())
-                .unwrap_or("")
-                .to_string();
-        }
+        self.folder = path
+            .parent()
+            .and_then(|p| p.to_str())
+            .unwrap_or("")
+            .to_string();
         self.folder += "//"; // Get the folder path for imports
         let contents = fs::read_to_string(file).expect("Could not read file"); // Read file contents
 
@@ -180,19 +178,22 @@ impl Evaluator {
                 }
                 "import" => {
                     let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
-                    self.evaluators.insert(file.clone(), Evaluator::new());
-                    if let Some(evaluator) = self.evaluators.get_mut(&file) {
-                        evaluator.ev_file(&file);
-                    }
-                    self.functions
-                        .extend(self.evaluators[&file].functions.clone());
-                    self.variables
-                        .extend(self.evaluators[&file].variables.clone());
-                    self.classes.extend(self.evaluators[&file].classes.clone());
 
-                    let lines = self.evaluators[&file].lines.clone();
+                    let folder = self.folder.clone();
+                    let path = self.path.clone();
+                    let indentation_stack = self.indentation_stack.clone();
+                    let lines = self.lines.clone();
 
-                    self.files.insert(file, lines);
+                    self.ev_file(&file);
+                    
+                    self.folder = folder;
+                    self.path = path;
+                    self.indentation_stack = indentation_stack;
+                    self.lines = lines;
+
+                    // println!("self.files after import: {:#?}", self.files);
+                    // println!("self.functions after import: {:#?}", self.functions);
+                    // println!("self.variables after import: {:#?}", self.variables);
 
                     programm_counter += 1;
                 }
