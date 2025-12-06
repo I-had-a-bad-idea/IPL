@@ -8,8 +8,6 @@
 ![Repo Size](https://img.shields.io/github/repo-size/I-had-a-bad-idea/IPL)
 ![Contributors](https://img.shields.io/github/contributors/I-had-a-bad-idea/IPL)
 
-On this branch the imports are being optimized.
-
 # IPL (Interpreted Programming Language)
 
 A simple interpreted programming language implemented in Rust.
