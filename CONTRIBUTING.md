@@ -100,8 +100,8 @@ dev_tests/                # Contains ipl-files, you can use when developing
 
 ### High Priority
 * Make indexing
+* Make classes from libraries work
 * Refactor code for clarity and maintainability
-* Add more built-in functions
 * Write more tests
 * Add documentation
 
@@ -109,12 +109,12 @@ dev_tests/                # Contains ipl-files, you can use when developing
 
 * Access modifiers (public/private/protected)
 * Namespaces or module system
-* Standard library development (already in [development](https://github.com/I-had-a-bad-idea/IPL/tree/library))
+* Built-in (rust) libraries 
 
 ### Low Priority
 
 These aren't essential right now, but contributions here are still welcome:
-* Add more built-ins to the SYNTAX.md
+* Add more built-in functions
 * Improve performance of the interpreter (e.g. optimize evaluation logic)
 * Add more examples to the examples/ directory
 * Write benchmark tests for interpreter performance
