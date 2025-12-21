@@ -1,7 +1,6 @@
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
-use directories::BaseDirs;
 
 use crate::debug::EvaluatioError;
 
