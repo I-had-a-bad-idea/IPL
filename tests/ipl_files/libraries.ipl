@@ -1,6 +1,3 @@
-use examplelib
-
-
 # This requires ILI with the examplelib library
 
 use examplelib
