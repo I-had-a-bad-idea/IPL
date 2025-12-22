@@ -24,3 +24,7 @@ test = examplelib.Test()
 number = test.number # Should be 10
 out("test number")
 out(number)
+
+
+out("test.hello_world")
+test.hello_world()
