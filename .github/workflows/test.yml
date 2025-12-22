@@ -43,6 +43,9 @@ jobs:
     
     - name: Install test library
       run: ili install examplelib
+    
+    - name: List installed libs
+      run: ili list
 
     - name: Build
       run: cargo build --release
