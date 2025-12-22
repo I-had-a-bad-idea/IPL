@@ -8,7 +8,7 @@ use crate::debug::EvaluatioError;
 use crate::library::get_library_entry_path;
 use crate::state;
 use crate::tokenizer::Tokenizer;
-use crate::value::Value;
+use crate::value::{Value, ClassStr};
 
 // Define Class, Instance, and Value types for the evaluator
 
@@ -20,13 +20,14 @@ pub struct Class {
 
 #[derive(Debug, Clone)]
 pub struct Instance {
-    pub class: String,
+    pub class: ClassStr,
     variables: HashMap<String, Value>,
 }
 
 #[allow(non_camel_case_types)] // For readability
 #[derive(Debug, Clone)]
 pub struct IPL_Library {
+    pub lib_name: String,
     pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, HashMap<String, Value>>,
     pub classes: HashMap<String, Class>,
@@ -171,6 +172,7 @@ impl Evaluator {
                         evaluator.ev_file(&lib_path);
                     }
                     let ipl_lib = IPL_Library {
+                        lib_name: lib_name.to_string(),
                         functions: self.evaluators[&lib_path].functions.clone(),
                         variables: self.evaluators[&lib_path].variables.clone(),
                         classes: self.evaluators[&lib_path].classes.clone(),
@@ -587,7 +589,7 @@ impl Evaluator {
     ) -> Value {
         // println!("ev_class_func called with instance: {}, function: {}, args: {:?}, instance_opt:{:?}", instance_str, function_name, args, instance_opt);
         let mut instance: Instance = Instance {
-            class: "".to_string(),
+            class: ClassStr { class_name: "".to_string(), lib_name: "".to_string()},
             variables: HashMap::new(),
         };
         if !static_func {
@@ -612,13 +614,13 @@ impl Evaluator {
         };
         if class_opt.is_some() {
             class = class_opt.unwrap();
-            self.classes.insert(instance.class.clone(), class.clone());
-        } else if !self.classes.contains_key(&instance.class) {
+            self.classes.insert(instance.class.class_name.clone(), class.clone());
+        } else if !self.classes.contains_key(&instance.class.class_name) {
             EvaluatioError::new("Class not in classes".to_string()).raise();
         } else {
             class = self
                 .classes
-                .get(&instance.class)
+                .get(&instance.class.class_name)
                 .expect("Class not found")
                 .clone();
         }
@@ -774,7 +776,7 @@ impl Evaluator {
                     self.ev_func(function_name, args)
                 } else if self.classes.contains_key(function_name) {
                     let instance = Instance {
-                        class: function_name.to_string(),
+                        class: ClassStr { class_name: function_name.to_string(), lib_name: "".to_string() },
                         variables: self.classes[function_name].variables.clone(),
                     };
                     self.ev_class_func(
@@ -807,8 +809,8 @@ impl Evaluator {
                     Value::Instance(inst) => {
                         if inst.variables.contains_key(&attribute.to_string_value()) {
                             stack.push(inst.variables[&attribute.to_string_value()].clone());
-                        } else if self.classes.contains_key(&inst.class) {
-                            let class = &self.classes[&inst.class];
+                        } else if self.classes.contains_key(&inst.class.class_name) {
+                            let class = &self.classes[&inst.class.class_name];
                             if class.functions.contains_key(&attribute.to_string_value()) {
                                 let function_name = &attribute.to_string_value();
                                 let mut args: Vec<Value> = vec![];
@@ -850,6 +852,8 @@ impl Evaluator {
                         let attribute_str = attribute.to_string_value();
                         if lib.variables.contains_key(&attribute_str) {
                             stack.push(lib.variables[&attribute_str].clone());
+                        } else if lib.classes.contains_key(&attribute_str){
+                            stack.push(Value::ClassStr(ClassStr { class_name: attribute_str, lib_name: lib.lib_name }));
                         } else if lib.functions.contains_key(&attribute_str) {
                             let function_name = &attribute.to_string_value();
                             let mut args: Vec<Value> = vec![];
@@ -875,8 +879,6 @@ impl Evaluator {
                             );
                             stack.push(result);
                             i += 1; // Skip the next token which is the argument list
-                        } else if lib.classes.contains_key(&attribute_str) {
-                            stack.push(Value::Str(attribute_str));
                         } else {
                             EvaluatioError::new("No valid attribute on library".to_string())
                                 .raise();
@@ -922,6 +924,53 @@ impl Evaluator {
                                 args,
                                 None,
                                 Some(self.classes[&class_str].clone()),
+                                true,
+                            );
+                            stack.push(result);
+                            i += 1; // Skip the next token which is the argument list
+                        }
+                    }
+                    Value::ClassStr(class_str) =>{
+                        let lib_name = class_str.lib_name;
+                        if !self.ipl_libraries[&lib_name].classes.contains_key(&class_str.class_name) {
+                            EvaluatioError::new("Left side of '.' is not a class".to_string())
+                                .raise();
+                        }
+                        if self.ipl_libraries[&lib_name].classes[&class_str.class_name]
+                            .variables
+                            .contains_key(&attribute.to_string_value())
+                        {
+                            stack.push(
+                                self.ipl_libraries[&lib_name].classes[&class_str.class_name].variables[&attribute.to_string_value()]
+                                    .clone(),
+                            );
+                        } else if self.ipl_libraries[&lib_name].classes[&class_str.class_name]
+                            .functions
+                            .contains_key(&attribute.to_string_value())
+                        {
+                            let function_name = &attribute.to_string_value();
+                            let mut args: Vec<Value> = vec![];
+                            let function_args = tokens.get(i + 2);
+                            for arg in function_args.unwrap_or(&Value::None).iter() {
+                                if let Value::Str(s) = arg {
+                                    let evaluated_arg = self.ev_expr(s);
+                                    args.push(evaluated_arg);
+                                } else {
+                                    args.push(arg.clone());
+                                }
+                            }
+                            if args.len() == 1
+                                && args[0].to_string_value() == Value::None.to_string_value()
+                            {
+                                args = vec![];
+                            }
+                            // println!("Class function {} called with arguments: {:?}", function_name, args);
+                            let result = self.ev_class_func(
+                                tokens[i - 1].to_string_value(),
+                                function_name,
+                                args,
+                                None,
+                                Some(self.ipl_libraries[&lib_name].classes[&class_str.class_name].clone()),
                                 true,
                             );
                             stack.push(result);

@@ -5,6 +5,12 @@ use std::ops::{Add, Div, Mul, Sub};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
+pub struct ClassStr{
+    pub class_name: String,
+    pub lib_name: String,
+}
+
+#[derive(Debug, Clone)]
 pub enum Value {
     Number(f64),
     List(Vec<Value>),
@@ -14,6 +20,7 @@ pub enum Value {
     Instance(Instance),
     #[allow(non_camel_case_types)] // For readability
     IPL_Library(IPL_Library),
+    ClassStr(ClassStr),
     None,
 }
 
