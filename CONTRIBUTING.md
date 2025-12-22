@@ -100,7 +100,6 @@ dev_tests/                # Contains ipl-files, you can use when developing
 
 ### High Priority
 * Make indexing
-* Make classes from libraries work
 * Refactor code for clarity and maintainability
 * Write more tests
 * Add documentation
@@ -120,7 +119,7 @@ These aren't essential right now, but contributions here are still welcome:
 * Write benchmark tests for interpreter performance
 * Improve error messages
 * Add .ipl file syntax checking (ipl check file.ipl)
-* Add debug flags (e.g. --trace, --ast)
+* Add debug flags 
 
 ---
 
