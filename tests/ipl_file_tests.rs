@@ -57,5 +57,5 @@ fn test_libraries() {
     assert!(output.contains("13"));
     assert!(output.contains("16"));
     assert!(output.contains("10"));
-    // assert!(output.contains("Hello World"));
+    assert!(output.contains("Hello World"));
 }

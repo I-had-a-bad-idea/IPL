@@ -24,3 +24,4 @@ number = test.number # Should be 10
 
 out(number)
 
+test.hello_world()
