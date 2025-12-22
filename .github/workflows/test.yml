@@ -29,6 +29,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
 
+    - name: Install ILI
+      run: |
+        git clone https://github.com/I-had-a-bad-idea/ILI.git
+        cargo install --path ILI
+    
+    - name: Install test library
+      run: ili install examplelib
+
     - name: Build
       run: cargo build --release
 
