@@ -715,6 +715,43 @@ impl Evaluator {
         }
     }
 
+    fn ev_lib_class_func(
+        &mut self,
+        lib_name: String,
+        class_name: String,
+        instance_str: String,
+        function_name: &str,
+        args: Vec<Value>,
+        instance_opt: Option<Instance>,
+        class_opt: Option<Class>,
+        static_func: bool,
+    ) -> Value {
+        if self.ipl_libraries.contains_key(&lib_name) {
+            let class_functions = self.ipl_libraries[&lib_name].classes[&class_name].functions.clone();
+            if !class_functions.contains_key(function_name) {
+                EvaluatioError::new("Class function was not found in library".to_string()).raise();
+                return Value::None;
+            }
+            let file = class_functions[function_name]["file"].clone();
+            if file.to_string_value() != self.path.to_str().unwrap() {
+                if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
+                    // println!("Calling ev_lib_func on: {:?}", file);
+                    return ev.ev_lib_class_func(lib_name, class_name, instance_str, function_name, args, instance_opt, class_opt, static_func);
+                } else {
+                    EvaluatioError::new("Evaluator for file not found".to_string()).raise();
+                    Value::None
+                }
+            } else {
+                EvaluatioError::new("This shouldnt happen, tell the dev(s) that the ev_lib_func found the lib in self.ipl_libraries, although its already in the lib file".to_string()).raise();
+                Value::None
+            }
+        } else {
+            let result = self.ev_class_func(instance_str, function_name, args, instance_opt, class_opt, static_func);
+            // println!("Result for ev_lib_func: {:?}", result);
+            result
+        }
+    }
+
     fn ev_expr(&mut self, expr: &str) -> Value {
         let tokens = self.tokenizer.tokenize(
             expr,
@@ -965,7 +1002,9 @@ impl Evaluator {
                                 args = vec![];
                             }
                             // println!("Class function {} called with arguments: {:?}", function_name, args);
-                            let result = self.ev_class_func(
+                            let result = self.ev_lib_class_func(
+                                lib_name.clone(),
+                                class_str.class_name.clone(),
                                 tokens[i - 1].to_string_value(),
                                 function_name,
                                 args,
