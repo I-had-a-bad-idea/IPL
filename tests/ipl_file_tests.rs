@@ -52,7 +52,7 @@ fn test_import() {
 }
 #[test]
 fn test_libraries() {
-    let output = run_ipl_file("test/ipl_files/libraries.ipl");
+    let output = run_ipl_file("tests/ipl_files/libraries.ipl");
     assert!(output.contains("3"));
     assert!(output.contains("13"));
     assert!(output.contains("16"));
