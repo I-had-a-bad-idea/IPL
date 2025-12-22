@@ -28,7 +28,12 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-
-
+    
+    - name: Configure ILI test paths
+      run: |
+        mkdir -p $HOME/.ili
+        echo "ILI_PATH=$HOME/.ili" >> $GITHUB_ENV
+  
     - name: Install ILI
       run: |
         git clone https://github.com/I-had-a-bad-idea/ILI.git
