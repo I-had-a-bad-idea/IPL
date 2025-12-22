@@ -62,7 +62,7 @@ fn extract_string(line: &str) -> Option<String> {
 pub fn get_library_entry_path(libary_name: &str) -> PathBuf {
     let libs_dir: PathBuf = PathBuf::from(get_ili_path()).join("libs");
     let path: PathBuf = libs_dir.join(libary_name);
-    println!("Loading library from path: {:?}", path);
+    
     if !path.exists() {
         EvaluatioError::new("Library doesnt exist".to_string()).raise();
     }

@@ -50,3 +50,12 @@ fn test_import() {
     assert!(output.contains("Woof"));
     assert!(output.contains("Some sound"));
 }
+#[test]
+fn test_libraries() {
+    let output = run_ipl_file("test/ipl_files/libraries.ipl");
+    assert!(output.contains("3"));
+    assert!(output.contains("13"));
+    assert!(output.contains("16"));
+    assert!(output.contains("10"));
+    // assert!(output.contains("Hello World"));
+}
