@@ -47,6 +47,13 @@ jobs:
     - name: List installed libs
       run: ili list
 
+    - name: Check examplelib entry
+      run: |
+        echo "Library folder contents:"
+        ls -R $ILI_PATH/libs/examplelib
+        echo "Library.json contents:"
+        cat $ILI_PATH/libs/examplelib/Library.json
+
     - name: Build
       run: cargo build --release
 
