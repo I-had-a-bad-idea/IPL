@@ -1,7 +1,7 @@
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
 use crate::evaluator::{Class, IPL_Library};
-use crate::value::Value;
+use crate::value::{IndexValue, Value};
 use regex::Regex;
 use std::collections::HashMap;
 
@@ -177,8 +177,8 @@ impl Tokenizer {
             }
             else if token == "[" {
                 if let Some(last_value) = output.pop() {
-                    if last_value.is_list() {
-                        println!("Processing list indexing for value: {:?}", last_value);
+                    if last_value.is_string() {
+                        println!("Processing indexing for value: {:?}", last_value);
                         let mut index_string = "".to_string();
                         while let Some(next_token) = tokens.get(i + 1) {
                             if next_token == "]" {
@@ -275,27 +275,15 @@ impl Tokenizer {
             } else {
                 list.length()
             };
-            
-            if let Value::List(v) = list {
-                let sliced = v[start..end.min(v.len())].to_vec();
-                Value::List(sliced)
-            } else {
-                EvaluatioError::new("Cannot slice non-list value".to_string()).raise();
-                Value::None
+
+            if start > end {
+                EvaluatioError::new("Start index cannot be greater than end index".to_string()).raise();
             }
+
+            return Value::IndexValue(IndexValue{start: start, end: end});
         } else { // Single index
             let index: usize = index_string.trim().parse().unwrap_or(0);
-            if let Value::List(v) = list {
-                if index < v.len() {
-                    v[index].clone()
-                } else {
-                    EvaluatioError::new("Index out of bounds".to_string()).raise();
-                    Value::None
-                }
-            } else {
-                EvaluatioError::new("Cannot index non-list value".to_string()).raise();
-                Value::None
+            return  Value::IndexValue(IndexValue { start: index, end: index });
             }
-        }
     }
 }
