@@ -28,7 +28,7 @@ impl Tokenizer {
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
-        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#;
+        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],:]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#;
 
         let re = Regex::new(token_pattern).unwrap();
         let tokens: Vec<String> = re
@@ -265,6 +265,7 @@ impl Tokenizer {
         // println!("Getting index '{}' from list {:?}", index_string, list);
         if index_string.contains(":"){ // List index
             let parts: Vec<&str> = index_string.split(':').collect();
+            // println!("Parts: {:?}", parts);
             let start: usize = if parts[0].is_empty() {
                 0
             } else {

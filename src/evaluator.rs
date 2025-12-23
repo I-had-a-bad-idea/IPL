@@ -1029,6 +1029,7 @@ impl Evaluator {
                 let list = stack.pop().expect("No list to index").as_list().unwrap_or(vec![]);
                 let start = index_value.start;
                 let end = index_value.end;
+                // println!("Indexing from {} to {} in list {:?}", start, end, list);
                 if start >= list.len() || end >= list.len() {
                     EvaluatioError::new("Index out of bounds".to_string()).raise();
                 }

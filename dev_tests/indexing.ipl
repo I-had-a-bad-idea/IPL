@@ -1,11 +1,7 @@
 list = [1, 2, 3, 4, 5]
 
-out(list)
-
-test = [1, 2, 3 4, 5][0]
-
-out(test)
-
 first = list[0]
+rest= list[1:4]
 
 out(first)
+out(rest)
