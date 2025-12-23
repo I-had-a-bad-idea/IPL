@@ -5,6 +5,27 @@ This document is a concise, example-driven reference for the IPL syntax used by 
 
 If anything below looks different from what you expect, tell me.
 
+## Table of Contents
+
+- [IPL — Language Syntax Reference](#ipl--language-syntax-reference)
+  - [Table of Contents](#table-of-contents)
+  - [Quick overview](#quick-overview)
+  - [1. Lexical elements](#1-lexical-elements)
+  - [2. Literals](#2-literals)
+  - [3. Expressions and operators](#3-expressions-and-operators)
+  - [4. Assignment](#4-assignment)
+  - [5. Functions](#5-functions)
+  - [6. Control flow](#6-control-flow)
+  - [7. Lists, iteration and indexing](#7-lists-iteration-and-indexing)
+    - [7.1 Lists](#71-lists)
+    - [7.2 Iteration](#72-iteration)
+    - [7.3 Indexing and slicing](#73-indexing-and-slicing)
+  - [8. Classes and objects](#8-classes-and-objects)
+  - [10. Modules / Import](#10-modules--import)
+  - [11. Libraries](#11-libraries)
+  - [12. Built-ins and common functions](#12-built-ins-and-common-functions)
+  - [13. Example snippets](#13-example-snippets)
+
 ## Quick overview
 
 - IPL is indentation-significant: block structure is determined by consistent indentation (spaces are recommended).
@@ -111,11 +132,30 @@ for number in list
 
 Control keywords: `continue`  `break` work just like in other languages.
 
-## 7. Lists and iteration
+## 7. Lists, iteration and indexing
 
-Lists are written with square brackets and comma-separated elements: `[1, 2, 3]`. `for <var> in <iterable>` iterates over lists or other iterable values.
+### 7.1 Lists
 
-Indexing and slicing syntax are currently not implemented.
+Lists are written with square brackets and comma-separated elements: `[1, 2, 3]`.
+
+### 7.2 Iteration
+
+`for <var> in <iterable>` iterates over lists.
+
+Each iteration assigns the next element to `<var>`.
+
+### 7.3 Indexing and slicing
+Index looks like this:
+
+```
+list = [1, 2, 3, 4, 5]
+value = list[0]        # value is 1
+sublist = list[1:4]    # sublist is [2, 3, 4, 5]
+```
+
+There are two ways to index/slice:
+- Single index: `list[index]` gets the element at `index` (0-based).
+- Slice: `list[start:end]` gets a sublist from `start` (inclusive) to `end` (inclusive).
 
 ## 8. Classes and objects
 

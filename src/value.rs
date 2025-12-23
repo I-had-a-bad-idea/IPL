@@ -11,6 +11,12 @@ pub struct ClassStr{
 }
 
 #[derive(Debug, Clone)]
+pub struct IndexValue{
+    pub start: usize,
+    pub end: usize,
+}
+
+#[derive(Debug, Clone)]
 pub enum Value {
     Number(f64),
     List(Vec<Value>),
@@ -21,6 +27,7 @@ pub enum Value {
     #[allow(non_camel_case_types)] // For readability
     IPL_Library(IPL_Library),
     ClassStr(ClassStr),
+    IndexValue(IndexValue),
     None,
 }
 
@@ -142,6 +149,12 @@ impl Value {
             _ => true,
         }
     }
+    pub fn as_list(&self) -> Option<Vec<Value>> {
+        match self {
+            Value::List(v) => Some(v.to_vec()),
+            _ => None,
+        }
+    }
     pub fn to_string_value(&self) -> String {
         match self {
             Value::Number(n) => n.to_string(),
@@ -149,6 +162,10 @@ impl Value {
             Value::Str(s) => s.clone(),
             Value::Path(p) => p.to_str().unwrap_or("").to_string(),
             Value::None => "None".into(),
+            Value::List(v) => {
+                let elements: Vec<String> = v.iter().map(|val| val.to_string_value()).collect();
+                format!("[{}]", elements.join(", "))
+            }
             _ => "".to_string(),
         }
     }
@@ -173,5 +190,26 @@ impl Value {
     }
     pub fn is_none_value(&self) -> bool {
         matches!(self, Value::None)
+    }
+    pub fn is_number(&self) -> bool {
+        matches!(self, Value::Number(_))
+    }
+    pub fn is_string(&self) -> bool {
+        matches!(self, Value::Str(_))
+    }
+    pub fn is_bool(&self) -> bool {
+        matches!(self, Value::Bool(_))
+    }
+    pub fn is_list(&self) -> bool {
+        matches!(self, Value::List(_))
+    }
+    pub fn is_instance(&self) -> bool {
+        matches!(self, Value::Instance(_))
+    }
+    pub fn is_ipl_library(&self) -> bool {
+        matches!(self, Value::IPL_Library(_))
+    }
+    pub fn is_class_str(&self) -> bool {
+        matches!(self, Value::ClassStr(_))
     }
 }
