@@ -20,9 +20,9 @@ impl Tokenizer {
         classes: &HashMap<String, Class>,
         ipl_libraries: &HashMap<String, IPL_Library>,
     ) -> Vec<Value> {
-        println!("Tokenizing input: {}, variables: {:#?}", input, variables);
+        // println!("Tokenizing input: {}, variables: {:#?}", input, variables);
         let tokens = self.split(input);
-        println!("tokens after splitting: {:?}", tokens);
+        // println!("tokens after splitting: {:?}", tokens);
 
         self.shunting_yard(tokens, &variables, &functions, &classes, &ipl_libraries)
     }
@@ -176,9 +176,9 @@ impl Tokenizer {
                 stack.push(Value::Str(token.clone()));
             }
             else if token == "[" {
-                if let Some(last_value) = output.pop() {
+                if let Some(last_value) = output.last() {
                     if last_value.is_string() {
-                        println!("Processing indexing for value: {:?}", last_value);
+                        // println!("Processing indexing for value: {:?}", last_value);
                         let mut index_string = "".to_string();
                         while let Some(next_token) = tokens.get(i + 1) {
                             if next_token == "]" {
@@ -190,7 +190,7 @@ impl Tokenizer {
                                 i += 1;
                             }
                         }
-                        let value_at_index = self.get_index(&last_value, index_string);
+                        let value_at_index = self.get_index(last_value, index_string);
                         output.push(value_at_index);
                         i += 1;
                         continue;
@@ -208,7 +208,7 @@ impl Tokenizer {
                             i += 1;
                             continue;
                         }
-                        println!("Pushing element: {}", element);
+                        // println!("Pushing element: {}", element);
                         list_elements.push(self.str_to_datatype(&element));
                         element.clear();
                         i += 1;
@@ -262,7 +262,7 @@ impl Tokenizer {
         output
     }
     fn get_index(&self, list: &Value, index_string: String) -> Value {
-        println!("Getting index '{}' from list {:?}", index_string, list);
+        // println!("Getting index '{}' from list {:?}", index_string, list);
         if index_string.contains(":"){ // List index
             let parts: Vec<&str> = index_string.split(':').collect();
             let start: usize = if parts[0].is_empty() {

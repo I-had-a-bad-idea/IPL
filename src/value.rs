@@ -149,9 +149,9 @@ impl Value {
             _ => true,
         }
     }
-    pub fn as_list(&self) -> Option<&Vec<Value>> {
+    pub fn as_list(&self) -> Option<Vec<Value>> {
         match self {
-            Value::List(v) => Some(v),
+            Value::List(v) => Some(v.to_vec()),
             _ => None,
         }
     }
