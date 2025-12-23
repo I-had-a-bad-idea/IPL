@@ -11,6 +11,12 @@ pub struct ClassStr{
 }
 
 #[derive(Debug, Clone)]
+pub struct IndexValue{
+    pub start: usize,
+    pub end: usize,
+}
+
+#[derive(Debug, Clone)]
 pub enum Value {
     Number(f64),
     List(Vec<Value>),
@@ -21,6 +27,7 @@ pub enum Value {
     #[allow(non_camel_case_types)] // For readability
     IPL_Library(IPL_Library),
     ClassStr(ClassStr),
+    IndexValue(IndexValue),
     None,
 }
 
@@ -140,6 +147,12 @@ impl Value {
             Value::Str(s) => !s.is_empty(),
             Value::None => false,
             _ => true,
+        }
+    }
+    pub fn as_list(&self) -> Option<&Vec<Value>> {
+        match self {
+            Value::List(v) => Some(v),
+            _ => None,
         }
     }
     pub fn to_string_value(&self) -> String {
