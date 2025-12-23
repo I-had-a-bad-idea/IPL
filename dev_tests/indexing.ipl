@@ -1,0 +1,7 @@
+list = [1, 2, 3, 4, 5]
+
+out(list)
+
+first = list[0]
+
+out(first)
