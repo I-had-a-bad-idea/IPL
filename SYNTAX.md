@@ -9,24 +9,34 @@ If anything below looks different from what you expect, tell me.
 
 - [IPL — Language Syntax Reference](#ipl--language-syntax-reference)
   - [Table of Contents](#table-of-contents)
-  - [Quick overview](#quick-overview)
+  - [0. Quick overview](#0-quick-overview)
   - [1. Lexical elements](#1-lexical-elements)
   - [2. Literals](#2-literals)
   - [3. Expressions and operators](#3-expressions-and-operators)
   - [4. Assignment](#4-assignment)
   - [5. Functions](#5-functions)
   - [6. Control flow](#6-control-flow)
+    - [6.1 If/elif/else:](#61-ifelifelse)
+    - [6.2 Loops:](#62-loops)
   - [7. Lists, iteration and indexing](#7-lists-iteration-and-indexing)
     - [7.1 Lists](#71-lists)
     - [7.2 Iteration](#72-iteration)
     - [7.3 Indexing and slicing](#73-indexing-and-slicing)
   - [8. Classes and objects](#8-classes-and-objects)
-  - [10. Modules / Import](#10-modules--import)
-  - [11. Libraries](#11-libraries)
-  - [12. Built-ins and common functions](#12-built-ins-and-common-functions)
-  - [13. Example snippets](#13-example-snippets)
+    - [8.1 Definition and usage](#81-definition-and-usage)
+  - [8.2 Static functions](#82-static-functions)
+  - [9. Modules / Import](#9-modules--import)
+  - [10. Libraries](#10-libraries)
+    - [10.1 ILI](#101-ili)
+    - [10.2 Using libraries](#102-using-libraries)
+  - [11. Built-in functions](#11-built-in-functions)
+  - [12. Example snippets](#12-example-snippets)
+    - [12.1 Hello world:](#121-hello-world)
+    - [12.2 Guess-the-number:](#122-guess-the-number)
+    - [12.3 Class + constructor example:](#123-class--constructor-example)
+  - [Conclusion](#conclusion)
 
-## Quick overview
+## 0. Quick overview
 
 - IPL is indentation-significant: block structure is determined by consistent indentation (spaces are recommended).
 - Statements are line-oriented; block headers (like `def`, `if`, `class`, etc.) are followed by an indented block on subsequent line(s).
@@ -43,7 +53,7 @@ If anything below looks different from what you expect, tell me.
 
 - Numbers: integer-like numerals (like `0`, `5`).
 - Strings: double-quoted strings: `"Hello"`.
-- Lists: list literals are supported (examples use `list = [1, 2, 3]`).
+- Lists: list literals are supported (`list = [1, 2, 3]`).
 - Booleans / none: `true`/`false`/`none` tokens or capitalized
 
 Example literals:
@@ -78,7 +88,7 @@ name = "Bob"
 obj.field = 3
 ```
 
-Instance fields are assigned using `self` inside class blocks (see classes section).
+Instance fields are assigned using `self` inside class blocks (see [classes section](#8-classes-and-objects)).
 
 ## 5. Functions
 
@@ -100,7 +110,7 @@ Notes:
 
 ## 6. Control flow
 
-If/elif/else:
+### 6.1 If/elif/else:
 
 ```
 if x > 10
@@ -111,7 +121,7 @@ else
     out("les than 10")
 ```
 
-Loops:
+### 6.2 Loops:
 
 - `while` loops:
 
@@ -159,6 +169,8 @@ There are two ways to index/slice:
 
 ## 8. Classes and objects
 
+### 8.1 Definition and usage
+
 Class definition syntax:
 
 ```
@@ -182,11 +194,11 @@ obj.method()
 - Constructors are implemented as a method named the same as the class (e.g. `def Person(n, a)` inside `class Person`), and are invoked via `p = Person("Alex", 30)`.
 - Create an instance with `t = Test()` and call a method with `t.greet()`.
 
-9. Static functions
+## 8.2 Static functions
 
-Static functions are defined just like regular functions inside a class, but they do not access instance fields.
-They are called using the class name, e.g. Class.function().
-No special keyword (like static) is needed — any method called on a class is treated as static (this may produce errors, if you use self in the function):
+- Static functions are defined just like regular functions inside a class, but they do not access instance fields.
+- They are called using the class name, e.g. Class.function().
+- No special keyword (like static) is needed — any method called on a class is treated as static when called on the class (this may produce errors, if you use self in the function, there are no checks for this currently).:
 
 Example:
 
@@ -201,37 +213,54 @@ class Class
 Class.method()
 ```
 
-## 10. Modules / Import
+## 9. Modules / Import
 
+Modules can be imported using the `import` keyword followed by the filepath (with `.ipl` extension).
 Import uses a simple filename:
+
+Example:
 
 ```
 import utils.ipl
-import class_test_base_class.ipl
+
+number = add(5, 10) # assuming utils.ipl defines add function
+
 ```
 
 The imported filename is looked up relative to the current file.
-## 11. Libraries
+Once imported, the module’s variables and functions can be used directly in your IPL code.
+No need for a namespace prefix.
+
+## 10. Libraries
+
+### 10.1 ILI
 
 IPL supports external libraries to extend functionality. Libraries must first be installed via [ILI (IPL Library Installer)](https://github.com/I-had-a-bad-idea/ILI).
 
+### 10.2 Using libraries
+
 To imprt libraries use the `use` keyword followed by the library name:
+
+Example:
 
 ```
 use examplelib
-use mylibrary
+
+number = examplelib.add(5, 10)
+
 ```
 
 Once imported, the library’s variables and functions can be used directly in your IPL code.
+Use the library name as a prefix to access its functions and variables.
 
 Notes:
 - Library names are case-sensitive.
 - Installed libraries are available globally to all IPL scripts on your system.
 - Using a library that has not been installed will result in a runtime error.
 
-## 12. Built-ins and common functions
+## 11. Built-in functions
 
-Built-ins include:
+Built-in functions include:
 
 - `out(value)`: Print a value to stdout
 - `in(prompt)`: Get user input with an prompt
@@ -243,18 +272,18 @@ Built-ins include:
 - `len(collection)`: Get length of string or list
 - `value(number)`: Convert to number type
   
-These are called like normal functions (e.g. `out("Hello World")`)
+These are called like normal functions (e.g. `out("Hello World")`).
 
 
-## 13. Example snippets
+## 12. Example snippets
 
-Hello world:
+### 12.1 Hello world:
 
 ```
 out("Hello World")
 ```
 
-Guess-the-number:
+### 12.2 Guess-the-number:
 
 ```
 out("Welcome to Guess-the-number")
@@ -267,7 +296,7 @@ else
     out(random_number)
 ```
 
-Class + constructor example:
+### 12.3 Class + constructor example:
 
 ```
 class Person
@@ -281,17 +310,8 @@ class Person
 p = Person("Alex", 30)
 ```
 
-For loop example:
-
-```
-list = [1, 2, 3, 4]
-for number in list
-    if number == 2
-        continue
-    out(number + 2)
-```
-
-
 ---
 
-If any questions remain please open an issue, so I can add it to this file.
+## Conclusion
+
+If any questions remain please open an issue, so I can improve this document.
