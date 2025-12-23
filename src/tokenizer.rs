@@ -176,6 +176,27 @@ impl Tokenizer {
                 stack.push(Value::Str(token.clone()));
             }
             else if token == "[" {
+                if let Some(last_value) = output.pop() {
+                    if last_value.is_list() {
+                        println!("Processing list indexing for value: {:?}", last_value);
+                        let mut index_string = "".to_string();
+                        while let Some(next_token) = tokens.get(i + 1) {
+                            if next_token == "]" {
+                                i += 1;
+                                break;
+                            } else {
+                                // Build the index string
+                                index_string += next_token;
+                                i += 1;
+                            }
+                        }
+                        let value_at_index = self.get_index(&last_value, index_string);
+                        output.push(value_at_index);
+                        i += 1;
+                        continue;
+                    }
+                }
+                
                 let mut list_elements = vec![];
                 let mut element: String = "".to_string();
                 while let Some(next_token) = tokens.get(i + 1) {
@@ -239,5 +260,42 @@ impl Tokenizer {
         }
 
         output
+    }
+    fn get_index(&self, list: &Value, index_string: String) -> Value {
+        println!("Getting index '{}' from list {:?}", index_string, list);
+        if index_string.contains(":"){ // List index
+            let parts: Vec<&str> = index_string.split(':').collect();
+            let start: usize = if parts[0].is_empty() {
+                0
+            } else {
+                parts[0].trim().parse().unwrap_or(0)
+            };
+            let end: usize = if parts.len() > 1 && !parts[1].is_empty() {
+                parts[1].trim().parse().unwrap_or(0)
+            } else {
+                list.length()
+            };
+            
+            if let Value::List(v) = list {
+                let sliced = v[start..end.min(v.len())].to_vec();
+                Value::List(sliced)
+            } else {
+                EvaluatioError::new("Cannot slice non-list value".to_string()).raise();
+                Value::None
+            }
+        } else { // Single index
+            let index: usize = index_string.trim().parse().unwrap_or(0);
+            if let Value::List(v) = list {
+                if index < v.len() {
+                    v[index].clone()
+                } else {
+                    EvaluatioError::new("Index out of bounds".to_string()).raise();
+                    Value::None
+                }
+            } else {
+                EvaluatioError::new("Cannot index non-list value".to_string()).raise();
+                Value::None
+            }
+        }
     }
 }
