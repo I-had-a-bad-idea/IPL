@@ -162,6 +162,10 @@ impl Value {
             Value::Str(s) => s.clone(),
             Value::Path(p) => p.to_str().unwrap_or("").to_string(),
             Value::None => "None".into(),
+            Value::List(v) => {
+                let elements: Vec<String> = v.iter().map(|val| val.to_string_value()).collect();
+                format!("[{}]", elements.join(", "))
+            }
             _ => "".to_string(),
         }
     }
