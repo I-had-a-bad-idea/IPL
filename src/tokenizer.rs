@@ -20,9 +20,9 @@ impl Tokenizer {
         classes: &HashMap<String, Class>,
         ipl_libraries: &HashMap<String, IPL_Library>,
     ) -> Vec<Value> {
-        // println!("Tokenizing input: {}, variables: {:#?}", input, variables);
+        println!("Tokenizing input: {}, variables: {:#?}", input, variables);
         let tokens = self.split(input);
-        // println!("tokens after splitting: {:?}", tokens);
+        println!("tokens after splitting: {:?}", tokens);
 
         self.shunting_yard(tokens, &variables, &functions, &classes, &ipl_libraries)
     }
@@ -174,7 +174,8 @@ impl Tokenizer {
                     }
                 }
                 stack.push(Value::Str(token.clone()));
-            } else if token == "[" {
+            }
+            else if token == "[" {
                 let mut list_elements = vec![];
                 let mut element: String = "".to_string();
                 while let Some(next_token) = tokens.get(i + 1) {
@@ -186,7 +187,7 @@ impl Tokenizer {
                             i += 1;
                             continue;
                         }
-                        // println!("Pushing element: {}", element);
+                        println!("Pushing element: {}", element);
                         list_elements.push(self.str_to_datatype(&element));
                         element.clear();
                         i += 1;
@@ -195,7 +196,7 @@ impl Tokenizer {
                         i += 1;
                     }
                 }
-                list_elements.push(Value::Str(element.clone()));
+                list_elements.push(self.str_to_datatype(&element)); // push the last element
                 output.push(Value::List(list_elements));
             } else if token == "(" {
                 stack.push(Value::Str(token.clone()));
