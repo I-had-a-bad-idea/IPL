@@ -1,7 +1,7 @@
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
 use crate::evaluator::{Class, IPL_Library};
-use crate::value::Value;
+use crate::value::{IndexValue, Value};
 use regex::Regex;
 use std::collections::HashMap;
 
@@ -28,7 +28,7 @@ impl Tokenizer {
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
-        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#;
+        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],:]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#;
 
         let re = Regex::new(token_pattern).unwrap();
         let tokens: Vec<String> = re
@@ -174,7 +174,29 @@ impl Tokenizer {
                     }
                 }
                 stack.push(Value::Str(token.clone()));
-            } else if token == "[" {
+            }
+            else if token == "[" {
+                if let Some(last_value) = output.last() {
+                    if last_value.is_string() {
+                        // println!("Processing indexing for value: {:?}", last_value);
+                        let mut index_string = "".to_string();
+                        while let Some(next_token) = tokens.get(i + 1) {
+                            if next_token == "]" {
+                                i += 1;
+                                break;
+                            } else {
+                                // Build the index string
+                                index_string += next_token;
+                                i += 1;
+                            }
+                        }
+                        let value_at_index = self.get_index(last_value, index_string);
+                        output.push(value_at_index);
+                        i += 1;
+                        continue;
+                    }
+                }
+                
                 let mut list_elements = vec![];
                 let mut element: String = "".to_string();
                 while let Some(next_token) = tokens.get(i + 1) {
@@ -195,7 +217,7 @@ impl Tokenizer {
                         i += 1;
                     }
                 }
-                list_elements.push(Value::Str(element.clone()));
+                list_elements.push(self.str_to_datatype(&element)); // push the last element
                 output.push(Value::List(list_elements));
             } else if token == "(" {
                 stack.push(Value::Str(token.clone()));
@@ -238,5 +260,31 @@ impl Tokenizer {
         }
 
         output
+    }
+    fn get_index(&self, list: &Value, index_string: String) -> Value {
+        // println!("Getting index '{}' from list {:?}", index_string, list);
+        if index_string.contains(":"){ // List index
+            let parts: Vec<&str> = index_string.split(':').collect();
+            // println!("Parts: {:?}", parts);
+            let start: usize = if parts[0].is_empty() {
+                0
+            } else {
+                parts[0].trim().parse().unwrap_or(0)
+            };
+            let end: usize = if parts.len() > 1 && !parts[1].is_empty() {
+                parts[1].trim().parse().unwrap_or(0)
+            } else {
+                list.length()
+            };
+
+            if start > end {
+                EvaluatioError::new("Start index cannot be greater than end index".to_string()).raise();
+            }
+
+            return Value::IndexValue(IndexValue{start: start, end: end});
+        } else { // Single index
+            let index: usize = index_string.trim().parse().unwrap_or(0);
+            return  Value::IndexValue(IndexValue { start: index, end: index });
+            }
     }
 }
