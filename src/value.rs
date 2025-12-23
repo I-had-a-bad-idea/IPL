@@ -174,4 +174,25 @@ impl Value {
     pub fn is_none_value(&self) -> bool {
         matches!(self, Value::None)
     }
+    pub fn is_number(&self) -> bool {
+        matches!(self, Value::Number(_))
+    }
+    pub fn is_string(&self) -> bool {
+        matches!(self, Value::Str(_))
+    }
+    pub fn is_bool(&self) -> bool {
+        matches!(self, Value::Bool(_))
+    }
+    pub fn is_list(&self) -> bool {
+        matches!(self, Value::List(_))
+    }
+    pub fn is_instance(&self) -> bool {
+        matches!(self, Value::Instance(_))
+    }
+    pub fn is_ipl_library(&self) -> bool {
+        matches!(self, Value::IPL_Library(_))
+    }
+    pub fn is_class_str(&self) -> bool {
+        matches!(self, Value::ClassStr(_))
+    }
 }
