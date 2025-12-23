@@ -13,48 +13,30 @@
 A simple interpreted programming language implemented in Rust.
 
 ## Table of Contents
+- [IPL (Interpreted Programming Language)](#ipl-interpreted-programming-language)
+  - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Installation](#installation)
   - [Usage](#usage)
   - [Syntax](#syntax)
-  - [Libraries](#libraries)
+  - [Library Installer](#library-installer)
   - [Contributing](#contributing)
   - [License](#license)
 
 ---
 
+
 ## Features
 
-- **Variables**: Dynamic variable assignment 
-- **Control Flow**: 
-  - `if`/`elif`/`else` conditionals
-  - `while` loops with `break`/`continue`
-  - `for` loops with iteration over lists
-  - `break` and `continue` statements
-- **Functions**:
-  - Function definitions with parameters
-  - Return values
-  - Built-in functions for I/O and math
-- **Data Types**:
-  - Numbers (floating point)
-  - Strings
-  - Lists
-  - Booleans (`True`/`False`)
-  - `None`
-- **Classes & Objects**:
-  - Class definitions with inheritance
-  - Constructor methods
-  - Instance methods
-  - Class variables and instance variables
-  - Method overriding
-- **File Imports**: Import code from other `.ipl` files
-- **Libraries**:
-  - Install and use external libraries via [ILI (IPL Library Installer)](https://github.com/I-had-a-bad-idea/ILI)
-- **Operators**:
-  - Arithmetic: `+`, `-`, `*`, `/` 
-  - Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
-  - Logical: `and`, `or`
-  - Member access: `.`
+Everything you would expect from a simple interpreted programming language:
+
+- Dynamic variables, numbers, strings, lists, booleans, and `None`
+- Control flow: `if`/`elif`/`else`, `while`, `for`, `break`, `continue`
+- Functions with parameters, return values, and built-in I/O
+- Classes with inheritance, constructors, methods, class/instance variables, and overriding
+- File imports (`.ipl` files)
+- External libraries via [ILI (IPL Library Installer)](https://github.com/I-had-a-bad-idea/ILI)
+- Operators: arithmetic, comparison, logical, and member access
 
 ---
 
@@ -78,8 +60,8 @@ Run an IPL file:
 ```sh
 cargo run path/to/file.ipl
 ```
-or´(if you have the executable)
 
+or if you have the executable:
 ```sh
 IPL.exe path/to/file.ipl
 ```
@@ -94,7 +76,7 @@ Syntax highlighting can be found [here](https://github.com/I-had-a-bad-idea/IPL-
 
 ---
 
-## Libraries
+## Library Installer
 
 IPL has it´s own library installer: [ILI](https://github.com/I-had-a-bad-idea/ILI) (IPL-Library-Installer).
 
