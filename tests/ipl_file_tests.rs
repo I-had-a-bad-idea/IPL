@@ -59,3 +59,9 @@ fn test_libraries() {
     assert!(output.contains("10"));
     assert!(output.contains("Hello World"));
 }
+#[test]
+fn test_indexing() {
+    let output = run_ipl_file("tests/ipl_files/indexing.ipl");
+    assert!(output.contains("1"));
+    assert!(output.contains("[2, 3, 4, 5]"));
+}
