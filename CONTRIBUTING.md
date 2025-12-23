@@ -5,7 +5,8 @@ Thank you for your interest in contributing to **IPL**, a simple interpreted pro
 ## Table of Contents
 
 - [Contributing to IPL](#contributing-to-ipl)
-  - [Making libraries](#making-libraries)
+  - [Table of Contents](#table-of-contents)
+  - [Making-libraries](#making-libraries)
   - [Getting Started](#getting-started)
   - [Project Structure](#project-structure)
   - [Contribution Guidelines](#contribution-guidelines)
@@ -99,13 +100,11 @@ dev_tests/                # Contains ipl-files, you can use when developing
 ## Areas to Contribute
 
 ### High Priority
-* Make indexing
 * Refactor code for clarity and maintainability
 * Write more tests
 * Add documentation
 
 ### Future Features
-
 * Access modifiers (public/private/protected)
 * Namespaces or module system
 * Built-in (rust) libraries 
