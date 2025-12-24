@@ -5,13 +5,13 @@ use std::ops::{Add, Div, Mul, Sub};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
-pub struct ClassStr{
+pub struct ClassStr {
     pub class_name: String,
     pub lib_name: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct IndexValue{
+pub struct IndexValue {
     pub start: usize,
     pub end: usize,
 }

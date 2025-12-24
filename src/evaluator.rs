@@ -9,7 +9,7 @@ use crate::debug::EvaluatioError;
 use crate::library::get_library_entry_path;
 use crate::state;
 use crate::tokenizer::Tokenizer;
-use crate::value::{Value, ClassStr};
+use crate::value::{ClassStr, Value};
 
 // Define Class, Instance, and Value types for the evaluator
 
@@ -111,10 +111,16 @@ impl Evaluator {
         // println!("functions {:#?}", self.functions);
     }
 
-    fn execute_lines(&mut self, start: usize, end: usize, self_value: String, file_path: &String) -> Value {
+    fn execute_lines(
+        &mut self,
+        start: usize,
+        end: usize,
+        self_value: String,
+        file_path: &String,
+    ) -> Value {
         let mut programm_counter: usize = start;
         // println!("execute_lines called with start {} and end {}", start, end);
-        
+
         self.lines = self.files[file_path].clone();
 
         // println!("Execute lines from {} to {} in file {} with lines {:#?}", start, end, file_path, self.lines);
@@ -192,7 +198,7 @@ impl Evaluator {
                     let lines = self.lines.clone();
 
                     self.ev_file(&file);
-                    
+
                     self.folder = folder;
                     self.path = path;
                     self.indentation_stack = indentation_stack;
@@ -552,7 +558,6 @@ impl Evaluator {
             get_indentation(&self.lines[function_lines[0].as_usize()]),
         )); // Push function context to indentation stack
 
-
         let lines = self.lines.clone();
         // Execute function lines and get result
         let result: Value = self
@@ -590,7 +595,10 @@ impl Evaluator {
     ) -> Value {
         // println!("ev_class_func called with instance: {}, function: {}, args: {:?}, instance_opt:{:?}", instance_str, function_name, args, instance_opt);
         let mut instance: Instance = Instance {
-            class: ClassStr { class_name: "".to_string(), lib_name: "".to_string()},
+            class: ClassStr {
+                class_name: "".to_string(),
+                lib_name: "".to_string(),
+            },
             variables: HashMap::new(),
         };
         if !static_func {
@@ -615,7 +623,8 @@ impl Evaluator {
         };
         if class_opt.is_some() {
             class = class_opt.unwrap();
-            self.classes.insert(instance.class.class_name.clone(), class.clone());
+            self.classes
+                .insert(instance.class.class_name.clone(), class.clone());
         } else if !self.classes.contains_key(&instance.class.class_name) {
             EvaluatioError::new("Class not in classes".to_string()).raise();
         } else {
@@ -728,7 +737,9 @@ impl Evaluator {
         static_func: bool,
     ) -> Value {
         if self.ipl_libraries.contains_key(&lib_name) {
-            let class_functions = self.ipl_libraries[&lib_name].classes[&class_name].functions.clone();
+            let class_functions = self.ipl_libraries[&lib_name].classes[&class_name]
+                .functions
+                .clone();
             if !class_functions.contains_key(function_name) {
                 EvaluatioError::new("Class function was not found in library".to_string()).raise();
                 return Value::None;
@@ -737,7 +748,16 @@ impl Evaluator {
             if file.to_string_value() != self.path.to_str().unwrap() {
                 if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
                     // println!("Calling ev_lib_func on: {:?}", file);
-                    return ev.ev_lib_class_func(lib_name, class_name, instance_str, function_name, args, instance_opt, class_opt, static_func);
+                    return ev.ev_lib_class_func(
+                        lib_name,
+                        class_name,
+                        instance_str,
+                        function_name,
+                        args,
+                        instance_opt,
+                        class_opt,
+                        static_func,
+                    );
                 } else {
                     EvaluatioError::new("Evaluator for file not found".to_string()).raise();
                     Value::None
@@ -747,7 +767,14 @@ impl Evaluator {
                 Value::None
             }
         } else {
-            let result = self.ev_class_func(instance_str, function_name, args, instance_opt, class_opt, static_func);
+            let result = self.ev_class_func(
+                instance_str,
+                function_name,
+                args,
+                instance_opt,
+                class_opt,
+                static_func,
+            );
             // println!("Result for ev_lib_func: {:?}", result);
             result
         }
@@ -814,7 +841,10 @@ impl Evaluator {
                     self.ev_func(function_name, args)
                 } else if self.classes.contains_key(function_name) {
                     let instance = Instance {
-                        class: ClassStr { class_name: function_name.to_string(), lib_name: "".to_string() },
+                        class: ClassStr {
+                            class_name: function_name.to_string(),
+                            lib_name: "".to_string(),
+                        },
                         variables: self.classes[function_name].variables.clone(),
                     };
                     self.ev_class_func(
@@ -890,8 +920,11 @@ impl Evaluator {
                         let attribute_str = attribute.to_string_value();
                         if lib.variables.contains_key(&attribute_str) {
                             stack.push(lib.variables[&attribute_str].clone());
-                        } else if lib.classes.contains_key(&attribute_str){
-                            stack.push(Value::ClassStr(ClassStr { class_name: attribute_str, lib_name: lib.lib_name }));
+                        } else if lib.classes.contains_key(&attribute_str) {
+                            stack.push(Value::ClassStr(ClassStr {
+                                class_name: attribute_str,
+                                lib_name: lib.lib_name,
+                            }));
                         } else if lib.functions.contains_key(&attribute_str) {
                             let function_name = &attribute.to_string_value();
                             let mut args: Vec<Value> = vec![];
@@ -968,9 +1001,12 @@ impl Evaluator {
                             i += 1; // Skip the next token which is the argument list
                         }
                     }
-                    Value::ClassStr(class_str) =>{
+                    Value::ClassStr(class_str) => {
                         let lib_name = class_str.lib_name;
-                        if !self.ipl_libraries[&lib_name].classes.contains_key(&class_str.class_name) {
+                        if !self.ipl_libraries[&lib_name]
+                            .classes
+                            .contains_key(&class_str.class_name)
+                        {
                             EvaluatioError::new("Left side of '.' is not a class".to_string())
                                 .raise();
                         }
@@ -979,7 +1015,8 @@ impl Evaluator {
                             .contains_key(&attribute.to_string_value())
                         {
                             stack.push(
-                                self.ipl_libraries[&lib_name].classes[&class_str.class_name].variables[&attribute.to_string_value()]
+                                self.ipl_libraries[&lib_name].classes[&class_str.class_name]
+                                    .variables[&attribute.to_string_value()]
                                     .clone(),
                             );
                         } else if self.ipl_libraries[&lib_name].classes[&class_str.class_name]
@@ -1010,7 +1047,10 @@ impl Evaluator {
                                 function_name,
                                 args,
                                 None,
-                                Some(self.ipl_libraries[&lib_name].classes[&class_str.class_name].clone()),
+                                Some(
+                                    self.ipl_libraries[&lib_name].classes[&class_str.class_name]
+                                        .clone(),
+                                ),
                                 true,
                             );
                             stack.push(result);
@@ -1026,7 +1066,11 @@ impl Evaluator {
                     Value::IndexValue(iv) => iv,
                     _ => unreachable!(),
                 };
-                let list = stack.pop().expect("No list to index").as_list().unwrap_or(vec![]);
+                let list = stack
+                    .pop()
+                    .expect("No list to index")
+                    .as_list()
+                    .unwrap_or(vec![]);
                 let start = index_value.start;
                 let end = index_value.end;
                 // println!("Indexing from {} to {} in list {:?}", start, end, list);
@@ -1039,7 +1083,7 @@ impl Evaluator {
                     let sublist = list[start..=end].to_vec();
                     stack.push(Value::List(sublist));
                 }
-            i += 1;
+                i += 1;
             } else {
                 let rhs = stack.pop().expect("Not enough values on stack");
                 let lhs = stack.pop().expect("Not enough values on stack");

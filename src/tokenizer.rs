@@ -174,8 +174,7 @@ impl Tokenizer {
                     }
                 }
                 stack.push(Value::Str(token.clone()));
-            }
-            else if token == "[" {
+            } else if token == "[" {
                 if let Some(last_value) = output.last() {
                     if last_value.is_string() {
                         // println!("Processing indexing for value: {:?}", last_value);
@@ -196,7 +195,7 @@ impl Tokenizer {
                         continue;
                     }
                 }
-                
+
                 let mut list_elements = vec![];
                 let mut element: String = "".to_string();
                 while let Some(next_token) = tokens.get(i + 1) {
@@ -263,7 +262,8 @@ impl Tokenizer {
     }
     fn get_index(&self, list: &Value, index_string: String) -> Value {
         // println!("Getting index '{}' from list {:?}", index_string, list);
-        if index_string.contains(":"){ // List index
+        if index_string.contains(":") {
+            // List index
             let parts: Vec<&str> = index_string.split(':').collect();
             // println!("Parts: {:?}", parts);
             let start: usize = if parts[0].is_empty() {
@@ -278,13 +278,21 @@ impl Tokenizer {
             };
 
             if start > end {
-                EvaluatioError::new("Start index cannot be greater than end index".to_string()).raise();
+                EvaluatioError::new("Start index cannot be greater than end index".to_string())
+                    .raise();
             }
 
-            return Value::IndexValue(IndexValue{start: start, end: end});
-        } else { // Single index
+            return Value::IndexValue(IndexValue {
+                start: start,
+                end: end,
+            });
+        } else {
+            // Single index
             let index: usize = index_string.trim().parse().unwrap_or(0);
-            return  Value::IndexValue(IndexValue { start: index, end: index });
-            }
+            return Value::IndexValue(IndexValue {
+                start: index,
+                end: index,
+            });
+        }
     }
 }

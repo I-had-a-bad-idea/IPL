@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use crate::debug::EvaluatioError;
 
 fn get_ili_path() -> PathBuf {
-    match std::env::var("ILI_PATH"){
+    match std::env::var("ILI_PATH") {
         Ok(path) => PathBuf::from(path),
         Err(_) => get_hardcoded_ili_path(),
     }
@@ -62,7 +62,7 @@ fn extract_string(line: &str) -> Option<String> {
 pub fn get_library_entry_path(libary_name: &str) -> PathBuf {
     let libs_dir: PathBuf = PathBuf::from(get_ili_path()).join("libs");
     let path: PathBuf = libs_dir.join(libary_name);
-    
+
     if !path.exists() {
         EvaluatioError::new("Library doesnt exist".to_string()).raise();
     }
