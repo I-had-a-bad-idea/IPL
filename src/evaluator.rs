@@ -602,7 +602,7 @@ impl Evaluator {
             variables: HashMap::new(),
         };
         if !static_func {
-            if instance_opt.is_some() {
+            if instance_opt.is_some() { // Dont use let Some(instance) = instance_opt
                 instance = instance_opt.unwrap();
                 self.variables
                     .insert(instance_str.clone(), Value::Instance(instance.clone()));
@@ -621,7 +621,7 @@ impl Evaluator {
             functions: HashMap::new(),
             variables: HashMap::new(),
         };
-        if class_opt.is_some() {
+        if class_opt.is_some() { // Dont use let Some(class) = class_opt
             class = class_opt.unwrap();
             self.classes
                 .insert(instance.class.class_name.clone(), class.clone());
@@ -709,7 +709,7 @@ impl Evaluator {
             if file.to_string_value() != self.path.to_str().unwrap() {
                 if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
                     // println!("Calling ev_lib_func on: {:?}", file);
-                    return ev.ev_lib_func(lib_name, function_name, args);
+                    ev.ev_lib_func(lib_name, function_name, args)
                 } else {
                     EvaluatioError::new("Evaluator for file not found".to_string()).raise();
                     Value::None
@@ -748,7 +748,7 @@ impl Evaluator {
             if file.to_string_value() != self.path.to_str().unwrap() {
                 if let Some(ev) = self.evaluators.get_mut(&file.to_string_value()) {
                     // println!("Calling ev_lib_func on: {:?}", file);
-                    return ev.ev_lib_class_func(
+                    ev.ev_lib_class_func(
                         lib_name,
                         class_name,
                         instance_str,
@@ -757,7 +757,7 @@ impl Evaluator {
                         instance_opt,
                         class_opt,
                         static_func,
-                    );
+                    )
                 } else {
                     EvaluatioError::new("Evaluator for file not found".to_string()).raise();
                     Value::None
@@ -1070,7 +1070,7 @@ impl Evaluator {
                     .pop()
                     .expect("No list to index")
                     .as_list()
-                    .unwrap_or(vec![]);
+                    .unwrap_or_default();
                 let start = index_value.start;
                 let end = index_value.end;
                 // println!("Indexing from {} to {} in list {:?}", start, end, list);
