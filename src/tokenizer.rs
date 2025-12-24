@@ -24,7 +24,7 @@ impl Tokenizer {
         let tokens = self.split(input);
         // println!("tokens after splitting: {:?}", tokens);
 
-        self.shunting_yard(tokens, variables, functions, classes, ipl_libraries)
+        self.shunting_yard(tokens, &variables, &functions, &classes, &ipl_libraries)
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
@@ -175,23 +175,25 @@ impl Tokenizer {
                 }
                 stack.push(Value::Str(token.clone()));
             } else if token == "[" {
-                if let Some(last_value) = output.last() && last_value.is_string() {
-                    // println!("Processing indexing for value: {:?}", last_value);
-                    let mut index_string = "".to_string();
-                    while let Some(next_token) = tokens.get(i + 1) {
-                        if next_token == "]" {
-                            i += 1;
-                            break;
-                        } else {
-                            // Build the index string
-                            index_string += next_token;
-                            i += 1;
+                if let Some(last_value) = output.last() {
+                    if last_value.is_string() {
+                        // println!("Processing indexing for value: {:?}", last_value);
+                        let mut index_string = "".to_string();
+                        while let Some(next_token) = tokens.get(i + 1) {
+                            if next_token == "]" {
+                                i += 1;
+                                break;
+                            } else {
+                                // Build the index string
+                                index_string += next_token;
+                                i += 1;
+                            }
                         }
+                        let value_at_index = self.get_index(last_value, index_string);
+                        output.push(value_at_index);
+                        i += 1;
+                        continue;
                     }
-                    let value_at_index = self.get_index(last_value, index_string);
-                    output.push(value_at_index);
-                    i += 1;
-                    continue;
                 }
 
                 let mut list_elements = vec![];
@@ -280,18 +282,17 @@ impl Tokenizer {
                     .raise();
             }
 
-            Value::IndexValue(IndexValue {
-                start,
-                end,
-            })
-
+            return Value::IndexValue(IndexValue {
+                start: start,
+                end: end,
+            });
         } else {
             // Single index
             let index: usize = index_string.trim().parse().unwrap_or(0);
-            Value::IndexValue(IndexValue {
+            return Value::IndexValue(IndexValue {
                 start: index,
                 end: index,
-            })
+            });
         }
     }
 }
