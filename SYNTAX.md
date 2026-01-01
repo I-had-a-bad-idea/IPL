@@ -18,9 +18,10 @@ If anything below looks different from what you expect, tell me.
   - [6. Control flow](#6-control-flow)
     - [6.1 If/elif/else:](#61-ifelifelse)
     - [6.2 Loops:](#62-loops)
-      - [6.2.1 while loops:](#621-while-loops)
-      - [6.2.2 for loops](#622-for-loops)
+      - [6.2.1 While loops:](#621-while-loops)
+      - [6.2.2 For loops](#622-for-loops)
       - [6.2.3 Continue](#623-continue)
+      - [6.2.4 Break](#624-break)
   - [7. Lists, iteration and indexing](#7-lists-iteration-and-indexing)
     - [7.1 Lists](#71-lists)
     - [7.2 Iteration](#72-iteration)
@@ -133,7 +134,7 @@ else
 
 ### 6.2 Loops:
 
-#### 6.2.1 while loops:
+#### 6.2.1 While loops:
 
 `While` loops are executed as long as the condition following the `while` is `true`.
  
@@ -152,7 +153,7 @@ while i <= 5
 #   5
 ```
 
-#### 6.2.2 for loops
+#### 6.2.2 For loops
 
 `for <var> in <iterable>` iterates over iterables.   
 Each iteration assigns the next element to `<var>`.  
@@ -174,7 +175,7 @@ Control keywords: `continue`  `break` work just like in other languages.
 
 #### 6.2.3 Continue
 
-Continue ends the current iteration and skips to the next one.
+`continue` ends the current iteration and skips to the next one.
 
 Example:
 
@@ -192,6 +193,26 @@ for number in list
 
 ```
 
+#### 6.2.4 Break
+
+`break` ends the loop.
+
+Example:
+
+```
+
+i = 0
+sum = 0
+while i < 5
+    if i == 3
+        break
+    
+    sum = sum + i
+    i = i + 1
+
+out(sum)  # 0 + 1 + 2 = 3
+
+```
 
 ## 7. Lists, iteration and indexing
 
