@@ -1,7 +1,7 @@
 
 # IPL — Language Syntax Reference
 
-This document is a concise, example-driven reference for the IPL syntax used by the interpreter in this repository. It summarizes the lexical rules, statement and expression forms, function and class syntax, modules/imports, built-ins, and commonly-seen idioms from the `examples/` directory.
+This document is a concise reference for the IPL syntax used by the interpreter in this repository. It summarizes the lexical rules, statement and expression forms, function and class syntax, modules/imports, built-ins, and more.
 
 If anything below looks different from what you expect, tell me.
 
@@ -18,6 +18,7 @@ If anything below looks different from what you expect, tell me.
   - [6. Control flow](#6-control-flow)
     - [6.1 If/elif/else:](#61-ifelifelse)
     - [6.2 Loops:](#62-loops)
+    - [6.3 Continue](#63-continue)
   - [7. Lists, iteration and indexing](#7-lists-iteration-and-indexing)
     - [7.1 Lists](#71-lists)
     - [7.2 Iteration](#72-iteration)
@@ -38,21 +39,21 @@ If anything below looks different from what you expect, tell me.
 
 ## 0. Quick overview
 
-- IPL is indentation-significant: block structure is determined by consistent indentation (spaces are recommended).
+- IPL is indentation-significant: block structure is determined by consistent indentation.
 - Statements are line-oriented; block headers (like `def`, `if`, `class`, etc.) are followed by an indented block on subsequent line(s).
-- The language uses familiar Python-like operators and function call syntax: `name(args)`.
+- The language is Python-like, but with simplified syntax.
 
 ## 1. Lexical elements
 
 - Comments: `#` starts a comment that runs to the end of the line.
 - Identifiers: start with a letter or `_`, followed by letters, digits or `_` (e.g. `my_var`, `_internal`).
-- Line termination: statements end at the newline. There is no semicolon terminator.
-- Indentation: use consistent spaces to indicate nested blocks. All lines in the same block must share the same indentation level.
+- Line termination: statements end at the newline (end of line). There is no semicolon terminator.
+- Indentation: use consistent indentation to indicate nested blocks. All lines in the same block must share the same indentation level.
 
 ## 2. Literals
 
-- Numbers: integer-like numerals (like `0`, `5`).
-- Strings: double-quoted strings: `"Hello"`.
+- Numbers: integer-or-float-like numerals (like `0`, `5`, `3.141`).
+- Strings: double-quoted strings: `"Hello"` or single-quoted strings: `'Hello'` .
 - Lists: list literals are supported (`list = [1, 2, 3]`).
 - Booleans / none: `true`/`false`/`none` tokens or capitalized
 
@@ -66,7 +67,7 @@ list = [1, 2, 3]
 
 ## 3. Expressions and operators
 
-- Arithmetic: `+`, `-`, `*`, `/` (e.g. `a + b`).
+- Arithmetic: `+`, `-`, `*`, `/` 
 - Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`.
 - Logical operators: `and`, `or`. 
 
@@ -112,35 +113,74 @@ Notes:
 
 ### 6.1 If/elif/else:
 
+If statements consist of two parts `if` and a condition following it.           
+If the following condition is `true` the following indented block is executed.               
+If it is `false` **IPL** will check if there is an `elif`.               
+If it finds one it treats it like an `if`.              
+If all `if`s and `elif`s are `false` the indented block beneath `else` will be executed.               
+
 ```
-if x > 10
-    out("more than 10")
-elif x == 10
-    out("ten")
+if x == 10
+    out("x is ten")
+elif x > 10
+    out("x is more than 10")
 else
-    out("les than 10")
+    out("x is less than 10")
 ```
 
 ### 6.2 Loops:
 
 - `while` loops:
 
+`While` loops are executed as long as the condition following the `while` is `true`.
+ 
 ```
 i = 0
 while i <= 5
     out(i)
     i = i + 1
+
+# Output: 
+#   0
+#   1
+#   2
+#   3
+#   4
+#   5
 ```
 
 - `for` loops over iterables:
+
+A `for` loop consist of a variable and an iterable.      
+The `for` loop goes through the iterable and assigns each value to the variable, executes the block below, and repeats.
 
 ```
 list = [1, 2, 3, 4, 5]
 for number in list
     out(number)
+
+# Output:
+#   1
+#   2
+#   3
+#   4
+#   5
 ```
 
 Control keywords: `continue`  `break` work just like in other languages.
+
+### 6.3 Continue
+
+Continue ends the current iteration and skips to the next one.
+
+Example:
+
+list = [1, 2, 3, 4, 5]
+for number in list
+    if number == 2 or number == 4
+        continue
+    out(number)
+
 
 ## 7. Lists, iteration and indexing
 
