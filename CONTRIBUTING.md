@@ -24,7 +24,7 @@ Thank you for your interest in contributing to **IPL**, a simple interpreted pro
 
 ## Making-libraries
 
-If you want to make a library for IPL, please follow [this](https://github.com/I-had-a-bad-idea/ILI?tab=readme-ov-file#contributing-a-library).
+If you want to make a library for IPL, please follow [this](https://github.com/IPL-Foundation/ILI?tab=readme-ov-file#contributing-a-library)
 
 ---
 

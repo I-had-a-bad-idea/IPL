@@ -35,7 +35,7 @@ Everything you would expect from a simple interpreted programming language:
 - Functions with parameters, return values, and built-in I/O
 - Classes with inheritance, constructors, methods, class/instance variables, and overriding
 - File imports (`.ipl` files)
-- External libraries via [ILI (IPL Library Installer)](https://github.com/I-had-a-bad-idea/ILI)
+- External libraries via [ILI (IPL Library Installer)](https://github.com/IPL-Foundation/ILI)
 - Operators: arithmetic, comparison, logical, and member access
 
 ---
@@ -50,7 +50,7 @@ cargo build --release
 ```
 or
 
-Download the [latest release](https://github.com/I-had-a-bad-idea/IPL/releases)
+Download the [latest release](https://github.com/IPL-Foundation/IPL/releases)
 
 ---
 
@@ -72,13 +72,13 @@ IPL.exe path/to/file.ipl
 
 An explanation for syntax of IPL can be found [here](SYNTAX.md).
 
-Syntax highlighting can be found [here](https://github.com/I-had-a-bad-idea/IPL-Highlighting)
+Syntax highlighting for VS-Code can be found [here](https://github.com/IPL-Foundation/IPL-Highlighting-VS-Code)
 
 ---
 
 ## Library Installer
 
-IPL has it´s own library installer: [ILI](https://github.com/I-had-a-bad-idea/ILI) (IPL-Library-Installer).
+IPL has it´s own library installer: [ILI (IPL-Library-Installer)](https://github.com/IPL-Foundation/ILI).
 
 ## Contributing
 
