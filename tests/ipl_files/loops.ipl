@@ -8,4 +8,31 @@ while i < 5
     sum = sum + i
     i = i + 1
 
-out(sum)  # 0+1+2+4 = 7
+out(sum)  # 0 + 1 + 2 + 4 = 7
+
+
+i = 0
+sum = 0
+while i < 5
+    if i == 3
+        break
+    
+    sum = sum + i
+    i = i + 1
+
+out(sum)  # 0 + 1 + 2 = 3
+
+
+
+list = [1, 2, 3, 4, 5]
+for number in list
+    if number == 2 or number == 4
+        continue
+    out(number)
+
+
+test = [1, 2, 3, 4, 5]
+for t in test
+    if t == 3
+        break
+    out(t)

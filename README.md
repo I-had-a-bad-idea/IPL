@@ -10,7 +10,10 @@
 
 # IPL (Interpreted Programming Language)
 
-A simple interpreted programming language implemented in Rust.
+IPL is a simple interpreted programming language with the goal to make syntax as simple as possible.
+
+Since it is designed for learning programming you dont have to worry about complex syntax and can focus on understanding programming itself first.
+
 
 ## Table of Contents
 - [IPL (Interpreted Programming Language)](#ipl-interpreted-programming-language)
@@ -28,7 +31,7 @@ A simple interpreted programming language implemented in Rust.
 
 ## Features
 
-Everything you would expect from a simple interpreted programming language:
+Everything you would expect from a simple programming language:
 
 - Dynamic variables, numbers, strings, lists, booleans, and `None`
 - Control flow: `if`/`elif`/`else`, `while`, `for`, `break`, `continue`
@@ -42,7 +45,7 @@ Everything you would expect from a simple interpreted programming language:
 
 ## Installation
 
-1. Ensure you have Rust installed
+1. Ensure you have [Rust](https://www.rust-lang.org/tools/install) installed
 2. Clone the repository
 3. Build the project:
 ```sh

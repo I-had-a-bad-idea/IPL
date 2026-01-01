@@ -1,4 +1,4 @@
-import class_test_base_class.ipl
+import class_test_base_class
 
 class Test : Base
     self.number = 20

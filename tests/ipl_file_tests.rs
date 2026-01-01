@@ -1,10 +1,13 @@
 mod common;
-use common::run_ipl_file;
+use std::vec;
+
+use common::{run_ipl_file, assert_lines};
 
 #[test]
-fn test_while_loop_with_continue() {
+fn test_while_and_for_loop_with_continue() {
     let output = run_ipl_file("tests/ipl_files/loops.ipl");
-    assert!(output.contains("7"));
+    let expected = vec!["7", "3", "1", "3", "5", "1", "2"];
+    assert_lines(&output, expected);
 }
 
 #[test]
@@ -23,11 +26,8 @@ fn test_class_inheritance() {
 fn test_math_output() {
     let output = run_ipl_file("tests/ipl_files/math.ipl");
     // Check for expected math operation results
-    assert!(output.contains("15"));
-    assert!(output.contains("5"));
-    assert!(output.contains("50"));
-    assert!(output.contains("10"));
-    assert!(output.contains("3.14159265358979")); // Cant do more, because they are cut of
+    let expected = vec!["15", "5", "50", "10", "3.14159265358979"]; // Cant do more, because they are cut of
+    assert_lines(&output, expected);
 }
 
 #[test]
@@ -39,9 +39,8 @@ fn test_variable_assignment() {
 #[test]
 fn test_if_elif_else() {
     let output = run_ipl_file("tests/ipl_files/if_elif_else.ipl");
-    assert!(output.contains("5"));
-    assert!(output.contains("20"));
-    assert!(output.contains("10"));
+    let expected = vec!["5", "20", "10"];
+    assert_lines(&output, expected);
 }
 
 #[test]
@@ -53,11 +52,8 @@ fn test_import() {
 #[test]
 fn test_libraries() {
     let output = run_ipl_file("tests/ipl_files/libraries.ipl");
-    assert!(output.contains("3"));
-    assert!(output.contains("13"));
-    assert!(output.contains("16"));
-    assert!(output.contains("10"));
-    assert!(output.contains("Hello World"));
+    let expected = vec!["3", "13", "16", "10", "Hello World"];
+    assert_lines(&output, expected);
 }
 #[test]
 fn test_indexing() {
