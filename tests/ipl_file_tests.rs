@@ -2,9 +2,12 @@ mod common;
 use common::run_ipl_file;
 
 #[test]
-fn test_while_loop_with_continue() {
+fn test_while_and_for_loop_with_continue() {
     let output = run_ipl_file("tests/ipl_files/loops.ipl");
     assert!(output.contains("7"));
+    assert!(output.contains("1"));
+    assert!(output.contains("3"));
+    assert!(output.contains("5"));
 }
 
 #[test]

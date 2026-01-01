@@ -9,3 +9,11 @@ while i < 5
     i = i + 1
 
 out(sum)  # 0+1+2+4 = 7
+
+
+
+list = [1, 2, 3, 4, 5]
+for number in list
+    if number == 2 or number == 4
+        continue
+    out(number)

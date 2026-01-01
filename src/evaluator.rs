@@ -127,6 +127,7 @@ impl Evaluator {
 
         while programm_counter < end {
             // println!("At line {}", programm_counter);
+            // println!("Indentation_stack: {:#?}", self.indentation_stack);
 
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
@@ -341,6 +342,7 @@ impl Evaluator {
                             }
                             break;
                         } else if x.0 == "for" {
+                            self.indentation_stack.push(x); // Keep indentation (still in loop)
                             return Value::None; // Stop execution of current iteration
                         } else if x.0 == "normal" {
                             EvaluatioError::new("Error: 'continue' outside loop".to_string())
