@@ -9,3 +9,9 @@ pub fn run_ipl_file(file: &str) -> String {
     println!("Output: {:#?}", output);
     String::from_utf8_lossy(&output.stdout).to_string()
 }
+
+
+pub fn assert_lines(output: &str, assertions: Vec<&str>) {
+    let lines : Vec<&str> = output.lines().collect();
+    assert_eq!(lines, assertions);
+}

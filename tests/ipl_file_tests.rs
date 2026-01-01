@@ -1,13 +1,13 @@
 mod common;
-use common::run_ipl_file;
+use std::vec;
+
+use common::{run_ipl_file, assert_lines};
 
 #[test]
 fn test_while_and_for_loop_with_continue() {
     let output = run_ipl_file("tests/ipl_files/loops.ipl");
-    assert!(output.contains("7"));
-    assert!(output.contains("1"));
-    assert!(output.contains("3"));
-    assert!(output.contains("5"));
+    let expected = vec!["7", "3", "1", "3", "5", "1", "2"];
+    assert_lines(&output, expected);
 }
 
 #[test]

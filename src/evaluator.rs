@@ -246,7 +246,10 @@ impl Evaluator {
                     for value in iterable.iter() {
                         self.variables
                             .insert(variable_name.to_string(), value.clone());
-                        self.execute_lines(start_line, end_line, "".to_string(), file_path);
+                        let output = self.execute_lines(start_line, end_line, "".to_string(), file_path);
+                        if output.to_string_value() == "break"{
+                            break
+                        }
                     }
                     self.indentation_stack.pop();
                     programm_counter = end_line;
@@ -327,6 +330,8 @@ impl Evaluator {
                                 programm_counter += 1;
                             }
                             break;
+                        } else if x.0 == "for" {
+                            return Value::Str("break".to_string()); // Signal to break for loop
                         } else if x.0 == "normal" {
                             EvaluatioError::new("Error: 'break' outside loop".to_string()).raise();
                         }
