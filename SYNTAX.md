@@ -18,14 +18,17 @@ If anything below looks different from what you expect, tell me.
   - [6. Control flow](#6-control-flow)
     - [6.1 If/elif/else:](#61-ifelifelse)
     - [6.2 Loops:](#62-loops)
-    - [6.3 Continue](#63-continue)
+      - [6.2.1 while loops:](#621-while-loops)
+      - [6.2.2 for loops](#622-for-loops)
+      - [6.2.3 Continue](#623-continue)
   - [7. Lists, iteration and indexing](#7-lists-iteration-and-indexing)
     - [7.1 Lists](#71-lists)
     - [7.2 Iteration](#72-iteration)
     - [7.3 Indexing and slicing](#73-indexing-and-slicing)
   - [8. Classes and objects](#8-classes-and-objects)
     - [8.1 Definition and usage](#81-definition-and-usage)
-  - [8.2 Static functions](#82-static-functions)
+    - [8.2 Instances](#82-instances)
+    - [8.3 Static functions](#83-static-functions)
   - [9. Modules / Import](#9-modules--import)
   - [10. Libraries](#10-libraries)
     - [10.1 ILI](#101-ili)
@@ -130,7 +133,7 @@ else
 
 ### 6.2 Loops:
 
-- `while` loops:
+#### 6.2.1 while loops:
 
 `While` loops are executed as long as the condition following the `while` is `true`.
  
@@ -149,10 +152,10 @@ while i <= 5
 #   5
 ```
 
-- `for` loops over iterables:
+#### 6.2.2 for loops
 
-A `for` loop consist of a variable and an iterable.      
-The `for` loop goes through the iterable and assigns each value to the variable, executes the block below, and repeats.
+`for <var> in <iterable>` iterates over iterables.   
+Each iteration assigns the next element to `<var>`.  
 
 ```
 list = [1, 2, 3, 4, 5]
@@ -169,17 +172,25 @@ for number in list
 
 Control keywords: `continue`  `break` work just like in other languages.
 
-### 6.3 Continue
+#### 6.2.3 Continue
 
 Continue ends the current iteration and skips to the next one.
 
 Example:
 
+```
 list = [1, 2, 3, 4, 5]
 for number in list
     if number == 2 or number == 4
         continue
     out(number)
+
+# Ouput:
+#   1
+#   3
+#   5
+
+```
 
 
 ## 7. Lists, iteration and indexing
@@ -190,12 +201,10 @@ Lists are written with square brackets and comma-separated elements: `[1, 2, 3]`
 
 ### 7.2 Iteration
 
-`for <var> in <iterable>` iterates over lists.
-
-Each iteration assigns the next element to `<var>`.
+See [for loops](#622-for-loops)
 
 ### 7.3 Indexing and slicing
-Index looks like this:
+Indexing looks like this:
 
 ```
 list = [1, 2, 3, 4, 5]
@@ -206,6 +215,7 @@ sublist = list[1:4]    # sublist is [2, 3, 4, 5]
 There are two ways to index/slice:
 - Single index: `list[index]` gets the element at `index` (0-based).
 - Slice: `list[start:end]` gets a sublist from `start` (inclusive) to `end` (inclusive).
+
 
 ## 8. Classes and objects
 
@@ -224,20 +234,35 @@ class Class : Base
         # constructor: method with same name as class
         self.field = arg1
 
-obj = Class()
-obj.method()
 ```
 
 - `class Name` or `class Name : Base` — colon separates the base class.
 - Inside a class body, `self` is used to define instance fields: `self.name = "John"`.
 - Methods are regular function blocks inside the class.
 - Constructors are implemented as a method named the same as the class (e.g. `def Person(n, a)` inside `class Person`), and are invoked via `p = Person("Alex", 30)`.
-- Create an instance with `t = Test()` and call a method with `t.greet()`.
 
-## 8.2 Static functions
+### 8.2 Instances
+
+Class in this example is the Class from [here](#81-definition-and-usage)
+
+Create an instance with `obj = Class()`.                
+This will create a new `Class` and assign it to `obj`.          
+You can now assign and get the field on the instance:
+
+```
+value = obj.field    # 0
+obj.field = 25
+```
+
+To call methods on instances just do `obj.method(arg)`.             
+It functions the same as a regular function, only that you call it on the instance.             
+If the function modifies any fields, those will be modified on the instance.
+
+
+### 8.3 Static functions
 
 - Static functions are defined just like regular functions inside a class, but they do not access instance fields.
-- They are called using the class name, e.g. Class.function().
+- They are called using the class name, e.g. `Class.function()`.
 - No special keyword (like static) is needed — any method called on a class is treated as static when called on the class (this may produce errors, if you use self in the function, there are no checks for this currently).:
 
 Example:
