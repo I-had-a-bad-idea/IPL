@@ -281,7 +281,6 @@ Class.method()
 ## 9. Modules / Import
 
 Modules can be imported using the `import` keyword followed by the filepath (without `.ipl` extension).
-Import uses a simple filename:
 
 Example:
 
@@ -294,7 +293,7 @@ number = add(5, 10) # assuming utils.ipl defines add function
 
 The imported filename is looked up relative to the current file.
 Once imported, the module’s variables and functions can be used directly in your IPL code.
-No need for a namespace prefix.
+There is no need for a namespace prefix.
 
 ## 10. Libraries
 
@@ -321,6 +320,7 @@ Use the library name as a prefix to access its functions and variables.
 Notes:
 - Library names are case-sensitive.
 - Installed libraries are available globally to all IPL scripts on your system.
+- You still need to write `use <library_name>` in the scripts.
 - Using a library that has not been installed will result in a runtime error.
 
 ## 11. Built-in functions
@@ -329,13 +329,13 @@ Built-in functions include:
 
 - `out(value)`: Print a value to stdout
 - `in(prompt)`: Get user input with an prompt
-- `random(start, end)`: Generate random integer between start and end (inclusive)
+- `random(start, end)`: Generate random number between start and end (inclusive)
 - `round(number)`: Round a number to nearest integer
 - `pow(base, exp)`: Calculate base raised to exp power
 - `min(list)`: Get minimum value from a list of numbers
 - `max(list)`: Get maximum value from a list of numbers
-- `len(collection)`: Get length of string or list
-- `value(number)`: Convert to number type
+- `len(collection)`: Get length of a string or a list
+- `value(number)`: Returns the absolute value of the number.
   
 These are called like normal functions (e.g. `out("Hello World")`).
 

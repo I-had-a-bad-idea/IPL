@@ -45,7 +45,7 @@ pub fn call_built_in_function(name: &str, args: Vec<Value>) -> Value {
         "value" => {
             if let Some(number) = args.first() {
                 if let Value::Number(num) = number {
-                    return Value::Number(*num);
+                    return Value::Number(num.abs());
                 } else {
                     EvaluatioError::new(
                         "Error: 'value' function requires a numeric argument".to_string(),
