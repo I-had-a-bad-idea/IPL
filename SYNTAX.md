@@ -215,13 +215,13 @@ Class.method()
 
 ## 9. Modules / Import
 
-Modules can be imported using the `import` keyword followed by the filepath (with `.ipl` extension).
+Modules can be imported using the `import` keyword followed by the filepath (without `.ipl` extension).
 Import uses a simple filename:
 
 Example:
 
 ```
-import utils.ipl
+import utils
 
 number = add(5, 10) # assuming utils.ipl defines add function
 

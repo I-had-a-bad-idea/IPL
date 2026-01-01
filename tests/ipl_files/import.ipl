@@ -1,4 +1,4 @@
-import classes.ipl
+import classes
 
 a = Animal()
 a.make_sound() # Some sound

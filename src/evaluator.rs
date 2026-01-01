@@ -190,7 +190,7 @@ impl Evaluator {
                     programm_counter += 1;
                 }
                 "import" => {
-                    let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
+                    let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1] + ".ipl";
 
                     let folder = self.folder.clone();
                     let path = self.path.clone();
