@@ -127,6 +127,7 @@ impl Evaluator {
 
         while programm_counter < end {
             // println!("At line {}", programm_counter);
+            // println!("Indentation_stack: {:#?}", self.indentation_stack);
 
             let mut line = self.lines[programm_counter].clone();
             line = line.split("#").collect::<Vec<_>>()[0].to_string();
@@ -190,7 +191,7 @@ impl Evaluator {
                     programm_counter += 1;
                 }
                 "import" => {
-                    let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1];
+                    let file = self.folder.clone() + line.split(" ").collect::<Vec<_>>()[1] + ".ipl";
 
                     let folder = self.folder.clone();
                     let path = self.path.clone();
@@ -245,7 +246,10 @@ impl Evaluator {
                     for value in iterable.iter() {
                         self.variables
                             .insert(variable_name.to_string(), value.clone());
-                        self.execute_lines(start_line, end_line, "".to_string(), file_path);
+                        let output = self.execute_lines(start_line, end_line, "".to_string(), file_path);
+                        if output.to_string_value() == "break"{
+                            break
+                        }
                     }
                     self.indentation_stack.pop();
                     programm_counter = end_line;
@@ -326,6 +330,8 @@ impl Evaluator {
                                 programm_counter += 1;
                             }
                             break;
+                        } else if x.0 == "for" {
+                            return Value::Str("break".to_string()); // Signal to break for loop
                         } else if x.0 == "normal" {
                             EvaluatioError::new("Error: 'break' outside loop".to_string()).raise();
                         }
@@ -341,6 +347,7 @@ impl Evaluator {
                             }
                             break;
                         } else if x.0 == "for" {
+                            self.indentation_stack.push(x); // Keep indentation (still in loop)
                             return Value::None; // Stop execution of current iteration
                         } else if x.0 == "normal" {
                             EvaluatioError::new("Error: 'continue' outside loop".to_string())

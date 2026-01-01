@@ -1,7 +1,7 @@
 
 # IPL — Language Syntax Reference
 
-This document is a concise, example-driven reference for the IPL syntax used by the interpreter in this repository. It summarizes the lexical rules, statement and expression forms, function and class syntax, modules/imports, built-ins, and commonly-seen idioms from the `examples/` directory.
+This document is a concise reference for the IPL syntax used by the interpreter in this repository. It summarizes the lexical rules, statement and expression forms, function and class syntax, modules/imports, built-ins, and more.
 
 If anything below looks different from what you expect, tell me.
 
@@ -18,13 +18,18 @@ If anything below looks different from what you expect, tell me.
   - [6. Control flow](#6-control-flow)
     - [6.1 If/elif/else:](#61-ifelifelse)
     - [6.2 Loops:](#62-loops)
+      - [6.2.1 While loops:](#621-while-loops)
+      - [6.2.2 For loops](#622-for-loops)
+      - [6.2.3 Continue](#623-continue)
+      - [6.2.4 Break](#624-break)
   - [7. Lists, iteration and indexing](#7-lists-iteration-and-indexing)
     - [7.1 Lists](#71-lists)
     - [7.2 Iteration](#72-iteration)
     - [7.3 Indexing and slicing](#73-indexing-and-slicing)
   - [8. Classes and objects](#8-classes-and-objects)
     - [8.1 Definition and usage](#81-definition-and-usage)
-  - [8.2 Static functions](#82-static-functions)
+    - [8.2 Instances](#82-instances)
+    - [8.3 Static functions](#83-static-functions)
   - [9. Modules / Import](#9-modules--import)
   - [10. Libraries](#10-libraries)
     - [10.1 ILI](#101-ili)
@@ -38,21 +43,21 @@ If anything below looks different from what you expect, tell me.
 
 ## 0. Quick overview
 
-- IPL is indentation-significant: block structure is determined by consistent indentation (spaces are recommended).
+- IPL is indentation-significant: block structure is determined by consistent indentation.
 - Statements are line-oriented; block headers (like `def`, `if`, `class`, etc.) are followed by an indented block on subsequent line(s).
-- The language uses familiar Python-like operators and function call syntax: `name(args)`.
+- The language is Python-like, but with simplified syntax.
 
 ## 1. Lexical elements
 
 - Comments: `#` starts a comment that runs to the end of the line.
 - Identifiers: start with a letter or `_`, followed by letters, digits or `_` (e.g. `my_var`, `_internal`).
-- Line termination: statements end at the newline. There is no semicolon terminator.
-- Indentation: use consistent spaces to indicate nested blocks. All lines in the same block must share the same indentation level.
+- Line termination: statements end at the newline (end of line). There is no semicolon terminator.
+- Indentation: use consistent indentation to indicate nested blocks. All lines in the same block must share the same indentation level.
 
 ## 2. Literals
 
-- Numbers: integer-like numerals (like `0`, `5`).
-- Strings: double-quoted strings: `"Hello"`.
+- Numbers: integer-or-float-like numerals (like `0`, `5`, `3.141`).
+- Strings: double-quoted strings: `"Hello"` or single-quoted strings: `'Hello'` .
 - Lists: list literals are supported (`list = [1, 2, 3]`).
 - Booleans / none: `true`/`false`/`none` tokens or capitalized
 
@@ -66,7 +71,7 @@ list = [1, 2, 3]
 
 ## 3. Expressions and operators
 
-- Arithmetic: `+`, `-`, `*`, `/` (e.g. `a + b`).
+- Arithmetic: `+`, `-`, `*`, `/` 
 - Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`.
 - Logical operators: `and`, `or`. 
 
@@ -112,35 +117,102 @@ Notes:
 
 ### 6.1 If/elif/else:
 
+If statements consist of two parts `if` and a condition following it.           
+If the following condition is `true` the following indented block is executed.               
+If it is `false` **IPL** will check if there is an `elif`.               
+If it finds one it treats it like an `if`.              
+If all `if`s and `elif`s are `false` the indented block beneath `else` will be executed.               
+
 ```
-if x > 10
-    out("more than 10")
-elif x == 10
-    out("ten")
+if x == 10
+    out("x is ten")
+elif x > 10
+    out("x is more than 10")
 else
-    out("les than 10")
+    out("x is less than 10")
 ```
 
 ### 6.2 Loops:
 
-- `while` loops:
+#### 6.2.1 While loops:
 
+`While` loops are executed as long as the condition following the `while` is `true`.
+ 
 ```
 i = 0
 while i <= 5
     out(i)
     i = i + 1
+
+# Output: 
+#   0
+#   1
+#   2
+#   3
+#   4
+#   5
 ```
 
-- `for` loops over iterables:
+#### 6.2.2 For loops
+
+`for <var> in <iterable>` iterates over iterables.   
+Each iteration assigns the next element to `<var>`.  
 
 ```
 list = [1, 2, 3, 4, 5]
 for number in list
     out(number)
+
+# Output:
+#   1
+#   2
+#   3
+#   4
+#   5
 ```
 
 Control keywords: `continue`  `break` work just like in other languages.
+
+#### 6.2.3 Continue
+
+`continue` ends the current iteration and skips to the next one.
+
+Example:
+
+```
+list = [1, 2, 3, 4, 5]
+for number in list
+    if number == 2 or number == 4
+        continue
+    out(number)
+
+# Ouput:
+#   1
+#   3
+#   5
+
+```
+
+#### 6.2.4 Break
+
+`break` ends the loop.
+
+Example:
+
+```
+
+i = 0
+sum = 0
+while i < 5
+    if i == 3
+        break
+    
+    sum = sum + i
+    i = i + 1
+
+out(sum)  # 0 + 1 + 2 = 3
+
+```
 
 ## 7. Lists, iteration and indexing
 
@@ -150,12 +222,10 @@ Lists are written with square brackets and comma-separated elements: `[1, 2, 3]`
 
 ### 7.2 Iteration
 
-`for <var> in <iterable>` iterates over lists.
-
-Each iteration assigns the next element to `<var>`.
+See [for loops](#622-for-loops)
 
 ### 7.3 Indexing and slicing
-Index looks like this:
+Indexing looks like this:
 
 ```
 list = [1, 2, 3, 4, 5]
@@ -166,6 +236,7 @@ sublist = list[1:4]    # sublist is [2, 3, 4, 5]
 There are two ways to index/slice:
 - Single index: `list[index]` gets the element at `index` (0-based).
 - Slice: `list[start:end]` gets a sublist from `start` (inclusive) to `end` (inclusive).
+
 
 ## 8. Classes and objects
 
@@ -184,20 +255,35 @@ class Class : Base
         # constructor: method with same name as class
         self.field = arg1
 
-obj = Class()
-obj.method()
 ```
 
 - `class Name` or `class Name : Base` — colon separates the base class.
 - Inside a class body, `self` is used to define instance fields: `self.name = "John"`.
 - Methods are regular function blocks inside the class.
 - Constructors are implemented as a method named the same as the class (e.g. `def Person(n, a)` inside `class Person`), and are invoked via `p = Person("Alex", 30)`.
-- Create an instance with `t = Test()` and call a method with `t.greet()`.
 
-## 8.2 Static functions
+### 8.2 Instances
+
+Class in this example is the Class from [here](#81-definition-and-usage)
+
+Create an instance with `obj = Class()`.                
+This will create a new `Class` and assign it to `obj`.          
+You can now assign and get the field on the instance:
+
+```
+value = obj.field    # 0
+obj.field = 25
+```
+
+To call methods on instances just do `obj.method(arg)`.             
+It functions the same as a regular function, only that you call it on the instance.             
+If the function modifies any fields, those will be modified on the instance.
+
+
+### 8.3 Static functions
 
 - Static functions are defined just like regular functions inside a class, but they do not access instance fields.
-- They are called using the class name, e.g. Class.function().
+- They are called using the class name, e.g. `Class.function()`.
 - No special keyword (like static) is needed — any method called on a class is treated as static when called on the class (this may produce errors, if you use self in the function, there are no checks for this currently).:
 
 Example:
@@ -215,13 +301,12 @@ Class.method()
 
 ## 9. Modules / Import
 
-Modules can be imported using the `import` keyword followed by the filepath (with `.ipl` extension).
-Import uses a simple filename:
+Modules can be imported using the `import` keyword followed by the filepath (without `.ipl` extension).
 
 Example:
 
 ```
-import utils.ipl
+import utils
 
 number = add(5, 10) # assuming utils.ipl defines add function
 
@@ -229,7 +314,7 @@ number = add(5, 10) # assuming utils.ipl defines add function
 
 The imported filename is looked up relative to the current file.
 Once imported, the module’s variables and functions can be used directly in your IPL code.
-No need for a namespace prefix.
+There is no need for a namespace prefix.
 
 ## 10. Libraries
 
@@ -256,6 +341,7 @@ Use the library name as a prefix to access its functions and variables.
 Notes:
 - Library names are case-sensitive.
 - Installed libraries are available globally to all IPL scripts on your system.
+- You still need to write `use <library_name>` in the scripts.
 - Using a library that has not been installed will result in a runtime error.
 
 ## 11. Built-in functions
@@ -264,13 +350,13 @@ Built-in functions include:
 
 - `out(value)`: Print a value to stdout
 - `in(prompt)`: Get user input with an prompt
-- `random(start, end)`: Generate random integer between start and end (inclusive)
+- `random(start, end)`: Generate random number between start and end (inclusive)
 - `round(number)`: Round a number to nearest integer
 - `pow(base, exp)`: Calculate base raised to exp power
 - `min(list)`: Get minimum value from a list of numbers
 - `max(list)`: Get maximum value from a list of numbers
-- `len(collection)`: Get length of string or list
-- `value(number)`: Convert to number type
+- `len(collection)`: Get length of a string or a list
+- `value(number)`: Returns the absolute value of the number.
   
 These are called like normal functions (e.g. `out("Hello World")`).
 
