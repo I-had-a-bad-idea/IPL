@@ -45,7 +45,7 @@ Everything you would expect from a simple programming language:
 
 ## Installation
 
-1. Ensure you have Rust installed
+1. Ensure you have [Rust](https://www.rust-lang.org/tools/install) installed
 2. Clone the repository
 3. Build the project:
 ```sh

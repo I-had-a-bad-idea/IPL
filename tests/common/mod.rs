@@ -11,7 +11,7 @@ pub fn run_ipl_file(file: &str) -> String {
 }
 
 
-pub fn assert_lines(output: &str, assertions: Vec<&str>) {
+pub fn assert_lines(output: &str, expected: Vec<&str>) {
     let lines : Vec<&str> = output.lines().collect();
-    assert_eq!(lines, assertions);
+    assert_eq!(lines, expected);
 }
