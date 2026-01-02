@@ -59,19 +59,6 @@ impl Evaluator {
 
     // Evaluate a file by reading its contents and executing its lines
     pub fn ev_file(&mut self, file: &str) {
-        println!("Value: {}", size_of::<Value>());
-        println!("f64: {}", size_of::<f64>());
-        println!("Vec<Value>: {}", size_of::<Vec<Value>>());
-        println!("String: {}", size_of::<String>());
-        println!("PathBuf: {}", size_of::<Box<PathBuf>>());
-        println!("Instance: {}", size_of::<Instance>());
-        println!("Value Instance: {}", size_of::<Box<Instance>>());
-        println!("Class: {}", size_of::<Class>());
-        println!("Library: {}", size_of::<IPL_Library>());
-        println!("Value Library: {}", size_of::<Box<IPL_Library>>());
-        println!("ClassStr: {}", size_of::<ClassStr>());
-        println!("Value ClassStr: {}", size_of::<Box<ClassStr>>());
-        println!("InstanceValue: {}", size_of::<IndexValue>());
 
         let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
         self.folder = path
