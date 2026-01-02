@@ -182,7 +182,7 @@ impl Value {
         match self {
             Value::Number(n) => n.to_string(),
             Value::Bool(b) => b.to_string(),
-            Value::Str(s) => s.clone(),
+            Value::Str(s) => s.to_string(),
             Value::Path(p) => p.to_str().unwrap_or("").to_string(),
             Value::None => "None".into(),
             Value::List(v) => {

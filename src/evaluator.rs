@@ -839,7 +839,7 @@ impl Evaluator {
                             .to_string(),
                         function_name,
                         args,
-                        Some(instance.clone()),
+                        Some(instance),
                         None,
                         false,
                     );

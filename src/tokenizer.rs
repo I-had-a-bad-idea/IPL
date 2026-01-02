@@ -6,6 +6,22 @@ use regex::Regex;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
+
+static TOKEN_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],:]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#).unwrap()
+});
+
+static PREC: Lazy<HashMap<String, i32>> = Lazy::new(|| {
+    HashMap::from([
+            ("or".to_string(), 1),
+            ("and".to_string(), 2),
+            ("==".to_string(), 3), ("!=".to_string(), 3), ("<".to_string(), 3), ("<=".to_string(), 3), (">".to_string(), 3), (">=".to_string(), 3),
+            ("+".to_string(), 4), ("-".to_string(), 4),
+            ("*".to_string(), 5), ("/".to_string(), 5),
+            (".".to_string(), 6),
+        ])
+});
+
 pub struct Tokenizer {}
 
 impl Tokenizer {
@@ -29,10 +45,7 @@ impl Tokenizer {
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
-        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],:]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#;
-
-        let re = Regex::new(token_pattern).unwrap();
-        let tokens: Vec<String> = re
+        let tokens: Vec<String> = TOKEN_PATTERN
             .find_iter(input)
             .map(|mat| mat.as_str().to_string())
             .collect();
@@ -43,9 +56,9 @@ impl Tokenizer {
         if token.starts_with('"') && token.ends_with('"')
             || token.starts_with("'") && token.ends_with("'")
         {
-            Value::Str(token.to_string().clone())
-        } else if token.trim_matches('.').parse::<f64>().is_ok() {
-            Value::Number(Value::Str(token.to_string().clone()).as_f64())
+            Value::Str(token.to_string())
+        } else if let Ok(num) = token.parse::<f64>(){
+            Value::Number(num)
         } else {
             Value::None
         }
@@ -60,21 +73,6 @@ impl Tokenizer {
         classes: &HashMap<String, Class>,
         ipl_libraries: &HashMap<String, IPL_Library>,
     ) -> Vec<Value> {
-        let prec = HashMap::from([
-            ("or", 1),
-            ("and", 2),
-            ("==", 3),
-            ("!=", 3),
-            ("<", 3),
-            ("<=", 3),
-            (">", 3),
-            (">=", 3),
-            ("+", 4),
-            ("-", 4),
-            ("*", 5),
-            ("/", 5),
-            (".", 6),
-        ]);
         let mut output: Vec<Value> = vec![];
         let mut stack: Vec<Value> = vec![];
 
@@ -164,10 +162,10 @@ impl Tokenizer {
                 }
                 function_arguments.push(Value::Str(argument.clone()));
                 output.push(Value::List(function_arguments));
-            } else if prec.contains_key(token.as_str()) {
+            } else if PREC.contains_key(token) {
                 while let Some(last) = stack.last() {
-                    if prec.contains_key(last.to_string_value().as_str())
-                        && prec[last.to_string_value().as_str()] >= prec[token.as_str()]
+                    if PREC.contains_key(&last.to_string_value())
+                        && PREC[&last.to_string_value()] >= PREC[token]
                     {
                         output.push(stack.pop().unwrap());
                     } else {
