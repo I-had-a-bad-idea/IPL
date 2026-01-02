@@ -9,30 +9,8 @@ use crate::debug::EvaluatioError;
 use crate::library::get_library_entry_path;
 use crate::state;
 use crate::tokenizer::Tokenizer;
-use crate::value::{ClassStr, Value};
+use crate::value::{ClassStr, Value, Class, Instance, IPL_Library};
 
-// Define Class, Instance, and Value types for the evaluator
-
-#[derive(Debug, Clone)]
-pub struct Class {
-    pub functions: HashMap<String, HashMap<String, Value>>,
-    variables: HashMap<String, Value>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Instance {
-    pub class: ClassStr,
-    variables: HashMap<String, Value>,
-}
-
-#[allow(non_camel_case_types)] // For readability
-#[derive(Debug, Clone)]
-pub struct IPL_Library {
-    pub lib_name: String,
-    pub variables: HashMap<String, Value>,
-    pub functions: HashMap<String, HashMap<String, Value>>,
-    pub classes: HashMap<String, Class>,
-}
 
 // Define the Evaluator struct and its methods for evaluating IPL code
 pub struct Evaluator {
@@ -81,6 +59,7 @@ impl Evaluator {
 
     // Evaluate a file by reading its contents and executing its lines
     pub fn ev_file(&mut self, file: &str) {
+
         let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
         self.folder = path
             .parent()
@@ -439,7 +418,7 @@ impl Evaluator {
                         .map(|n| Value::Number(n as f64))
                         .collect::<Vec<Value>>();
                     let mut function_hash_map: HashMap<String, Value> = HashMap::new();
-                    function_hash_map.insert("file".to_string(), Value::Path(self.path.clone()));
+                    function_hash_map.insert("file".to_string(), Value::Path(Box::new(self.path.clone())));
                     function_hash_map
                         .insert("arguments".to_string(), Value::List(function_arguments));
                     function_hash_map
@@ -489,7 +468,7 @@ impl Evaluator {
 
                                         inst.variables.insert(var_name.to_string(), result);
                                         self.variables
-                                            .insert(self_value.clone(), Value::Instance(inst));
+                                            .insert(self_value.clone(), Value::Instance(Box::new(inst)));
 
                                         //let inst = self.variables.get_mut(&self_value).unwrap_or(&mut Value::None).get_instance().unwrap_or(Instance {class: "".to_string(), variables: HashMap::new()}).variables.insert(var_name.to_string(), result);
                                         //self.variables.insert(self_value.clone(), inst.unwrap_or(Value::None));
@@ -514,7 +493,7 @@ impl Evaluator {
                                     inst.variables.insert(var_name.to_string(), result);
 
                                     self.variables
-                                        .insert(object.to_string(), Value::Instance(inst));
+                                        .insert(object.to_string(), Value::Instance(Box::new(inst)));
                                 } else if self.classes.contains_key(object) {
                                     self.classes
                                         .get_mut(object)
@@ -612,7 +591,7 @@ impl Evaluator {
             if instance_opt.is_some() { // Dont use let Some(instance) = instance_opt
                 instance = instance_opt.unwrap();
                 self.variables
-                    .insert(instance_str.clone(), Value::Instance(instance.clone()));
+                    .insert(instance_str.clone(), Value::Instance(Box::new(instance.clone())));
             } else if !self.variables.contains_key(&instance_str) {
                 EvaluatioError::new("Instance not found".to_string()).raise();
             } else {
@@ -815,7 +794,7 @@ impl Evaluator {
             } else if self.variables.contains_key(&token_str) {
                 stack.push(self.variables[&token_str].clone());
             } else if self.ipl_libraries.contains_key(&token_str) {
-                stack.push(Value::IPL_Library(self.ipl_libraries[&token_str].clone()));
+                stack.push(Value::IPL_Library(Box::new(self.ipl_libraries[&token_str].clone())));
             } else if self.functions.contains_key(&token_str)
                 || BUILT_IN_FUNCTIONS.contains_key(&token_str as &str)
                 || self.classes.contains_key(&token_str)
@@ -865,13 +844,13 @@ impl Evaluator {
                         false,
                     );
 
-                    Value::Instance(
+                    Value::Instance(Box::new(
                         self.variables
                             .get("__DO_NOT_USE_THIS_VARIABLE_INTERNAL_ONLY__")
                             .expect("Instance not found")
                             .get_instance()
                             .expect("Not an instance"),
-                    )
+                    ))
                 } else {
                     Value::None
                 };
@@ -928,10 +907,10 @@ impl Evaluator {
                         if lib.variables.contains_key(&attribute_str) {
                             stack.push(lib.variables[&attribute_str].clone());
                         } else if lib.classes.contains_key(&attribute_str) {
-                            stack.push(Value::ClassStr(ClassStr {
+                            stack.push(Value::ClassStr(Box::new(ClassStr {
                                 class_name: attribute_str,
                                 lib_name: lib.lib_name,
-                            }));
+                            })));
                         } else if lib.functions.contains_key(&attribute_str) {
                             let function_name = &attribute.to_string_value();
                             let mut args: Vec<Value> = vec![];

@@ -1,8 +1,9 @@
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
-use crate::evaluator::{Class, IPL_Library};
+use crate::value::{Class, IPL_Library};
 use crate::value::{IndexValue, Value};
 use regex::Regex;
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
 pub struct Tokenizer {}
