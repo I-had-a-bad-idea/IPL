@@ -11,14 +11,14 @@ static TOKEN_PATTERN: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],:]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#).unwrap()
 });
 
-static PREC: Lazy<HashMap<&str, i32>> = Lazy::new(|| {
+static PREC: Lazy<HashMap<String, i32>> = Lazy::new(|| {
     HashMap::from([
-            ("or", 1),
-            ("and", 2),
-            ("==", 3), ("!=", 3), ("<", 3), ("<=", 3), (">", 3), (">=", 3),
-            ("+", 4), ("-", 4),
-            ("*", 5), ("/", 5),
-            (".", 6),
+            ("or".to_string(), 1),
+            ("and".to_string(), 2),
+            ("==".to_string(), 3), ("!=".to_string(), 3), ("<".to_string(), 3), ("<=".to_string(), 3), (">".to_string(), 3), (">=".to_string(), 3),
+            ("+".to_string(), 4), ("-".to_string(), 4),
+            ("*".to_string(), 5), ("/".to_string(), 5),
+            (".".to_string(), 6),
         ])
 });
 
@@ -56,9 +56,9 @@ impl Tokenizer {
         if token.starts_with('"') && token.ends_with('"')
             || token.starts_with("'") && token.ends_with("'")
         {
-            Value::Str(token.to_string().clone())
-        } else if token.trim_matches('.').parse::<f64>().is_ok() {
-            Value::Number(Value::Str(token.to_string().clone()).as_f64())
+            Value::Str(token.to_string())
+        } else if let Ok(num) = token.parse::<f64>(){
+            Value::Number(num)
         } else {
             Value::None
         }
@@ -162,10 +162,10 @@ impl Tokenizer {
                 }
                 function_arguments.push(Value::Str(argument.clone()));
                 output.push(Value::List(function_arguments));
-            } else if PREC.contains_key(token.as_str()) {
+            } else if PREC.contains_key(token) {
                 while let Some(last) = stack.last() {
-                    if PREC.contains_key(last.to_string_value().as_str())
-                        && PREC[last.to_string_value().as_str()] >= PREC[token.as_str()]
+                    if PREC.contains_key(&last.to_string_value())
+                        && PREC[&last.to_string_value()] >= PREC[token]
                     {
                         output.push(stack.pop().unwrap());
                     } else {
