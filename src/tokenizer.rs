@@ -1,6 +1,6 @@
 use crate::built_in_functions::BUILT_IN_FUNCTIONS;
 use crate::debug::EvaluatioError;
-use crate::evaluator::{Class, IPL_Library};
+use crate::value::{Class, IPL_Library};
 use crate::value::{IndexValue, Value};
 use regex::Regex;
 use std::collections::HashMap;

@@ -9,30 +9,8 @@ use crate::debug::EvaluatioError;
 use crate::library::get_library_entry_path;
 use crate::state;
 use crate::tokenizer::Tokenizer;
-use crate::value::{ClassStr, Value};
+use crate::value::{ClassStr, Value, Class, Instance, IPL_Library};
 
-// Define Class, Instance, and Value types for the evaluator
-
-#[derive(Debug, Clone)]
-pub struct Class {
-    pub functions: HashMap<String, HashMap<String, Value>>,
-    variables: HashMap<String, Value>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Instance {
-    pub class: ClassStr,
-    variables: HashMap<String, Value>,
-}
-
-#[allow(non_camel_case_types)] // For readability
-#[derive(Debug, Clone)]
-pub struct IPL_Library {
-    pub lib_name: String,
-    pub variables: HashMap<String, Value>,
-    pub functions: HashMap<String, HashMap<String, Value>>,
-    pub classes: HashMap<String, Class>,
-}
 
 // Define the Evaluator struct and its methods for evaluating IPL code
 pub struct Evaluator {

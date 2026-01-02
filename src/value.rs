@@ -1,8 +1,31 @@
-use crate::evaluator::{IPL_Library, Instance};
 use std::cmp::Ordering;
 use std::ops::Index;
 use std::ops::{Add, Div, Mul, Sub};
 use std::path::PathBuf;
+use std::collections::HashMap;
+
+// Define Class, Instance, and Value types for the evaluator
+
+#[derive(Debug, Clone)]
+pub struct Class {
+    pub functions: HashMap<String, HashMap<String, Value>>,
+    pub variables: HashMap<String, Value>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Instance {
+    pub class: ClassStr,
+    pub variables: HashMap<String, Value>,
+}
+
+#[allow(non_camel_case_types)] // For readability
+#[derive(Debug, Clone)]
+pub struct IPL_Library {
+    pub lib_name: String,
+    pub variables: HashMap<String, Value>,
+    pub functions: HashMap<String, HashMap<String, Value>>,
+    pub classes: HashMap<String, Class>,
+}
 
 #[derive(Debug, Clone)]
 pub struct ClassStr {
