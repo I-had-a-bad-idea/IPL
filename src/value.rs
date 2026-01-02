@@ -46,9 +46,9 @@ pub enum Value {
     Bool(bool),
     Str(String),
     Path(PathBuf),
-    Instance(Instance),
+    Instance(Box<Instance>),
     #[allow(non_camel_case_types)] // For readability
-    IPL_Library(IPL_Library),
+    IPL_Library(Box<IPL_Library>),
     ClassStr(ClassStr),
     IndexValue(IndexValue),
     None,
@@ -207,7 +207,7 @@ impl Value {
     }
     pub fn get_instance(&self) -> Option<Instance> {
         match self {
-            Value::Instance(inst) => Some(inst.clone()),
+            Value::Instance(inst) => Some(inst.as_ref().clone()),
             _ => None,
         }
     }

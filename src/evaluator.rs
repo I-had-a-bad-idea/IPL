@@ -59,6 +59,16 @@ impl Evaluator {
 
     // Evaluate a file by reading its contents and executing its lines
     pub fn ev_file(&mut self, file: &str) {
+        println!("Value: {}", size_of::<Value>());
+        println!("f64: {}", size_of::<f64>());
+        println!("Vec<Value>: {}", size_of::<Vec<Value>>());
+        println!("String: {}", size_of::<String>());
+        println!("PathBuf: {}", size_of::<std::path::PathBuf>());
+        println!("Instance: {}", size_of::<Instance>());
+        println!("Class: {}", size_of::<Class>());
+        println!("Library: {}", size_of::<IPL_Library>());
+        println!("ClasStr: {}", size_of::<ClassStr>());
+
         let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
         self.folder = path
             .parent()
@@ -467,7 +477,7 @@ impl Evaluator {
 
                                         inst.variables.insert(var_name.to_string(), result);
                                         self.variables
-                                            .insert(self_value.clone(), Value::Instance(inst));
+                                            .insert(self_value.clone(), Value::Instance(Box::new(inst)));
 
                                         //let inst = self.variables.get_mut(&self_value).unwrap_or(&mut Value::None).get_instance().unwrap_or(Instance {class: "".to_string(), variables: HashMap::new()}).variables.insert(var_name.to_string(), result);
                                         //self.variables.insert(self_value.clone(), inst.unwrap_or(Value::None));
@@ -492,7 +502,7 @@ impl Evaluator {
                                     inst.variables.insert(var_name.to_string(), result);
 
                                     self.variables
-                                        .insert(object.to_string(), Value::Instance(inst));
+                                        .insert(object.to_string(), Value::Instance(Box::new(inst)));
                                 } else if self.classes.contains_key(object) {
                                     self.classes
                                         .get_mut(object)
@@ -590,7 +600,7 @@ impl Evaluator {
             if instance_opt.is_some() { // Dont use let Some(instance) = instance_opt
                 instance = instance_opt.unwrap();
                 self.variables
-                    .insert(instance_str.clone(), Value::Instance(instance.clone()));
+                    .insert(instance_str.clone(), Value::Instance(Box::new(instance.clone())));
             } else if !self.variables.contains_key(&instance_str) {
                 EvaluatioError::new("Instance not found".to_string()).raise();
             } else {
@@ -793,7 +803,7 @@ impl Evaluator {
             } else if self.variables.contains_key(&token_str) {
                 stack.push(self.variables[&token_str].clone());
             } else if self.ipl_libraries.contains_key(&token_str) {
-                stack.push(Value::IPL_Library(self.ipl_libraries[&token_str].clone()));
+                stack.push(Value::IPL_Library(Box::new(self.ipl_libraries[&token_str].clone())));
             } else if self.functions.contains_key(&token_str)
                 || BUILT_IN_FUNCTIONS.contains_key(&token_str as &str)
                 || self.classes.contains_key(&token_str)
@@ -843,13 +853,13 @@ impl Evaluator {
                         false,
                     );
 
-                    Value::Instance(
+                    Value::Instance(Box::new(
                         self.variables
                             .get("__DO_NOT_USE_THIS_VARIABLE_INTERNAL_ONLY__")
                             .expect("Instance not found")
                             .get_instance()
                             .expect("Not an instance"),
-                    )
+                    ))
                 } else {
                     Value::None
                 };
