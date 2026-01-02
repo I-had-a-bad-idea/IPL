@@ -45,11 +45,11 @@ pub enum Value {
     List(Vec<Value>),
     Bool(bool),
     Str(String),
-    Path(PathBuf),
+    Path(Box<PathBuf>),
     Instance(Box<Instance>),
     #[allow(non_camel_case_types)] // For readability
     IPL_Library(Box<IPL_Library>),
-    ClassStr(ClassStr),
+    ClassStr(Box<ClassStr>),
     IndexValue(IndexValue),
     None,
 }

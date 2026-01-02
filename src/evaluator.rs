@@ -9,7 +9,7 @@ use crate::debug::EvaluatioError;
 use crate::library::get_library_entry_path;
 use crate::state;
 use crate::tokenizer::Tokenizer;
-use crate::value::{ClassStr, Value, Class, Instance, IPL_Library};
+use crate::value::{ClassStr, Value, Class, Instance, IPL_Library, IndexValue};
 
 
 // Define the Evaluator struct and its methods for evaluating IPL code
@@ -63,11 +63,15 @@ impl Evaluator {
         println!("f64: {}", size_of::<f64>());
         println!("Vec<Value>: {}", size_of::<Vec<Value>>());
         println!("String: {}", size_of::<String>());
-        println!("PathBuf: {}", size_of::<std::path::PathBuf>());
+        println!("PathBuf: {}", size_of::<Box<PathBuf>>());
         println!("Instance: {}", size_of::<Instance>());
+        println!("Value Instance: {}", size_of::<Box<Instance>>());
         println!("Class: {}", size_of::<Class>());
         println!("Library: {}", size_of::<IPL_Library>());
-        println!("ClasStr: {}", size_of::<ClassStr>());
+        println!("Value Library: {}", size_of::<Box<IPL_Library>>());
+        println!("ClassStr: {}", size_of::<ClassStr>());
+        println!("Value ClassStr: {}", size_of::<Box<ClassStr>>());
+        println!("InstanceValue: {}", size_of::<IndexValue>());
 
         let path: PathBuf = PathBuf::from(file); // Convert file string to PathBuf
         self.folder = path
@@ -427,7 +431,7 @@ impl Evaluator {
                         .map(|n| Value::Number(n as f64))
                         .collect::<Vec<Value>>();
                     let mut function_hash_map: HashMap<String, Value> = HashMap::new();
-                    function_hash_map.insert("file".to_string(), Value::Path(self.path.clone()));
+                    function_hash_map.insert("file".to_string(), Value::Path(Box::new(self.path.clone())));
                     function_hash_map
                         .insert("arguments".to_string(), Value::List(function_arguments));
                     function_hash_map
@@ -916,10 +920,10 @@ impl Evaluator {
                         if lib.variables.contains_key(&attribute_str) {
                             stack.push(lib.variables[&attribute_str].clone());
                         } else if lib.classes.contains_key(&attribute_str) {
-                            stack.push(Value::ClassStr(ClassStr {
+                            stack.push(Value::ClassStr(Box::new(ClassStr {
                                 class_name: attribute_str,
                                 lib_name: lib.lib_name,
-                            }));
+                            })));
                         } else if lib.functions.contains_key(&attribute_str) {
                             let function_name = &attribute.to_string_value();
                             let mut args: Vec<Value> = vec![];
