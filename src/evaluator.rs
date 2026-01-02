@@ -9,7 +9,7 @@ use crate::debug::EvaluatioError;
 use crate::library::get_library_entry_path;
 use crate::state;
 use crate::tokenizer::Tokenizer;
-use crate::value::{ClassStr, Value, Class, Instance, IPL_Library, IndexValue};
+use crate::value::{ClassStr, Value, Class, Instance, IPL_Library};
 
 
 // Define the Evaluator struct and its methods for evaluating IPL code
