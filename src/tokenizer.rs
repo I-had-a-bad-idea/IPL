@@ -6,6 +6,22 @@ use regex::Regex;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
+
+static TOKEN_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],:]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#).unwrap()
+});
+
+static PREC: Lazy<HashMap<&str, i32>> = Lazy::new(|| {
+    HashMap::from([
+            ("or", 1),
+            ("and", 2),
+            ("==", 3), ("!=", 3), ("<", 3), ("<=", 3), (">", 3), (">=", 3),
+            ("+", 4), ("-", 4),
+            ("*", 5), ("/", 5),
+            (".", 6),
+        ])
+});
+
 pub struct Tokenizer {}
 
 impl Tokenizer {
@@ -29,10 +45,7 @@ impl Tokenizer {
     }
     // Split the input string into tokens using regex
     fn split(&self, input: &str) -> Vec<String> {
-        let token_pattern = r#""[^"]*"|'[^']*'|==|!=|<=|>=|[+\-*/=()<>\[\],:]|\.|\band\b|\bor\b|\bnot\b|[a-zA-Z_]\w*|\d+\.\d+|\d+"#;
-
-        let re = Regex::new(token_pattern).unwrap();
-        let tokens: Vec<String> = re
+        let tokens: Vec<String> = TOKEN_PATTERN
             .find_iter(input)
             .map(|mat| mat.as_str().to_string())
             .collect();
@@ -60,21 +73,6 @@ impl Tokenizer {
         classes: &HashMap<String, Class>,
         ipl_libraries: &HashMap<String, IPL_Library>,
     ) -> Vec<Value> {
-        let prec = HashMap::from([
-            ("or", 1),
-            ("and", 2),
-            ("==", 3),
-            ("!=", 3),
-            ("<", 3),
-            ("<=", 3),
-            (">", 3),
-            (">=", 3),
-            ("+", 4),
-            ("-", 4),
-            ("*", 5),
-            ("/", 5),
-            (".", 6),
-        ]);
         let mut output: Vec<Value> = vec![];
         let mut stack: Vec<Value> = vec![];
 
@@ -164,10 +162,10 @@ impl Tokenizer {
                 }
                 function_arguments.push(Value::Str(argument.clone()));
                 output.push(Value::List(function_arguments));
-            } else if prec.contains_key(token.as_str()) {
+            } else if PREC.contains_key(token.as_str()) {
                 while let Some(last) = stack.last() {
-                    if prec.contains_key(last.to_string_value().as_str())
-                        && prec[last.to_string_value().as_str()] >= prec[token.as_str()]
+                    if PREC.contains_key(last.to_string_value().as_str())
+                        && PREC[last.to_string_value().as_str()] >= PREC[token.as_str()]
                     {
                         output.push(stack.pop().unwrap());
                     } else {
